@@ -57,7 +57,7 @@ inline unsigned long php_ssh2_parse_fopen_modes(char *openmode) {
 	}
 
 	if (strchr(openmode, 'w')) {
-		flags |= LIBSSH2_FXF_WRITE | LIBSSH2_FXF_TRUNC;
+		flags |= LIBSSH2_FXF_WRITE | LIBSSH2_FXF_TRUNC | LIBSSH2_FXF_CREAT;
 	}
 
 	if (strchr(openmode, 'r')) {
