@@ -63,6 +63,8 @@ typedef struct _php_ssh2_session_data {
 	zval *macerror_cb;
 	zval *disconnect_cb;
 
+	int socket;
+
 #ifdef ZTS
 	/* Avoid unnecessary TSRMLS_FETCH() calls */
 	TSRMLS_D;

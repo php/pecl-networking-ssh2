@@ -331,6 +331,7 @@ LIBSSH2_SESSION *php_ssh2_session_connect(char *host, int port, zval *methods, z
 
 	data = ecalloc(1, sizeof(php_ssh2_session_data));
 	SSH2_TSRMLS_SET(data);
+	data->socket = socket;
 
 	session = libssh2_session_init_ex(php_ssh2_alloc_cb, php_ssh2_free_cb, php_ssh2_realloc_cb, data);
 	if (!session) {
@@ -742,6 +743,8 @@ static void php_ssh2_session_dtor(zend_rsrc_list_entry *rsrc TSRMLS_DC)
 	LIBSSH2_SESSION *session = (LIBSSH2_SESSION*)rsrc->ptr;
 	php_ssh2_session_data **data = (php_ssh2_session_data**)libssh2_session_abstract(session);
 
+	libssh2_session_disconnect(session, "PECL/ssh2 (http://pecl.php.net/packages/ssh2)");
+
 	if (*data) {
 		if ((*data)->ignore_cb) {
 			zval_ptr_dtor(&(*data)->ignore_cb);
@@ -755,6 +758,8 @@ static void php_ssh2_session_dtor(zend_rsrc_list_entry *rsrc TSRMLS_DC)
 		if ((*data)->disconnect_cb) {
 			zval_ptr_dtor(&(*data)->disconnect_cb);
 		}
+
+		close((*data)->socket);
 
 		efree(*data);
 		*data = NULL;
