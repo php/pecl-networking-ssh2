@@ -77,8 +77,8 @@ typedef struct _php_ssh2_sftp_data {
 #define SSH2_TSRMLS_SET(datap)		((php_ssh2_session_data*)(datap))->tsrm_ls = TSRMLS_C
 #define SSH2_TSRMLS_FETCH(datap)	TSRMLS_D = ((php_ssh2_session_data*)(datap))->tsrm_ls
 #else
-#define SSH2_TSRMLS_SET()
-#define SSH2_TSRMLS_FETCH()
+#define SSH2_TSRMLS_SET(datap)
+#define SSH2_TSRMLS_FETCH(datap)
 #endif
 
 
