@@ -23,7 +23,18 @@
     <file role="src" name="ssh2_sftp.c"/>
   </filelist>
 
-  <release>
+   <release>
+    <version>0.7</version>
+    <state>beta</state>
+    <date>2005-02-24</date>
+    <notes>
+Fixed socket leak bug.  Connections wern't being closed like they were supposed to.
+Add ssh2_auth_hostbased_file() for hostkey authentication.
+    </notes>
+   </release>
+
+  <changelog>
+   <release>
     <version>0.6</version>
     <state>beta</state>
     <date>2005-02-09</date>
@@ -32,9 +43,8 @@ Minor fixes including some added error handling and more discriptive ./configure
 Users of PHP/SSH2 are recommended to upgrade their installation of libssh2 to version 0.6
 whether or not upgrading the PHP/SSH2 extension.
     </notes>
-  </release>
+   </release>
 
-  <changelog>
    <release>
     <version>0.5</version>
     <state>beta</state>
