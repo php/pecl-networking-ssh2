@@ -45,6 +45,13 @@ if test "$PHP_SSH2" != "no"; then
   ],[
     AC_MSG_WARN([libssh2 <= 0.4, remote forwarding not enabled])
   ])
+
+  PHP_CHECK_LIBRARY($LIBNAME,libssh2_userauth_hostbased_fromfile_ex,
+  [
+    AC_DEFINE(PHP_SSH2_HOSTBASED_AUTH, 1, [Have libssh2 with hostbased authentication])
+  ],[
+    AC_MSG_WARN([libssh2 <= 0.6, hostbased authentication not enabled])
+  ])
   
   PHP_SUBST(SSH2_SHARED_LIBADD)
 

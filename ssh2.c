@@ -652,6 +652,58 @@ PHP_FUNCTION(ssh2_auth_pubkey_file)
 }
 /* }}} */
 
+#ifdef PHP_SSH2_HOSTBASED_AUTH
+/* {{{ proto bool ssh2_auth_hostbased_file(resource session, string username, string local_hostname, string pubkeyfile, string privkeyfile[, string passphrase[, string local_username]])
+ * Authenticate using a hostkey
+ */
+PHP_FUNCTION(ssh2_auth_hostbased_file)
+{
+	LIBSSH2_SESSION *session;
+	zval *zsession;
+	char *username, *hostname, *pubkey, *privkey, *passphrase = NULL, *local_username = NULL;
+	int username_len, hostname_len, pubkey_len, privkey_len, passphrase_len, local_username_len;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rssss|s!s!", &zsession,	&username, &username_len,
+																					&hostname, &hostname_len,
+																					&pubkey, &pubkey_len,
+																					&privkey, &privkey_len,
+																					&passphrase, &passphrase_len,
+																					&local_username, &local_username_len) == FAILURE) {
+		RETURN_FALSE;
+	}
+
+	if (PG(safe_mode) && !php_checkuid(pubkey, NULL, CHECKUID_CHECK_FILE_AND_DIR)) {
+		RETURN_FALSE;
+	}
+	if (PG(safe_mode) && !php_checkuid(privkey, NULL, CHECKUID_CHECK_FILE_AND_DIR)) {
+		RETURN_FALSE;
+	}
+
+	if (php_check_open_basedir(pubkey TSRMLS_CC)) {
+		RETURN_FALSE;
+	}
+	if (php_check_open_basedir(privkey TSRMLS_CC)) {
+		RETURN_FALSE;
+	}
+
+	ZEND_FETCH_RESOURCE(session, LIBSSH2_SESSION*, &zsession, -1, PHP_SSH2_SESSION_RES_NAME, le_ssh2_session);
+
+	if (!local_username) {
+		local_username = username;
+		local_username_len = username_len;
+	}
+
+	/* TODO: Support passphrase callback */
+	if (libssh2_userauth_hostbased_fromfile_ex(session, username, username_len, pubkey, privkey, passphrase, hostname, hostname_len, local_username, local_username_len)) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Authentication failed for %s using hostbased public key", username);
+		RETURN_FALSE;
+	}
+
+	RETURN_TRUE;
+}
+/* }}} */
+#endif /* PHP_SSH2_HOSTBASED_AUTH */
+
 #ifdef PHP_SSH2_REMOTE_FORWARDING
 /* {{{ proto resource ssh2_forward_listen(resource session, int port[, string host[, long max_connections]])
  * Bind a port on the remote server and listen for connections
@@ -846,6 +898,9 @@ function_entry ssh2_functions[] = {
 	PHP_FE(ssh2_auth_none,						NULL)
 	PHP_FE(ssh2_auth_password,					NULL)
 	PHP_FE(ssh2_auth_pubkey_file,				NULL)
+#ifdef PHP_SSH2_HOSTBASED_AUTH
+	PHP_FE(ssh2_auth_hostbased_file,			NULL)
+#endif /* PHP_SSH2_HOSTBASED_AUTH */
 
 #ifdef PHP_SSH2_REMOTE_FORWARDING
 	PHP_FE(ssh2_forward_listen,					NULL)
