@@ -14,7 +14,7 @@ if (PHP_SSH2 != "no") {
 		AC_DEFINE('HAVE_SSH2LIB', 1);
 		AC_DEFINE('PHP_SSH2_REMOTE_FORWARDING', 1);
 		AC_DEFINE('LIBSSH2_WIN32', 1);
-		AC_DEFINE('LIBSSH2_LIBRARY', 1);
+		ADD_FLAG('CFLAGS_SSH2', '/DLIBSSH2_API=');
 		EXTENSION("ssh2", "ssh2.c ssh2_fopen_wrappers.c ssh2_sftp.c");
 	} else {
 		WARNING("ssh2 not enabled: libraries or headers not found");
