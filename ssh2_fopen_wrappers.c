@@ -323,6 +323,11 @@ php_url *php_ssh2_fopen_wraper_parse_path(	char *path, char *type, php_stream_co
 	}
 
 	session = php_ssh2_session_connect(resource->host, resource->port, methods, callbacks TSRMLS_CC);
+	if (!session) {
+		/* Unable to connect! */
+		php_url_free(resource);
+		return NULL;
+	}
 	ZEND_REGISTER_RESOURCE(&zsession, session, le_ssh2_session);
 
 	/* Authenticate */
