@@ -21,7 +21,7 @@ if test "$PHP_SSH2" != "no"; then
   
   if test -z "$SSH2_DIR"; then
     AC_MSG_RESULT([not found])
-    AC_MSG_ERROR([Please reinstall the ssh2 distribution])
+    AC_MSG_ERROR([The required libssh2 libarary was not found. you can obtain that package from http://sourceforge.net/projects/libssh2/])
   fi
 
   PHP_ADD_INCLUDE($SSH2_DIR/include)
