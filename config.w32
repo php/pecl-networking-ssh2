@@ -1,0 +1,12 @@
+// $Id$
+// vim:ft=javascript
+
+ARG_WITH("ssh2", "SSH2 support", "no");
+
+if (PHP_SSH2 != "no") {
+	if (CHECK_HEADER_ADD_INCLUDE("libssh2.h", "CFLAGS_SSH2", PHP_SSH2 + "\\include")) {
+		CHECK_LIB("libssh2.lib", "ssh2", PHP_SSH2);
+		AC_DEFINE('HAVE_SSH2LIB', 1);
+		EXTENSION("ssh2", "ssh2.c ssh2_fopen_wrappers.c ssh2_sftp.c");
+	}
+}
