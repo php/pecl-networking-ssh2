@@ -82,7 +82,37 @@ static LIBSSH2_REALLOC_FUNC(php_ssh2_realloc_cb)
  */
 LIBSSH2_DEBUG_FUNC(php_ssh2_debug_cb)
 {
+	php_ssh2_session_data *data;
+	zval *zdisplay, *zmessage, *zlanguage;
+	zval **args[3];
+	SSH2_TSRMLS_FETCH(*abstract);
 
+	if (!abstract || !*abstract) {
+		return;
+	}
+	data = (php_ssh2_session_data*)*abstract;
+	if (!data->debug_cb) {
+		return;
+	}
+
+	MAKE_STD_ZVAL(zmessage);
+	ZVAL_STRINGL(zmessage, (char*)message, message_len, 1);
+	args[0] = &zmessage;
+
+	MAKE_STD_ZVAL(zlanguage);
+	ZVAL_STRINGL(zlanguage, (char*)language, language_len, 1);
+	args[1] = &zlanguage;
+
+	MAKE_STD_ZVAL(zdisplay);
+	ZVAL_LONG(zdisplay, always_display);
+	args[2] = &zdisplay;
+
+	if (FAILURE == call_user_function_ex(NULL, NULL, data->disconnect_cb, NULL, 3, args, 0, NULL TSRMLS_CC)) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failure calling disconnect callback");
+	}
+	zval_ptr_dtor(&zdisplay);
+	zval_ptr_dtor(&zmessage);
+	zval_ptr_dtor(&zlanguage);
 }
 /* }}} */
 
@@ -91,12 +121,35 @@ LIBSSH2_DEBUG_FUNC(php_ssh2_debug_cb)
  */
 LIBSSH2_IGNORE_FUNC(php_ssh2_ignore_cb)
 {
+	php_ssh2_session_data *data;
+	zval *zretval = NULL, *zmessage;
+	zval **args[1];
+	SSH2_TSRMLS_FETCH(*abstract);
 
+	if (!abstract || !*abstract) {
+		return;
+	}
+	data = (php_ssh2_session_data*)*abstract;
+	if (!data->ignore_cb) {
+		return;
+	}
+
+	MAKE_STD_ZVAL(zmessage);
+	ZVAL_STRINGL(zmessage, (char*)message, message_len, 1);
+	args[0] = &zmessage;
+
+	if (FAILURE == call_user_function_ex(NULL, NULL, data->ignore_cb, &zretval, 1, args, 0, NULL TSRMLS_CC)) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failure calling ignore callback");
+	}
+	zval_ptr_dtor(&zmessage);
+	if (zretval) {
+		zval_ptr_dtor(&zretval);
+	}
 }
 /* }}} */
 
 /* {{{ php_ssh2_macerror_cb
- * Called when a MAC error occurs, offers the change to ignore
+ * Called when a MAC error occurs, offers the chance to ignore
  * WHY ARE YOU IGNORING MAC ERRORS??????
  */
 LIBSSH2_MACERROR_FUNC(php_ssh2_macerror_cb)
@@ -120,7 +173,7 @@ LIBSSH2_MACERROR_FUNC(php_ssh2_macerror_cb)
 	args[0] = &zpacket;
 
 	if (FAILURE == call_user_function_ex(NULL, NULL, data->macerror_cb, &zretval, 1, args, 0, NULL TSRMLS_CC)) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failure calling disconnect callback");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failure calling macerror callback");
 	} else {
 		retval = zval_is_true(zretval) ? 0 : -1;
 	}
@@ -586,7 +639,7 @@ PHP_FUNCTION(ssh2_auth_pubkey_file)
 static void php_ssh2_session_dtor(zend_rsrc_list_entry *rsrc TSRMLS_DC)
 {
 	LIBSSH2_SESSION *session = (LIBSSH2_SESSION*)rsrc->ptr;
-	php_ssh2_session_data **data = libssh2_session_abstract(session);
+	php_ssh2_session_data **data = (php_ssh2_session_data**)libssh2_session_abstract(session);
 
 	if (*data) {
 		if ((*data)->ignore_cb) {
