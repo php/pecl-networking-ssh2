@@ -1,0 +1,38 @@
+<package version="1.0">
+  <name>ssh2</name>
+  <summary>Bindings for the libssh2 library</summary>
+  <description>
+    Provides bindings to the functions of libssh2 which implements the SSH2 protocol.
+    libssh2 is available from http://www.sourceforge.net/projects/libssh2
+  </description>
+  <license>PHP</license>
+  <maintainers>
+    <maintainer>
+      <user>pollita</user>
+      <name>Sara Golemon</name>
+      <email>pollita@php.net</email>
+      <role>lead</role>
+    </maintainer>
+  </maintainers>
+
+  <release>
+    <version>0.4</version>
+    <state>beta</state>
+    <date>2004-12-24</date>
+    <notes>
+      Happy Holidays!
+      Version 0.4 of the ssh2 extension requires libssh2 version 0.4 or higher
+    </notes>
+    <filelist>
+      <file role="src" name="config.m4"/>
+      <file role="src" name="ssh2.c"/>
+      <file role="src" name="php_ssh2.h"/>      
+      <file role="src" name="ssh2_fopen_wrappers.c"/>
+      <file role="src" name="ssh2_sftp.c"/>
+    </filelist>
+  </release>
+
+  <deps>
+    <dep type="php" rel="ge" version="4.3.0" />
+  </deps>
+</package>
