@@ -44,11 +44,14 @@
 
 #define PHP_SSH2_SESSION_RES_NAME		"SSH2 Session"
 #define PHP_SSH2_CHANNEL_STREAM_NAME	"SSH2 Channel"
+#define PHP_SSH2_LISTENER_RES_NAME		"SSH2 Listener"
 #define PHP_SSH2_SFTP_RES_NAME			"SSH2 SFTP"
 
 #define PHP_SSH2_SFTP_STREAM_NAME		"SSH2 SFTP File"
 #define PHP_SSH2_SFTP_DIRSTREAM_NAME	"SSH2 SFTP Directory"
 #define PHP_SSH2_SFTP_WRAPPER_NAME		"SSH2 SFTP"
+
+#define PHP_SSH2_LISTEN_MAX_QUEUED		16
 
 extern zend_module_entry ssh2_module_entry;
 #define phpext_ssh2_ptr &ssh2_module_entry
@@ -72,6 +75,13 @@ typedef struct _php_ssh2_sftp_data {
 
     int session_rsrcid;
 } php_ssh2_sftp_data;
+
+typedef struct _php_ssh2_listener_data {
+    LIBSSH2_SESSION *session;
+    LIBSSH2_LISTENER *listener;
+
+    int session_rsrcid;
+} php_ssh2_listener_data;
 
 #ifdef ZTS
 #define SSH2_TSRMLS_SET(datap)		((php_ssh2_session_data*)(datap))->tsrm_ls = TSRMLS_C
@@ -124,6 +134,8 @@ php_url *php_ssh2_fopen_wraper_parse_path(	char *path, char *type, php_stream_co
 											LIBSSH2_SESSION **psession, int *presource_id,
 											LIBSSH2_SFTP **psftp, int *psftp_rsrcid
 											TSRMLS_DC);
+
+extern php_stream_ops php_ssh2_channel_stream_ops;
 
 extern php_stream_wrapper php_ssh2_stream_wrapper_shell;
 extern php_stream_wrapper php_ssh2_stream_wrapper_exec;

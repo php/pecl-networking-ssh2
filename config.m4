@@ -38,6 +38,13 @@ if test "$PHP_SSH2" != "no"; then
   ],[
     -L$SSH2_DIR/lib -lm -ldl
   ])
+
+  PHP_CHECK_LIBRARY($LIBNAME,libssh2_channel_forward_listen_ex,
+  [
+    AC_DEFINE(PHP_SSH2_REMOTE_FORWARDING, 1, [Have libssh2 with remote forwarding])
+  ],[
+    AC_MSG_WARN([libssh2 <= 0.4, remote forwarding not enabled])
+  ])
   
   PHP_SUBST(SSH2_SHARED_LIBADD)
 

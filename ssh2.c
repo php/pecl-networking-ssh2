@@ -38,6 +38,7 @@
 
 /* True global resources - no need for thread safety here */
 int le_ssh2_session;
+int le_ssh2_listener;
 int le_ssh2_sftp;
 
 /* *************
@@ -455,7 +456,20 @@ PHP_FUNCTION(ssh2_methods_negotiated)
 
 	ZEND_FETCH_RESOURCE(session, LIBSSH2_SESSION*, &zsession, -1, PHP_SSH2_SESSION_RES_NAME, le_ssh2_session);
 
+#if LIBSSH2_APINO < 200412301450
 	libssh2_session_methods(session, &kex, &hostkey, &crypt_cs, &crypt_sc, &mac_cs, &mac_sc, &comp_cs, &comp_sc, &lang_cs, &lang_sc);
+#else
+	kex = libssh2_session_methods(session, LIBSSH2_METHOD_KEX);
+	hostkey = libssh2_session_methods(session, LIBSSH2_METHOD_HOSTKEY);
+	crypt_cs = libssh2_session_methods(session, LIBSSH2_METHOD_CRYPT_CS);
+	crypt_sc = libssh2_session_methods(session, LIBSSH2_METHOD_CRYPT_SC);
+	mac_cs = libssh2_session_methods(session, LIBSSH2_METHOD_MAC_CS);
+	mac_sc = libssh2_session_methods(session, LIBSSH2_METHOD_MAC_SC);
+	comp_cs = libssh2_session_methods(session, LIBSSH2_METHOD_COMP_CS);
+	comp_sc = libssh2_session_methods(session, LIBSSH2_METHOD_COMP_SC);
+	lang_cs = libssh2_session_methods(session, LIBSSH2_METHOD_LANG_CS);
+	lang_sc = libssh2_session_methods(session, LIBSSH2_METHOD_LANG_SC);
+#endif
 
 	array_init(return_value);
 	add_assoc_string(return_value, "kex", kex, 1);
@@ -632,6 +646,88 @@ PHP_FUNCTION(ssh2_auth_pubkey_file)
 }
 /* }}} */
 
+#ifdef PHP_SSH2_REMOTE_FORWARDING
+/* {{{ proto resource ssh2_forward_listen(resource session, int port[, string host[, long max_connections]])
+ * Bind a port on the remote server and listen for connections
+ */
+PHP_FUNCTION(ssh2_forward_listen)
+{
+	zval *zsession;
+	LIBSSH2_SESSION *session;
+	LIBSSH2_LISTENER *listener;
+	php_ssh2_listener_data *data;
+	long port;
+	char *host = NULL;
+	int host_len;
+	long max_connections = PHP_SSH2_LISTEN_MAX_QUEUED;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl|sl", &zsession, &port, &host, &host_len, &max_connections) == FAILURE) {
+		RETURN_FALSE;
+	}
+
+	ZEND_FETCH_RESOURCE(session, LIBSSH2_SESSION*, &zsession, -1, PHP_SSH2_SESSION_RES_NAME, le_ssh2_session);
+
+	listener = libssh2_channel_forward_listen_ex(session, host, port, NULL, max_connections);	
+
+	if (!listener) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failure listening on remote port");
+		RETURN_FALSE;
+	}
+
+	data = emalloc(sizeof(php_ssh2_listener_data));
+	data->session = session;
+	data->session_rsrcid = Z_LVAL_P(zsession);
+	zend_list_addref(data->session_rsrcid);
+	data->listener = listener;
+
+	ZEND_REGISTER_RESOURCE(return_value, data, le_ssh2_listener);
+}
+/* }}} */ 
+
+/* {{{ proto stream ssh2_forward_accept(resource listener[, string &shost[, long &sport]])
+ * Accept a connection created by a listener
+ */
+PHP_FUNCTION(ssh2_forward_accept)
+{
+	zval *zlistener;
+	php_ssh2_listener_data *data;
+	LIBSSH2_CHANNEL *channel;
+	php_ssh2_channel_data *channel_data;
+	php_stream *stream;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &zlistener) == FAILURE) {
+		RETURN_FALSE;
+	}
+
+	ZEND_FETCH_RESOURCE(data, php_ssh2_listener_data*, &zlistener, -1, PHP_SSH2_LISTENER_RES_NAME, le_ssh2_listener);
+
+	channel = libssh2_channel_forward_accept(data->listener);
+
+	if (!channel) {
+		RETURN_FALSE;
+	}
+
+	channel_data = emalloc(sizeof(php_ssh2_channel_data));
+	channel_data->channel = channel;
+	channel_data->streamid = 0;
+	channel_data->is_blocking = 0;
+	channel_data->session_rsrc = data->session_rsrcid;
+	channel_data->refcount = NULL;
+
+	stream = php_stream_alloc(&php_ssh2_channel_stream_ops, channel_data, 0, "r+");
+	if (!stream) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failure allocating stream");
+		efree(channel_data);
+		libssh2_channel_free(channel);
+		RETURN_FALSE;
+	}
+	zend_list_addref(channel_data->session_rsrc);
+
+	php_stream_to_zval(stream, return_value);
+}
+/* }}} */
+#endif /* PHP_SSH2_REMOTE_FORWARDING */
+
 /* ***********************
    * Module Housekeeping *
    *********************** */
@@ -662,12 +758,27 @@ static void php_ssh2_session_dtor(zend_rsrc_list_entry *rsrc TSRMLS_DC)
 	libssh2_session_free(session);
 }
 
+#ifdef PHP_SSH2_REMOTE_FORWARDING
+static void php_ssh2_listener_dtor(zend_rsrc_list_entry *rsrc TSRMLS_DC)
+{
+	php_ssh2_listener_data *data = (php_ssh2_listener_data*)rsrc->ptr;
+	LIBSSH2_LISTENER *listener = data->listener;
+
+	libssh2_channel_forward_cancel(listener);
+	zend_list_delete(data->session_rsrcid);
+	efree(data);
+}
+#endif /* PHP_SSH2_REMOTE_FORWARDING */
+
 /* {{{ PHP_MINIT_FUNCTION
  */
 PHP_MINIT_FUNCTION(ssh2)
 {
-	le_ssh2_session	= zend_register_list_destructors_ex(php_ssh2_session_dtor, NULL, PHP_SSH2_SESSION_RES_NAME, module_number);
-	le_ssh2_sftp	= zend_register_list_destructors_ex(php_ssh2_sftp_dtor, NULL, PHP_SSH2_SFTP_RES_NAME, module_number);
+	le_ssh2_session		= zend_register_list_destructors_ex(php_ssh2_session_dtor, NULL, PHP_SSH2_SESSION_RES_NAME, module_number);
+#ifdef PHP_SSH2_REMOTE_FORWARDING
+	le_ssh2_listener	= zend_register_list_destructors_ex(php_ssh2_listener_dtor, NULL, PHP_SSH2_LISTENER_RES_NAME, module_number);
+#endif /* PHP_SSH2_REMOTE_FORWARDING */
+	le_ssh2_sftp		= zend_register_list_destructors_ex(php_ssh2_sftp_dtor, NULL, PHP_SSH2_SFTP_RES_NAME, module_number);
 
 	REGISTER_LONG_CONSTANT("SSH2_FINGERPRINT_MD5",		PHP_SSH2_FINGERPRINT_MD5,		CONST_CS | CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("SSH2_FINGERPRINT_SHA1",		PHP_SSH2_FINGERPRINT_SHA1,		CONST_CS | CONST_PERSISTENT);
@@ -725,6 +836,11 @@ function_entry ssh2_functions[] = {
 	PHP_FE(ssh2_auth_none,						NULL)
 	PHP_FE(ssh2_auth_password,					NULL)
 	PHP_FE(ssh2_auth_pubkey_file,				NULL)
+
+#ifdef PHP_SSH2_REMOTE_FORWARDING
+	PHP_FE(ssh2_forward_listen,					NULL)
+	PHP_FE(ssh2_forward_accept,					NULL)
+#endif /* PHP_SSH2_REMOTE_FORWARDING */
 
 	/* Stream Stuff */
 	PHP_FE(ssh2_shell,							NULL)

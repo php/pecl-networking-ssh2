@@ -87,7 +87,7 @@ static int php_ssh2_channel_stream_set_option(php_stream *stream, int option, in
 	return -1;
 }
 
-static php_stream_ops php_ssh2_channel_stream_ops = {
+php_stream_ops php_ssh2_channel_stream_ops = {
 	php_ssh2_channel_stream_write,
 	php_ssh2_channel_stream_read,
 	php_ssh2_channel_stream_close,
