@@ -407,6 +407,11 @@ LIBSSH2_SESSION *php_ssh2_session_connect(char *host, int port, zval *methods, z
 	}
 
 	if (libssh2_session_startup(session, socket)) {
+		int last_error = 0;
+		char *error_msg = NULL;
+
+		last_error = libssh2_session_last_error(session, &error_msg, NULL, 0);
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Error starting up SSH connection(%d): %s", last_error, error_msg);
 		close(socket);
 		libssh2_session_free(session);
 		return NULL;
