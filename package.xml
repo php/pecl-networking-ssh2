@@ -15,7 +15,27 @@
     </maintainer>
   </maintainers>
 
+  <filelist>
+    <file role="src" name="config.m4"/>
+    <file role="src" name="ssh2.c"/>
+    <file role="src" name="php_ssh2.h"/>      
+    <file role="src" name="ssh2_fopen_wrappers.c"/>
+    <file role="src" name="ssh2_sftp.c"/>
+  </filelist>
+
   <release>
+    <version>0.6</version>
+    <state>beta</state>
+    <date>2005-02-09</date>
+    <notes>
+Minor fixes including some added error handling and more discriptive ./configure message.
+Users of PHP/SSH2 are recommended to upgrade their installation of libssh2 to version 0.6
+whether or not upgrading the PHP/SSH2 extension.
+    </notes>
+  </release>
+
+  <changelog>
+   <release>
     <version>0.5</version>
     <state>beta</state>
     <date>2005-01-10</date>
@@ -25,17 +45,8 @@ modified ssh2_methods_negotiated() to work with modified libssh2 prototype.
 Note: Version PECL/ssh2 0.4.1 is incompatable with libssh2 &gt;= 0.5
 Both should be upgraded in tandem, though PECL/ssh2 0.5 will work with libssh2 &gt;= 0.4
     </notes>
-  </release>
+   </release>
 
-  <filelist>
-    <file role="src" name="config.m4"/>
-    <file role="src" name="ssh2.c"/>
-    <file role="src" name="php_ssh2.h"/>      
-    <file role="src" name="ssh2_fopen_wrappers.c"/>
-    <file role="src" name="ssh2_sftp.c"/>
-  </filelist>
-
-  <changelog>
    <release>
     <version>0.4.1</version>
     <state>beta</state>
@@ -45,10 +56,9 @@ Both should be upgraded in tandem, though PECL/ssh2 0.5 will work with libssh2 &
       Version 0.4 of the ssh2 extension requires libssh2 version 0.4 or higher
     </notes>
    </release>
+   <deps>
+    <dep type="php" rel="ge" version="4.3" />
+   </deps>
   </changelog>
-
-  <deps>
-   <dep type="php" rel="ge" version="4.3.0" />
-  </deps>
 
 </package>
