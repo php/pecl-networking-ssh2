@@ -76,12 +76,14 @@ typedef struct _php_ssh2_sftp_data {
     int session_rsrcid;
 } php_ssh2_sftp_data;
 
+#ifdef PHP_SSH2_REMOTE_FORWARDING
 typedef struct _php_ssh2_listener_data {
     LIBSSH2_SESSION *session;
     LIBSSH2_LISTENER *listener;
 
     int session_rsrcid;
 } php_ssh2_listener_data;
+#endif
 
 #ifdef ZTS
 #define SSH2_TSRMLS_SET(datap)		((php_ssh2_session_data*)(datap))->tsrm_ls = TSRMLS_C
