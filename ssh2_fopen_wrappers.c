@@ -144,14 +144,10 @@ php_url *php_ssh2_fopen_wraper_parse_path(	char *path, char *type, php_stream_co
 		s = resource->host + sizeof("Resource id #") - 1;
 	}
 	if (is_numeric_string(s, strlen(s), &resource_id, NULL, 0) == IS_LONG) {
-		zval *tmprsrc;
 		php_ssh2_sftp_data *sftp_data;
 
-		ALLOC_INIT_ZVAL(tmprsrc);
-		ZVAL_RESOURCE(tmprsrc, resource_id);
-
 		if (psftp) {
-			sftp_data = (php_ssh2_sftp_data*)zend_fetch_resource(&tmprsrc TSRMLS_CC, -1, PHP_SSH2_SFTP_RES_NAME, NULL, 1, le_ssh2_sftp);
+			sftp_data = (php_ssh2_sftp_data*)zend_fetch_resource(NULL TSRMLS_CC, resource_id, PHP_SSH2_SFTP_RES_NAME, NULL, 1, le_ssh2_sftp);
 			if (sftp_data) {
 				/* Want the sftp layer */
 				zend_list_addref(resource_id);
@@ -159,47 +155,35 @@ php_url *php_ssh2_fopen_wraper_parse_path(	char *path, char *type, php_stream_co
 				*psftp = sftp_data->sftp;
 				*presource_id = sftp_data->session_rsrcid;
 				*psession = sftp_data->session;
-				ZVAL_NULL(tmprsrc);
-				zval_ptr_dtor(&tmprsrc);
 				return resource;
 			}
 		}
-		session = (LIBSSH2_SESSION *)zend_fetch_resource(&tmprsrc TSRMLS_CC, -1, PHP_SSH2_SESSION_RES_NAME, NULL, 1, le_ssh2_session);
+		session = (LIBSSH2_SESSION *)zend_fetch_resource(NULL TSRMLS_CC, resource_id, PHP_SSH2_SESSION_RES_NAME, NULL, 1, le_ssh2_session);
 		if (session) {
 			if (psftp) {
 				/* We need an sftp layer too */
 				LIBSSH2_SFTP *sftp = libssh2_sftp_init(session);
 
 				if (!sftp) {
-					ZVAL_NULL(tmprsrc);
-					zval_ptr_dtor(&tmprsrc);
 					php_url_free(resource);
 					return NULL;
 				}
 				sftp_data = emalloc(sizeof(php_ssh2_sftp_data));
 				sftp_data->sftp = sftp;
 				sftp_data->session = session;
-				sftp_data->session_rsrcid = Z_LVAL_P(tmprsrc);
-				zend_list_addref(Z_LVAL_P(tmprsrc));
-				ZVAL_NULL(tmprsrc);
-				ZEND_REGISTER_RESOURCE(tmprsrc, sftp_data, le_ssh2_sftp);
-				*psftp_rsrcid = Z_LVAL_P(tmprsrc);
+				sftp_data->session_rsrcid = resource_id;
+				zend_list_addref(resource_id);
+				*psftp_rsrcid = ZEND_REGISTER_RESOURCE(NULL, sftp_data, le_ssh2_sftp);
 				*psftp = sftp;
 				*presource_id = resource_id;
 				*psession = session;
-				ZVAL_NULL(tmprsrc);
-				zval_ptr_dtor(&tmprsrc);
 				return resource;
 			}
 			zend_list_addref(resource_id);
 			*presource_id = resource_id;
 			*psession = session;
-			/* dtoring a resource would delref and negate the addref we just did */
-			ZVAL_NULL(tmprsrc);
-			zval_ptr_dtor(&tmprsrc);
 			return resource;
 		}
-		zval_ptr_dtor(&tmprsrc);
 	}
 
 	/* Fallback on finding it in the context */
@@ -226,7 +210,6 @@ php_url *php_ssh2_fopen_wraper_parse_path(	char *path, char *type, php_stream_co
 				/* We need an SFTP layer too! */
 				LIBSSH2_SFTP *sftp = libssh2_sftp_init(session);
 				php_ssh2_sftp_data *sftp_data;
-				zval *tmprsrc;
 
 				if (!sftp) {
 					php_url_free(resource);
@@ -235,17 +218,12 @@ php_url *php_ssh2_fopen_wraper_parse_path(	char *path, char *type, php_stream_co
 				sftp_data = emalloc(sizeof(php_ssh2_sftp_data));
 				sftp_data->sftp = sftp;
 				sftp_data->session = session;
-				sftp_data->session_rsrcid = Z_LVAL_P(tmprsrc);
-				zend_list_addref(Z_LVAL_P(tmprsrc));
-				ALLOC_INIT_ZVAL(tmprsrc);
-				ZVAL_NULL(tmprsrc);
-				ZEND_REGISTER_RESOURCE(tmprsrc, sftp_data, le_ssh2_sftp);
-				*psftp_rsrcid = Z_LVAL_P(tmprsrc);
+				sftp_data->session_rsrcid = Z_LVAL_PP(tmpzval);
+				zend_list_addref(Z_LVAL_PP(tmpzval));
+				*psftp_rsrcid = ZEND_REGISTER_RESOURCE(NULL, sftp_data, le_ssh2_sftp);
 				*psftp = sftp;
-				*presource_id = resource_id;
+				*presource_id = Z_LVAL_PP(tmpzval);
 				*psession = session;
-				ZVAL_NULL(tmprsrc);
-				zval_ptr_dtor(&tmprsrc);
 				return resource;
 			}
 			zend_list_addref(Z_LVAL_PP(tmpzval));
