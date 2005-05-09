@@ -53,6 +53,8 @@
 
 #define PHP_SSH2_LISTEN_MAX_QUEUED		16
 
+#define PHP_SSH2_DEFAULT_POLL_TIMEOUT	30
+
 extern zend_module_entry ssh2_module_entry;
 #define phpext_ssh2_ptr &ssh2_module_entry
 

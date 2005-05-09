@@ -52,6 +52,13 @@ if test "$PHP_SSH2" != "no"; then
   ],[
     AC_MSG_WARN([libssh2 <= 0.6, hostbased authentication not enabled])
   ])
+
+  PHP_CHECK_LIBRARY($LIBNAME,libssh2_poll,
+  [
+    AC_DEFINE(PHP_SSH2_POLL, 1, [Have libssh2 with poll() support])
+  ],[
+    AC_MSG_WARN([libssh2 <= 0.7, poll support not enabled])
+  ])
   
   PHP_SUBST(SSH2_SHARED_LIBADD)
 

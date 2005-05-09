@@ -41,6 +41,15 @@ int le_ssh2_session;
 int le_ssh2_listener;
 int le_ssh2_sftp;
 
+#ifdef ZEND_ENGINE_2
+static
+    ZEND_BEGIN_ARG_INFO(first_arg_force_ref, 0)
+        ZEND_ARG_PASS_INFO(1)
+    ZEND_END_ARG_INFO()
+#else
+static unsigned char first_arg_force_ref[] = { 1, BYREF_FORCE };
+#endif
+
 /* *************
    * Callbacks *
    ************* */
@@ -786,6 +795,112 @@ PHP_FUNCTION(ssh2_forward_accept)
 /* }}} */
 #endif /* PHP_SSH2_REMOTE_FORWARDING */
 
+#ifdef PHP_SSH2_POLL
+/* {{{ proto int ssh2_poll(array &polldes[, int timeout])
+ * Poll the channels/listeners/streams for events
+ * Returns number of descriptors which returned non-zero revents
+ * Input array should be of the form:
+ * array(
+ *   0 => array(
+ *     [resource] => $channel,$listener, or $stream
+ *     [events] => SSH2_POLL* flags bitwise ORed together
+ *   ),
+ *   1 => ...
+ * )
+ * Each subarray will be populated with an revents element on return
+ */
+PHP_FUNCTION(ssh2_poll)
+{
+	zval *zdesc, **subarray;
+	long timeout = PHP_SSH2_DEFAULT_POLL_TIMEOUT;
+	LIBSSH2_POLLFD *pollfds;
+	int numfds, i = 0, fds_ready;
+	int le_stream = php_file_le_stream();
+	int le_pstream = php_file_le_pstream();
+	zval ***pollmap;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "a|l", &zdesc, &timeout) == FAILURE) {
+		RETURN_NULL();
+	}
+
+	numfds = zend_hash_num_elements(Z_ARRVAL_P(zdesc));
+	pollfds = safe_emalloc(sizeof(LIBSSH2_POLLFD), numfds, 0);
+	pollmap = safe_emalloc(sizeof(zval**), numfds, 0);
+
+	for(zend_hash_internal_pointer_reset(Z_ARRVAL_P(zdesc));
+		zend_hash_get_current_data(Z_ARRVAL_P(zdesc), (void**)&subarray) == SUCCESS;
+		zend_hash_move_forward(Z_ARRVAL_P(zdesc))) {
+		zval **tmpzval;
+		int res_type = 0;
+		void *res;
+
+		if (Z_TYPE_PP(subarray) != IS_ARRAY) {
+			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Invalid element in poll array, not a sub array");
+			numfds--;
+			continue;
+		}
+		if (zend_hash_find(Z_ARRVAL_PP(subarray), "events", sizeof("events"), (void**)&tmpzval) == FAILURE ||
+			Z_TYPE_PP(tmpzval) != IS_LONG) {
+			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Invalid data in subarray, no events element, or not a bitmask");
+			numfds--;
+			continue;
+		}
+		pollfds[i].events = Z_LVAL_PP(tmpzval);
+		if (zend_hash_find(Z_ARRVAL_PP(subarray), "resource", sizeof("resource"), (void**)&tmpzval) == FAILURE ||
+			Z_TYPE_PP(tmpzval) != IS_RESOURCE) {
+			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Invalid data in subarray, no resource element, or not of type resource");
+			numfds--;
+			continue;
+		}
+		zend_list_find(Z_LVAL_PP(tmpzval), &res_type);
+		res = zend_fetch_resource(tmpzval TSRMLS_CC, -1, "Poll Resource", NULL, 1, res_type);
+		if (res_type == le_ssh2_listener) {
+			pollfds[i].type = LIBSSH2_POLLFD_LISTENER;
+			pollfds[i].fd.listener = ((php_ssh2_listener_data*)res)->listener;
+		} else if ((res_type == le_stream || res_type == le_pstream) && 
+				   ((php_stream*)res)->ops == &php_ssh2_channel_stream_ops) {
+			pollfds[i].type = LIBSSH2_POLLFD_CHANNEL;
+			pollfds[i].fd.channel = ((php_ssh2_channel_data*)(((php_stream*)res)->abstract))->channel;
+			/* TODO: Add the ability to select against other stream types */
+		} else {
+			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Invalid resource type in subarray: %s", zend_rsrc_list_get_rsrc_type(Z_LVAL_PP(tmpzval) TSRMLS_CC));
+			numfds--;
+			continue;
+		}
+		pollmap[i] = subarray;
+		i++;
+	}
+
+	fds_ready = libssh2_poll(pollfds, numfds, timeout * 1000);
+
+	for(i = 0; i < numfds; i++) {
+		zval *subarray = *pollmap[i];
+
+		if (!subarray->is_ref && subarray->refcount > 1) {
+			/* Make a new copy of the subarray zval* */
+			MAKE_STD_ZVAL(subarray);
+			*subarray = **pollmap[i];
+
+			/* Point the pData to the new zval* and duplicate its resources */
+			*pollmap[i] = subarray;
+			zval_copy_ctor(subarray);
+
+			/* Fixup its refcount */
+			subarray->is_ref = 0;
+			subarray->refcount = 1;
+		}
+		zend_hash_del(Z_ARRVAL_P(subarray), "revents", sizeof("revents"));
+		add_assoc_long(subarray, "revents", pollfds[i].revents);
+
+	}
+	efree(pollmap);
+	efree(pollfds);
+
+	RETURN_LONG(fds_ready);
+}
+/* }}} */
+#endif /* PHP_SSH2_POLL */
+
 /* ***********************
    * Module Housekeeping *
    *********************** */
@@ -858,6 +973,21 @@ PHP_MINIT_FUNCTION(ssh2)
 	REGISTER_LONG_CONSTANT("SSH2_STREAM_STDIO",			0,								CONST_CS | CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("SSH2_STREAM_STDERR",		SSH_EXTENDED_DATA_STDERR,		CONST_CS | CONST_PERSISTENT);
 
+#ifdef PHP_SSH2_POLL
+	/* events/revents */
+	REGISTER_LONG_CONSTANT("SSH2_POLLIN",				LIBSSH2_POLLFD_POLLIN,			CONST_CS | CONST_PERSISTENT);
+	REGISTER_LONG_CONSTANT("SSH2_POLLEXT",				LIBSSH2_POLLFD_POLLEXT,			CONST_CS | CONST_PERSISTENT);
+	REGISTER_LONG_CONSTANT("SSH2_POLLOUT",				LIBSSH2_POLLFD_POLLOUT,			CONST_CS | CONST_PERSISTENT);
+
+	/* revents only */
+	REGISTER_LONG_CONSTANT("SSH2_POLLERR",				LIBSSH2_POLLFD_POLLERR,			CONST_CS | CONST_PERSISTENT);
+	REGISTER_LONG_CONSTANT("SSH2_POLLHUP",				LIBSSH2_POLLFD_POLLHUP,			CONST_CS | CONST_PERSISTENT);
+	REGISTER_LONG_CONSTANT("SSH2_POLL_SESSION_CLOSED",	LIBSSH2_POLLFD_SESSION_CLOSED,	CONST_CS | CONST_PERSISTENT);
+	REGISTER_LONG_CONSTANT("SSH2_POLLNVAL",				LIBSSH2_POLLFD_POLLNVAL,		CONST_CS | CONST_PERSISTENT);
+	REGISTER_LONG_CONSTANT("SSH2_POLL_CHANNEL_CLOSED",	LIBSSH2_POLLFD_CHANNEL_CLOSED,	CONST_CS | CONST_PERSISTENT);
+	REGISTER_LONG_CONSTANT("SSH2_POLL_LISTENER_CLOSED",	LIBSSH2_POLLFD_LISTENER_CLOSED,	CONST_CS | CONST_PERSISTENT);
+#endif /* POLL */
+
 	return (php_register_url_stream_wrapper("ssh2.shell", &php_ssh2_stream_wrapper_shell TSRMLS_CC) == SUCCESS &&
 			php_register_url_stream_wrapper("ssh2.exec", &php_ssh2_stream_wrapper_exec TSRMLS_CC) == SUCCESS &&
 			php_register_url_stream_wrapper("ssh2.tunnel", &php_ssh2_stream_wrapper_tunnel TSRMLS_CC) == SUCCESS &&
@@ -914,6 +1044,9 @@ function_entry ssh2_functions[] = {
 	PHP_FE(ssh2_scp_recv,						NULL)
 	PHP_FE(ssh2_scp_send,						NULL)
 	PHP_FE(ssh2_fetch_stream,					NULL)
+#ifdef PHP_SSH2_POLL
+	PHP_FE(ssh2_poll,							first_arg_force_ref)
+#endif
 
 	/* SFTP Stuff */
 	PHP_FE(ssh2_sftp,							NULL)
