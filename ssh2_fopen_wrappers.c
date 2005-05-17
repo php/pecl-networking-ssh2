@@ -56,7 +56,6 @@ static int php_ssh2_channel_stream_close(php_stream *stream, int close_handle TS
 			efree(abstract->refcount);
 		}
 		libssh2_channel_eof(abstract->channel);
-		php_sleep(2);
 		libssh2_channel_free(abstract->channel);
 		zend_list_delete(abstract->session_rsrc);
 	}
