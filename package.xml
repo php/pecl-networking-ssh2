@@ -24,6 +24,17 @@
   </filelist>
 
    <release>
+    <version>0.8</version>
+    <state>beta</state>
+    <date>2005-05-17</date>
+    <notes>
+Fixed feof() detection, removed unnecessary sleep() in channel shutdown, and simplified session detection.
+Note: All users are recommended to use libssh2 &gt;= 0.10 as it contains important bugfixes (particularly in the SFTP layer).
+    </notes>
+   </release>
+
+  <changelog>
+   <release>
     <version>0.7</version>
     <state>beta</state>
     <date>2005-02-24</date>
@@ -33,7 +44,6 @@ Add ssh2_auth_hostbased_file() for hostkey authentication.
     </notes>
    </release>
 
-  <changelog>
    <release>
     <version>0.6</version>
     <state>beta</state>
