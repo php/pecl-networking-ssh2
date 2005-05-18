@@ -616,7 +616,7 @@ PHP_FUNCTION(ssh2_shell)
 /* {{{ php_ssh2_exec_command
  * Make a stream from a session
  */
-static php_stream *php_ssh2_exec_command(LIBSSH2_SESSION *session, int resource_id, char *command, zval *environment TSRMLS_DC)
+static php_stream *php_ssh2_exec_command(LIBSSH2_SESSION *session, int resource_id, char *command, char *term, int term_len, zval *environment, long width, long height, long type TSRMLS_DC)
 {
 	LIBSSH2_CHANNEL *channel;
 	php_ssh2_channel_data *channel_data;
@@ -655,6 +655,22 @@ static php_stream *php_ssh2_exec_command(LIBSSH2_SESSION *session, int resource_
 		}
 	}
 
+	if (term) {
+		if (type == PHP_SSH2_TERM_UNIT_CHARS) {
+			if (libssh2_channel_request_pty_ex(channel, term, term_len, NULL, 0, width, height, 0, 0)) {
+				php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failed allocating %s pty at %ldx%ld characters", term, width, height);
+				libssh2_channel_free(channel);
+				return NULL;
+			}
+		} else {
+			if (libssh2_channel_request_pty_ex(channel, term, term_len, NULL, 0, 0, 0, width, height)) {
+				php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failed allocating %s pty at %ldx%ld pixels", term, width, height);
+				libssh2_channel_free(channel);
+				return NULL;
+			}
+		}
+	}
+
 	if (libssh2_channel_exec(channel, command)) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to request command execution on remote host");
 		libssh2_channel_free(channel);
@@ -685,6 +701,11 @@ static php_stream *php_ssh2_fopen_wrapper_exec(php_stream_wrapper *wrapper, char
 	zval **tmpzval, *environment = NULL;
 	int resource_id = 0;
 	php_url *resource;
+	char *terminal = NULL;
+	int terminal_len = 0;
+	long width = PHP_SSH2_DEFAULT_TERM_WIDTH;
+	long height = PHP_SSH2_DEFAULT_TERM_HEIGHT;
+	long type = PHP_SSH2_DEFAULT_TERM_UNIT;
 
 	resource = php_ssh2_fopen_wraper_parse_path(path, "exec", context, &session, &resource_id, NULL, NULL TSRMLS_CC);
 	if (!resource || !session) {
@@ -702,7 +723,47 @@ static php_stream *php_ssh2_fopen_wrapper_exec(php_stream_wrapper *wrapper, char
 		environment = *tmpzval;
 	}
 
-	stream = php_ssh2_exec_command(session, resource_id, resource->path + 1, environment TSRMLS_CC);
+	if (context &&
+		php_stream_context_get_option(context, "ssh2", "term", &tmpzval) == SUCCESS &&
+		tmpzval && *tmpzval && Z_TYPE_PP(tmpzval) == IS_STRING) {
+		terminal = Z_STRVAL_PP(tmpzval);
+		terminal_len = Z_STRLEN_PP(tmpzval);
+	}
+
+	if (context &&
+		php_stream_context_get_option(context, "ssh2", "term_width", &tmpzval) == SUCCESS &&
+		tmpzval && *tmpzval) {
+		zval *copyval;
+		ALLOC_INIT_ZVAL(copyval);
+		*copyval = **tmpzval;
+		convert_to_long(copyval);
+		width = Z_LVAL_P(copyval);
+		zval_ptr_dtor(&copyval);
+	}
+
+	if (context &&
+		php_stream_context_get_option(context, "ssh2", "term_height", &tmpzval) == SUCCESS &&
+		tmpzval && *tmpzval) {
+		zval *copyval;
+		ALLOC_INIT_ZVAL(copyval);
+		*copyval = **tmpzval;
+		convert_to_long(copyval);
+		height = Z_LVAL_P(copyval);
+		zval_ptr_dtor(&copyval);
+	}
+
+	if (context &&
+		php_stream_context_get_option(context, "ssh2", "term_units", &tmpzval) == SUCCESS &&
+		tmpzval && *tmpzval) {
+		zval *copyval;
+		ALLOC_INIT_ZVAL(copyval);
+		*copyval = **tmpzval;
+		convert_to_long(copyval);
+		type = Z_LVAL_P(copyval);
+		zval_ptr_dtor(&copyval);
+	}
+
+	stream = php_ssh2_exec_command(session, resource_id, resource->path + 1, terminal, terminal_len, environment, width, height, type TSRMLS_CC);
 	if (!stream) {
 		zend_list_delete(resource_id);
 	}
@@ -727,8 +788,10 @@ php_stream_wrapper php_ssh2_stream_wrapper_exec = {
 	0
 };
 
-/* {{{ proto stream ssh2_exec(resource session, string command[, array env])
+/* {{{ proto stream ssh2_exec(resource session, string command[, string pty[, array env[, int width[, int heightp[, int width_height_type]]]]])
  * Execute a command at the remote end and allocate a channel for it
+ *
+ * This function has a dirty little secret.... pty and env can be in either order.... shhhh... don't tell anyone
  */
 PHP_FUNCTION(ssh2_exec)
 {
@@ -736,16 +799,40 @@ PHP_FUNCTION(ssh2_exec)
 	php_stream *stream;
 	zval *zsession;
 	zval *environment = NULL;
+	zval *zpty = NULL;
 	char *command;
 	int command_len;
+	long width = PHP_SSH2_DEFAULT_TERM_WIDTH;
+	long height = PHP_SSH2_DEFAULT_TERM_HEIGHT;
+	long type = PHP_SSH2_DEFAULT_TERM_UNIT;
+	char *term = NULL;
+	int term_len = 0;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs|a!", &zsession, &command, &command_len, &environment) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs|z!z!lll", &zsession, &command, &command_len, &zpty, &environment, &width, &height, &type) == FAILURE) {
 		RETURN_FALSE;
+	}
+
+	if (zpty && Z_TYPE_P(zpty) == IS_ARRAY) {
+		/* Swap pty and environment -- old call style */
+		zval *tmp = zpty;
+		zpty = environment;
+		environment = tmp;
+	}
+
+	if (environment && Z_TYPE_P(environment) != IS_ARRAY) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "ssh2_exec() expects arg 4 to be of type array");
+		RETURN_FALSE;
+	}
+
+	if (zpty) {
+		convert_to_string(zpty);
+		term = Z_STRVAL_P(zpty);
+		term_len = Z_STRLEN_P(zpty);
 	}
 
 	ZEND_FETCH_RESOURCE(session, LIBSSH2_SESSION*, &zsession, -1, PHP_SSH2_SESSION_RES_NAME, le_ssh2_session);
 
-	stream = php_ssh2_exec_command(session, Z_LVAL_P(zsession), command, environment TSRMLS_CC);
+	stream = php_ssh2_exec_command(session, Z_LVAL_P(zsession), command, term, term_len, environment, width, height, type TSRMLS_CC);
 	if (!stream) {
 		RETURN_FALSE;
 	}
