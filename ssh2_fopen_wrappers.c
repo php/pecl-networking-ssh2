@@ -82,9 +82,11 @@ static int php_ssh2_channel_stream_set_option(php_stream *stream, int option, in
 			abstract->is_blocking = value;
 			return ret;
 			break;
+#if PHP_MAJOR_VERSION >= 5
 		case PHP_STREAM_OPTION_CHECK_LIVENESS:
 			return stream->eof = libssh2_channel_eof(abstract->channel);
 			break;
+#endif
 	}
 
 	return -1;
