@@ -327,7 +327,9 @@ LIBSSH2_SESSION *php_ssh2_session_connect(char *host, int port, zval *methods, z
 	int socket;
 	php_ssh2_session_data *data;
 
-#ifdef ZEND_ENGINE_2
+#if PHP_MAJOR_VERSION > 5 || (PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION > 0)
+	socket = php_network_connect_socket_to_host(host, port, SOCK_STREAM, 0, NULL, NULL, NULL, NULL, 0 TSRMLS_CC);
+#elif PHP_MAJOR_VERSION == 5
 	socket = php_network_connect_socket_to_host(host, port, SOCK_STREAM, 0, NULL, NULL, NULL TSRMLS_CC);
 #else
 	socket = php_hostconnect(host, port, SOCK_STREAM, NULL TSRMLS_CC);
