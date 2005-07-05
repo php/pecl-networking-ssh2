@@ -15,19 +15,19 @@ libssh2 is available from http://www.sourceforge.net/projects/libssh2
   <email>pollita@php.net</email>
   <active>yes</active>
  </lead>
- <date>2005-05-17</date>
- <time>19:50:37</time>
+ <date>2005-07-04</date>
+ <time>19:03:37</time>
  <version>
-  <release>0.8</release>
-  <api>0.8</api>
+  <release>0.9</release>
+  <api>0.9</api>
  </version>
  <stability>
   <release>beta</release>
   <api>beta</api>
  </stability>
  <license uri="http://www.php.net/license/2_02.txt">PHP</license>
- <notes>Fixed feof() detection, removed unnecessary sleep() in channel shutdown, and simplified session detection.
-Note: All users are recommended to use libssh2 &gt;= 0.10 as it contains important bugfixes (particularly in the SFTP layer).
+ <notes>Fix version check bugs found in release 0.8.
+Add pty option to ssh2_exec().
  </notes>
  <contents>
   <dir name="/">
@@ -53,6 +53,20 @@ Note: All users are recommended to use libssh2 &gt;= 0.10 as it contains importa
  <changelog>
   <release>
    <version>
+    <release>0.8</release>
+    <api>0.8</api>
+   </version>
+   <stability>
+    <release>beta</release>
+    <api>beta</api>
+   </stability>
+   <date>2005-05-17</date>
+   <license uri="http://www.php.net/license/2_02.txt">PHP</license>
+   <notes>Fixed feof() detection, removed unnecessary sleep() in channel shutdown, and simplified session detection.
+Note: All users are recommended to use libssh2 &gt;= 0.10 as it contains important bugfixes (particularly in the SFTP layer).</notes>
+  </release>
+  <release>
+   <version>
     <release>0.7</release>
     <api>0.7</api>
    </version>
@@ -64,7 +78,6 @@ Note: All users are recommended to use libssh2 &gt;= 0.10 as it contains importa
    <license uri="http://www.php.net/license/2_02.txt">PHP</license>
    <notes>Fixed socket leak bug.  Connections wern&apos;t being closed like they were supposed to.
 Add ssh2_auth_hostbased_file() for hostkey authentication.
-    
    </notes>
   </release>
   <release>
