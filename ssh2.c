@@ -43,11 +43,11 @@ int le_ssh2_sftp;
 
 #ifdef ZEND_ENGINE_2
 static
-    ZEND_BEGIN_ARG_INFO(first_arg_force_ref, 0)
+    ZEND_BEGIN_ARG_INFO(php_ssh2_first_arg_force_ref, 0)
         ZEND_ARG_PASS_INFO(1)
     ZEND_END_ARG_INFO()
 #else
-static unsigned char first_arg_force_ref[] = { 1, BYREF_FORCE };
+static unsigned char php_ssh2_first_arg_force_ref[] = { 1, BYREF_FORCE };
 #endif
 
 /* *************
@@ -1049,7 +1049,7 @@ function_entry ssh2_functions[] = {
 	PHP_FE(ssh2_scp_send,						NULL)
 	PHP_FE(ssh2_fetch_stream,					NULL)
 #ifdef PHP_SSH2_POLL
-	PHP_FE(ssh2_poll,							first_arg_force_ref)
+	PHP_FE(ssh2_poll,							php_ssh2_first_arg_force_ref)
 #endif
 
 	/* SFTP Stuff */
