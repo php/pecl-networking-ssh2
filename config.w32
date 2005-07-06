@@ -4,7 +4,8 @@
 ARG_WITH("ssh2", "SSH2 support", "no");
 
 if (PHP_SSH2 != "no") {
-	if (CHECK_LIB("libeay32.lib", "ssh2", PHP_SSH2) &&
+	if (CHECK_LIB("zlib.lib", "ssh2", PHP_SSH2) &&
+		CHECK_LIB("libeay32.lib", "ssh2", PHP_SSH2) &&
 		CHECK_LIB("ssleay32.lib", "ssh2", PHP_SSH2) &&
 		CHECK_LIB("ws2_32.lib", "ssh2", PHP_SSH2)) {
 
