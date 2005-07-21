@@ -46,6 +46,7 @@
 #define PHP_SSH2_CHANNEL_STREAM_NAME	"SSH2 Channel"
 #define PHP_SSH2_LISTENER_RES_NAME		"SSH2 Listener"
 #define PHP_SSH2_SFTP_RES_NAME			"SSH2 SFTP"
+#define PHP_SSH2_PKEY_SUBSYS_RES_NAME	"SSH2 Publickey Subsystem"
 
 #define PHP_SSH2_SFTP_STREAM_NAME		"SSH2 SFTP File"
 #define PHP_SSH2_SFTP_DIRSTREAM_NAME	"SSH2 SFTP Directory"
@@ -87,6 +88,17 @@ typedef struct _php_ssh2_listener_data {
 
     int session_rsrcid;
 } php_ssh2_listener_data;
+#endif
+
+#ifdef PHP_SSH2_PUBLICKEY_SUBSYSTEM
+#include "libssh2_publickey.h"
+
+typedef struct _php_ssh2_pkey_subsys_data {
+	LIBSSH2_SESSION *session;
+	LIBSSH2_PUBLICKEY *pkey;
+
+	int session_rsrcid;
+} php_ssh2_pkey_subsys_data;
 #endif
 
 #ifdef ZTS

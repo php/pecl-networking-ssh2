@@ -36,8 +36,13 @@
 
 /* True global resources - no need for thread safety here */
 int le_ssh2_session;
+#ifdef PHP_SSH2_REMOTE_FORWARDING
 int le_ssh2_listener;
+#endif
 int le_ssh2_sftp;
+#ifdef PHP_SSH2_PUBLICKEY_SUBSYSTEM
+int le_ssh2_pkey_subsys;
+#endif
 
 #ifdef ZEND_ENGINE_2
 static
@@ -902,6 +907,215 @@ PHP_FUNCTION(ssh2_poll)
 /* }}} */
 #endif /* PHP_SSH2_POLL */
 
+#ifdef PHP_SSH2_PUBLICKEY_SUBSYSTEM
+/* ***********************
+   * Publickey Subsystem *
+   *********************** */
+
+/* {{{ proto resource ssh2_publickey_init(resource connection)
+Initialize the publickey subsystem */
+PHP_FUNCTION(ssh2_publickey_init)
+{
+	zval *zsession;
+	LIBSSH2_SESSION *session;
+	LIBSSH2_PUBLICKEY *pkey;
+	php_ssh2_pkey_subsys_data *data;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &zsession) == FAILURE) {
+		RETURN_FALSE;
+	}
+
+	ZEND_FETCH_RESOURCE(session, LIBSSH2_SESSION*, &zsession, -1, PHP_SSH2_SESSION_RES_NAME, le_ssh2_session);
+
+	pkey = libssh2_publickey_init(session);
+
+	if (!pkey) {
+		int last_error = 0;
+		char *error_msg = NULL;
+
+		last_error = libssh2_session_last_error(session, &error_msg, NULL, 0);
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to initialize publickey subsystem(%d) %s", last_error, error_msg);
+		RETURN_FALSE;
+	}
+
+	data = emalloc(sizeof(php_ssh2_pkey_subsys_data));
+	data->session = session;
+	data->session_rsrcid = Z_LVAL_P(zsession);
+	zend_list_addref(data->session_rsrcid);
+	data->pkey = pkey;
+
+	ZEND_REGISTER_RESOURCE(return_value, data, le_ssh2_pkey_subsys);
+}
+/* }}} */
+
+/* {{{ proto bool ssh2_publickey_add(resource pkey, string algoname, string blob[, bool overwrite=FALSE [,array attributes=NULL]])
+Add an additional publickey */
+PHP_FUNCTION(ssh2_publickey_add)
+{
+	zval *zpkey_data, *zattrs = NULL;
+	php_ssh2_pkey_subsys_data *data;
+	char *algo, *blob;
+	int algo_len, blob_len;
+	unsigned long num_attrs = 0;
+	libssh2_publickey_attribute *attrs = NULL;
+	zend_bool overwrite = 0;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss|ba", &zpkey_data, &algo, &algo_len, &blob, &blob_len, &overwrite, &zattrs) == FAILURE) {
+		RETURN_FALSE;
+	}
+
+	ZEND_FETCH_RESOURCE(data, php_ssh2_pkey_subsys_data*, &zpkey_data, -1, PHP_SSH2_PKEY_SUBSYS_RES_NAME, le_ssh2_pkey_subsys);
+
+	if (zattrs) {
+		HashPosition pos;
+		zval **attr_val;
+		unsigned long current_attr = 0;
+
+		num_attrs = zend_hash_num_elements(Z_ARRVAL_P(zattrs));
+		attrs = safe_emalloc(num_attrs, sizeof(libssh2_publickey_attribute), 0);
+
+		for(zend_hash_internal_pointer_reset_ex(Z_ARRVAL_P(zattrs), &pos);
+			zend_hash_get_current_data_ex(Z_ARRVAL_P(zattrs), (void**)&attr_val, &pos) == SUCCESS;
+			zend_hash_move_forward_ex(Z_ARRVAL_P(zattrs), &pos)) {
+			char *key;
+			int key_len, type;
+			long idx;
+			zval copyval = **attr_val;
+
+			type = zend_hash_get_current_key_ex(Z_ARRVAL_P(zattrs), &key, &key_len, &idx, 0, &pos);
+			if (type == HASH_KEY_NON_EXISTANT) {
+				/* All but impossible */
+				break;
+			}
+			if (type == HASH_KEY_IS_LONG) {
+				/* Malformed, ignore */
+				php_error_docref(NULL TSRMLS_CC, E_WARNING, "Malformed attirbute array, contains numeric index");
+				num_attrs--;
+				continue;
+			}
+
+			if (key_len == 0 || (key_len == 1 && *key == '*')) {
+				/* Empty key, ignore */
+				php_error_docref(NULL TSRMLS_CC, E_WARNING, "Empty attribute key");
+				num_attrs--;
+				continue;
+			}
+
+			zval_copy_ctor(&copyval);
+			copyval.is_ref = 0;
+			copyval.refcount = 1;
+			convert_to_string(&copyval);
+
+			if (*key == '*') {
+				attrs[current_attr].mandatory = 1;
+				attrs[current_attr].name = key + 1;
+				attrs[current_attr].name_len = key_len - 2;
+			} else {
+				attrs[current_attr].mandatory = 0;
+				attrs[current_attr].name = key;
+				attrs[current_attr].name_len = key_len - 1;
+			}
+			attrs[current_attr].value_len = Z_STRLEN(copyval);
+			attrs[current_attr].value = Z_STRVAL(copyval);
+
+			/* copyval deliberately not dtor'd, we're stealing the string */
+			current_attr++;
+		}
+	}
+
+	if (libssh2_publickey_add_ex(data->pkey, algo, algo_len, blob, blob_len, overwrite, num_attrs, attrs)) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to add %s key", algo);
+		RETVAL_FALSE;
+	} else {
+		RETVAL_TRUE;
+	}
+
+	if (attrs) {
+		unsigned long i;
+
+		for(i = 0; i < num_attrs; i++) {
+			/* name doesn't need freeing */
+			efree(attrs[i].value);
+		}
+		efree(attrs);
+	}
+}
+/* }}} */
+
+/* {{{ proto bool ssh2_publickey_remove(resource pkey, string algoname, string blob)
+Remove a publickey entry */
+PHP_FUNCTION(ssh2_publickey_remove)
+{
+	zval *zpkey_data;
+	php_ssh2_pkey_subsys_data *data;
+	char *algo, *blob;
+	int algo_len, blob_len;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss", &zpkey_data, &algo, &algo_len, &blob, &blob_len) == FAILURE) {
+		RETURN_FALSE;
+	}
+
+	ZEND_FETCH_RESOURCE(data, php_ssh2_pkey_subsys_data*, &zpkey_data, -1, PHP_SSH2_PKEY_SUBSYS_RES_NAME, le_ssh2_pkey_subsys);
+
+	if (libssh2_publickey_remove_ex(data->pkey, algo, algo_len, blob, blob_len)) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to remove %s key", algo);
+		RETURN_FALSE;
+	}
+
+	RETURN_TRUE;
+}
+/* }}} */
+
+/* {{{ proto array ssh2_publickey_list(resource pkey)
+List currently installed publickey entries */
+PHP_FUNCTION(ssh2_publickey_list)
+{
+	zval *zpkey_data;
+	php_ssh2_pkey_subsys_data *data;
+	unsigned long num_keys, i;
+	libssh2_publickey_list *keys;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &zpkey_data) == FAILURE) {
+		RETURN_FALSE;
+	}
+
+	ZEND_FETCH_RESOURCE(data, php_ssh2_pkey_subsys_data*, &zpkey_data, -1, PHP_SSH2_PKEY_SUBSYS_RES_NAME, le_ssh2_pkey_subsys);
+
+	if (libssh2_publickey_list_fetch(data->pkey, &num_keys, &keys)) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to list keys on remote server");
+		RETURN_FALSE;
+	}
+
+	array_init(return_value);
+	for(i = 0; i < num_keys; i++) {
+		zval *key, *attrs;
+		unsigned long j;
+
+		MAKE_STD_ZVAL(key);
+		array_init(key);
+
+		add_assoc_stringl(key, "name", keys[i].name, keys[i].name_len, 1);
+		add_assoc_stringl(key, "blob", keys[i].blob, keys[i].blob_len, 1);
+
+		MAKE_STD_ZVAL(attrs);
+		array_init(attrs);
+		for(j = 0; j < keys[i].num_attrs; j++) {
+			zval *attr;
+
+			MAKE_STD_ZVAL(attr);
+			ZVAL_STRINGL(attr, keys[i].attrs[j].value, keys[i].attrs[j].value_len, 1);
+			zend_hash_add(Z_ARRVAL_P(attrs), keys[i].attrs[j].name, keys[i].attrs[j].name_len + 1, (void**)&attr, sizeof(zval*), NULL);
+		}
+		add_assoc_zval(key, "attrs", attrs);
+
+		add_next_index_zval(return_value, key);
+	}
+
+	libssh2_publickey_list_free(data->pkey, keys);
+}
+/* }}} */
+#endif /* PHP_SSH2_PUBLICKEY_SUBSYSTEM */
+
 /* ***********************
    * Module Housekeeping *
    *********************** */
@@ -948,6 +1162,18 @@ static void php_ssh2_listener_dtor(zend_rsrc_list_entry *rsrc TSRMLS_DC)
 }
 #endif /* PHP_SSH2_REMOTE_FORWARDING */
 
+#ifdef PHP_SSH2_PUBLICKEY_SUBSYSTEM
+static void php_ssh2_pkey_subsys_dtor(zend_rsrc_list_entry *rsrc TSRMLS_DC)
+{
+	php_ssh2_pkey_subsys_data *data = (php_ssh2_pkey_subsys_data*)rsrc->ptr;
+	LIBSSH2_PUBLICKEY *pkey = data->pkey;
+
+	libssh2_publickey_shutdown(pkey);
+	zend_list_delete(data->session_rsrcid);
+	efree(data);
+}
+#endif /* PHP_SSH2_PUBLICKEY_SUBSYSTEM */
+
 /* {{{ PHP_MINIT_FUNCTION
  */
 PHP_MINIT_FUNCTION(ssh2)
@@ -957,6 +1183,9 @@ PHP_MINIT_FUNCTION(ssh2)
 	le_ssh2_listener	= zend_register_list_destructors_ex(php_ssh2_listener_dtor, NULL, PHP_SSH2_LISTENER_RES_NAME, module_number);
 #endif /* PHP_SSH2_REMOTE_FORWARDING */
 	le_ssh2_sftp		= zend_register_list_destructors_ex(php_ssh2_sftp_dtor, NULL, PHP_SSH2_SFTP_RES_NAME, module_number);
+#ifdef PHP_SSH2_PUBLICKEY_SUBSYSTEM
+	le_ssh2_pkey_subsys	= zend_register_list_destructors_ex(php_ssh2_pkey_subsys_dtor, NULL, PHP_SSH2_PKEY_SUBSYS_RES_NAME, module_number);
+#endif /* PHP_SSH2_PUBLICKEY_SUBSYSTEM */
 
 	REGISTER_LONG_CONSTANT("SSH2_FINGERPRINT_MD5",		PHP_SSH2_FINGERPRINT_MD5,		CONST_CS | CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("SSH2_FINGERPRINT_SHA1",		PHP_SSH2_FINGERPRINT_SHA1,		CONST_CS | CONST_PERSISTENT);
@@ -1064,6 +1293,14 @@ function_entry ssh2_functions[] = {
 	PHP_FE(ssh2_sftp_symlink,					NULL)
 	PHP_FE(ssh2_sftp_readlink,					NULL)
 	PHP_FE(ssh2_sftp_realpath,					NULL)
+
+	/* Publickey subsystem */
+#ifdef PHP_SSH2_PUBLICKEY_SUBSYSTEM
+	PHP_FE(ssh2_publickey_init,					NULL)
+	PHP_FE(ssh2_publickey_add,					NULL)
+	PHP_FE(ssh2_publickey_remove,				NULL)
+	PHP_FE(ssh2_publickey_list,					NULL)
+#endif
 
 	{NULL, NULL, NULL}
 };
