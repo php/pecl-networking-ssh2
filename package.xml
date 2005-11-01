@@ -24,6 +24,14 @@
   </filelist>
 
    <release>
+    <version>0.10</version>
+    <state>beta</state>
+    <date>2005-11-01</date>
+    <notes>Added support for publickey subsystem.</notes>
+   </release>
+
+  <changelog>
+   <release>
     <version>0.9</version>
     <state>beta</state>
     <date>2005-07-04</date>
@@ -33,7 +41,6 @@ Add pty option to ssh2_exec().
     </notes>
    </release>
 
-  <changelog>
    <release>
     <version>0.8</version>
     <state>beta</state>
