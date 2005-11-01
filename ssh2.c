@@ -1245,7 +1245,20 @@ PHP_MSHUTDOWN_FUNCTION(ssh2)
 PHP_MINFO_FUNCTION(ssh2)
 {
 	php_info_print_table_start();
-	php_info_print_table_header(2, "ssh2 support", "enabled");
+	php_info_print_table_header(2, "libssh2 version", LIBSSH2_VERSION);
+	php_info_print_table_header(2, "banner", LIBSSH2_SSH_BANNER);
+#ifdef PHP_SSH2_REMOTE_FORWARDING
+	php_info_print_table_header(2, "remote forwarding", "enabled");
+#endif
+#ifdef PHP_SSH2_HOSTBASED_AUTH
+	php_info_print_table_header(2, "hostbased auth", "enabled");
+#endif
+#ifdef PHP_SSH2_POLL
+	php_info_print_table_header(2, "polling support", "enabled");
+#endif
+#ifdef PHP_SSH2_PUBLICKEY_SUBSYSTEM
+	php_info_print_table_header(2, "publickey subsystem", "enabled");
+#endif
 	php_info_print_table_end();
 }
 /* }}} */
