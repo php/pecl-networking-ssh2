@@ -44,6 +44,8 @@ if test "$PHP_SSH2" != "no"; then
     AC_DEFINE(PHP_SSH2_REMOTE_FORWARDING, 1, [Have libssh2 with remote forwarding])
   ],[
     AC_MSG_WARN([libssh2 <= 0.4, remote forwarding not enabled])
+  ],[
+    -L$SSH2_DIR/lib -lm 
   ])
 
   PHP_CHECK_LIBRARY($LIBNAME,libssh2_userauth_hostbased_fromfile_ex,
@@ -51,6 +53,8 @@ if test "$PHP_SSH2" != "no"; then
     AC_DEFINE(PHP_SSH2_HOSTBASED_AUTH, 1, [Have libssh2 with hostbased authentication])
   ],[
     AC_MSG_WARN([libssh2 <= 0.6, hostbased authentication not enabled])
+  ],[
+    -L$SSH2_DIR/lib -lm 
   ])
 
   PHP_CHECK_LIBRARY($LIBNAME,libssh2_poll,
@@ -58,6 +62,8 @@ if test "$PHP_SSH2" != "no"; then
     AC_DEFINE(PHP_SSH2_POLL, 1, [Have libssh2 with poll() support])
   ],[
     AC_MSG_WARN([libssh2 <= 0.7, poll support not enabled])
+  ],[
+    -L$SSH2_DIR/lib -lm 
   ])
 
   PHP_CHECK_LIBRARY($LIBNAME,libssh2_publickey_init,
@@ -65,6 +71,8 @@ if test "$PHP_SSH2" != "no"; then
     AC_DEFINE(PHP_SSH2_PUBLICKEY_SUBSYSTEM, 1, [Have libssh2 with publickey subsystem support])
   ],[
     AC_MSG_WARN([libssh2 <= 0.11, publickey subsystem support not enabled])
+  ],[
+    -L$SSH2_DIR/lib -lm 
   ])
   
   PHP_SUBST(SSH2_SHARED_LIBADD)
