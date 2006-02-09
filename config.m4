@@ -36,7 +36,7 @@ if test "$PHP_SSH2" != "no"; then
   ],[
     AC_MSG_ERROR([libssh2 version >= 0.4 not found])
   ],[
-    -L$SSH2_DIR/lib -lm -ldl
+    -L$SSH2_DIR/lib -lm 
   ])
 
   PHP_CHECK_LIBRARY($LIBNAME,libssh2_channel_forward_listen_ex,
