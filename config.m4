@@ -7,7 +7,7 @@ PHP_ARG_WITH(ssh2, for ssh2 support,
 if test "$PHP_SSH2" != "no"; then
   SEARCH_PATH="/usr/local /usr"
   SEARCH_FOR="/include/libssh2.h"
-  if test -r $PHP_SSH2/; then # path given as parameter
+  if test -r $PHP_SSH2/$SEARCH_FOR; then # path given as parameter
     SSH2_DIR=$PHP_SSH2
   else
     AC_MSG_CHECKING([for ssh2 files in default path])
