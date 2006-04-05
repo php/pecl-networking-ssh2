@@ -48,7 +48,7 @@ static int php_ssh2_channel_stream_close(php_stream *stream, int close_handle TS
 {
 	php_ssh2_channel_data *abstract = (php_ssh2_channel_data*)stream->abstract;
 
-	if (!abstract->refcount || (--*(abstract->refcount) == 0)) {
+	if (!abstract->refcount || (--(*(abstract->refcount)) == 0)) {
 		/* Last one out, turn off the lights */
 		if (abstract->refcount) {
 			efree(abstract->refcount);
@@ -1232,7 +1232,7 @@ PHP_FUNCTION(ssh2_fetch_stream)
 		RETURN_FALSE;
 	}
 
-	*(data->refcount)++;
+	(*(data->refcount))++;
 
 	stream_data = emalloc(sizeof(php_ssh2_channel_data));
 	memcpy(stream_data, data, sizeof(php_ssh2_channel_data));
