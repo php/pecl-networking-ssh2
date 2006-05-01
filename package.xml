@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <package version="1.0">
   <name>ssh2</name>
   <summary>Bindings for the libssh2 library</summary>
@@ -14,93 +15,82 @@
       <role>lead</role>
     </maintainer>
   </maintainers>
-
   <filelist>
     <file role="src" name="config.m4"/>
     <file role="src" name="ssh2.c"/>
-    <file role="src" name="php_ssh2.h"/>      
+    <file role="src" name="php_ssh2.h"/>
     <file role="src" name="ssh2_fopen_wrappers.c"/>
     <file role="src" name="ssh2_sftp.c"/>
   </filelist>
-
-   <release>
+  <release>
     <version>0.10</version>
     <state>beta</state>
     <date>2005-11-01</date>
     <notes>Added support for publickey subsystem.</notes>
-   </release>
-
-   <configureoptions>
-   <configureoption name="with-dir" default="/usr" prompt="libssh2 prefix?"/>
-   </configureoptions>
-
-
+  </release>
+  <configureoptions>
+    <configureoption name="with-dir" default="/usr" prompt="libssh2 prefix?"/>
+  </configureoptions>
   <changelog>
-   <release>
-    <version>0.9</version>
-    <state>beta</state>
-    <date>2005-07-04</date>
-    <notes>
+    <release>
+      <version>0.9</version>
+      <state>beta</state>
+      <date>2005-07-04</date>
+      <notes>
 Fix version check bugs found in release 0.8.
 Add pty option to ssh2_exec().
     </notes>
-   </release>
-
-   <release>
-    <version>0.8</version>
-    <state>beta</state>
-    <date>2005-05-17</date>
-    <notes>
+    </release>
+    <release>
+      <version>0.8</version>
+      <state>beta</state>
+      <date>2005-05-17</date>
+      <notes>
 Fixed feof() detection, removed unnecessary sleep() in channel shutdown, and simplified session detection.
 Note: All users are recommended to use libssh2 &gt;= 0.10 as it contains important bugfixes (particularly in the SFTP layer).
     </notes>
-   </release>
-
-   <release>
-    <version>0.7</version>
-    <state>beta</state>
-    <date>2005-02-24</date>
-    <notes>
+    </release>
+    <release>
+      <version>0.7</version>
+      <state>beta</state>
+      <date>2005-02-24</date>
+      <notes>
 Fixed socket leak bug.  Connections wern't being closed like they were supposed to.
 Add ssh2_auth_hostbased_file() for hostkey authentication.
     </notes>
-   </release>
-
-   <release>
-    <version>0.6</version>
-    <state>beta</state>
-    <date>2005-02-09</date>
-    <notes>
+    </release>
+    <release>
+      <version>0.6</version>
+      <state>beta</state>
+      <date>2005-02-09</date>
+      <notes>
 Minor fixes including some added error handling and more discriptive ./configure message.
 Users of PHP/SSH2 are recommended to upgrade their installation of libssh2 to version 0.6
 whether or not upgrading the PHP/SSH2 extension.
     </notes>
-   </release>
-
-   <release>
-    <version>0.5</version>
-    <state>beta</state>
-    <date>2005-01-10</date>
-    <notes>
+    </release>
+    <release>
+      <version>0.5</version>
+      <state>beta</state>
+      <date>2005-01-10</date>
+      <notes>
 Added port forwarding support (requires libssh2-0.5) and
 modified ssh2_methods_negotiated() to work with modified libssh2 prototype.
 Note: Version PECL/ssh2 0.4.1 is incompatable with libssh2 &gt;= 0.5
 Both should be upgraded in tandem, though PECL/ssh2 0.5 will work with libssh2 &gt;= 0.4
     </notes>
-   </release>
-
-   <release>
-    <version>0.4.1</version>
-    <state>beta</state>
-    <date>2004-12-24</date>
-    <notes>
+    </release>
+    <release>
+      <version>0.4.1</version>
+      <state>beta</state>
+      <date>2004-12-24</date>
+      <notes>
       Happy Holidays!
       Version 0.4 of the ssh2 extension requires libssh2 version 0.4 or higher
     </notes>
-   </release>
-   <deps>
-    <dep type="php" rel="ge" version="4.3" />
-   </deps>
+    </release>
+    <deps>
+      <dep type="php" rel="ge" version="4.3"/>
+    </deps>
   </changelog>
-
 </package>
