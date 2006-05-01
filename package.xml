@@ -30,6 +30,11 @@
     <notes>Added support for publickey subsystem.</notes>
    </release>
 
+   <configureoptions>
+   <configureoption name="with-dir" default="/usr" prompt="libssh2 prefix?"/>
+   </configureoptions>
+
+
   <changelog>
    <release>
     <version>0.9</version>
