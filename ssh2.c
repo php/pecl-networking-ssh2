@@ -474,7 +474,7 @@ PHP_FUNCTION(ssh2_methods_negotiated)
 {
 	LIBSSH2_SESSION *session;
 	zval *zsession, *endpoint;
-	char *kex, *hostkey, *crypt_cs, *crypt_sc, *mac_cs, *mac_sc, *comp_cs, *comp_sc, *lang_cs, *lang_sc;
+	const char *kex, *hostkey, *crypt_cs, *crypt_sc, *mac_cs, *mac_sc, *comp_cs, *comp_sc, *lang_cs, *lang_sc;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &zsession) == FAILURE) {
 		RETURN_FALSE;
@@ -527,7 +527,7 @@ PHP_FUNCTION(ssh2_fingerprint)
 {
 	LIBSSH2_SESSION *session;
 	zval *zsession;
-	char *fingerprint;
+	const char *fingerprint;
 	long flags = 0;
 	int i, fingerprint_len;
 
