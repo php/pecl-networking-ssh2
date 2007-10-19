@@ -484,19 +484,19 @@ PHP_FUNCTION(ssh2_methods_negotiated)
 
 	ZEND_FETCH_RESOURCE(session, LIBSSH2_SESSION*, &zsession, -1, PHP_SSH2_SESSION_RES_NAME, le_ssh2_session);
 
-#if LIBSSH2_APINO < 200412301450
+#if defined(LIBSSH2_APINO) && LIBSSH2_APINO < 200412301450
 	libssh2_session_methods(session, &kex, &hostkey, &crypt_cs, &crypt_sc, &mac_cs, &mac_sc, &comp_cs, &comp_sc, &lang_cs, &lang_sc);
 #else
-	kex = libssh2_session_methods(session, LIBSSH2_METHOD_KEX);
-	hostkey = libssh2_session_methods(session, LIBSSH2_METHOD_HOSTKEY);
-	crypt_cs = libssh2_session_methods(session, LIBSSH2_METHOD_CRYPT_CS);
-	crypt_sc = libssh2_session_methods(session, LIBSSH2_METHOD_CRYPT_SC);
-	mac_cs = libssh2_session_methods(session, LIBSSH2_METHOD_MAC_CS);
-	mac_sc = libssh2_session_methods(session, LIBSSH2_METHOD_MAC_SC);
-	comp_cs = libssh2_session_methods(session, LIBSSH2_METHOD_COMP_CS);
-	comp_sc = libssh2_session_methods(session, LIBSSH2_METHOD_COMP_SC);
-	lang_cs = libssh2_session_methods(session, LIBSSH2_METHOD_LANG_CS);
-	lang_sc = libssh2_session_methods(session, LIBSSH2_METHOD_LANG_SC);
+	kex = (char*)libssh2_session_methods(session, LIBSSH2_METHOD_KEX);
+	hostkey = (char*)libssh2_session_methods(session, LIBSSH2_METHOD_HOSTKEY);
+	crypt_cs = (char*)libssh2_session_methods(session, LIBSSH2_METHOD_CRYPT_CS);
+	crypt_sc = (char*)libssh2_session_methods(session, LIBSSH2_METHOD_CRYPT_SC);
+	mac_cs = (char*)libssh2_session_methods(session, LIBSSH2_METHOD_MAC_CS);
+	mac_sc = (char*)libssh2_session_methods(session, LIBSSH2_METHOD_MAC_SC);
+	comp_cs = (char*)libssh2_session_methods(session, LIBSSH2_METHOD_COMP_CS);
+	comp_sc = (char*)libssh2_session_methods(session, LIBSSH2_METHOD_COMP_SC);
+	lang_cs = (char*)libssh2_session_methods(session, LIBSSH2_METHOD_LANG_CS);
+	lang_sc = (char*)libssh2_session_methods(session, LIBSSH2_METHOD_LANG_SC);
 #endif
 
 	array_init(return_value);
@@ -540,7 +540,7 @@ PHP_FUNCTION(ssh2_fingerprint)
 
 	ZEND_FETCH_RESOURCE(session, LIBSSH2_SESSION*, &zsession, -1, PHP_SSH2_SESSION_RES_NAME, le_ssh2_session);
 
-	fingerprint = libssh2_hostkey_hash(session, (flags & PHP_SSH2_FINGERPRINT_SHA1) ? LIBSSH2_HOSTKEY_HASH_SHA1 : LIBSSH2_HOSTKEY_HASH_MD5);
+	fingerprint = (char*)libssh2_hostkey_hash(session, (flags & PHP_SSH2_FINGERPRINT_SHA1) ? LIBSSH2_HOSTKEY_HASH_SHA1 : LIBSSH2_HOSTKEY_HASH_MD5);
 	if (!fingerprint) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to retreive fingerprint from specified session");
 		RETURN_FALSE;
