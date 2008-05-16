@@ -29,7 +29,7 @@
     <notes>Added support for publickey subsystem.</notes>
   </release>
   <configureoptions>
-    <configureoption name="with-dir" default="/usr" prompt="libssh2 prefix?"/>
+    <configureoption name="with-ssh2" default="/usr" prompt="libssh2 prefix?"/>
   </configureoptions>
   <changelog>
     <release>
