@@ -397,6 +397,8 @@ static int php_ssh2_sftp_urlstat(php_stream_wrapper *wrapper, char *url, int fla
 		zend_list_delete(sftp_rsrcid);
 		return -1;
 	}
+	
+	php_url_free(resource);
 
 	/* parse_path addrefs the resource, but we're not holding on to it so we have to delref it before we leave */
 	zend_list_delete(sftp_rsrcid);
@@ -467,6 +469,7 @@ static int php_ssh2_sftp_rename(php_stream_wrapper *wrapper, char *url_from, cha
 
 	result = libssh2_sftp_rename(sftp, resource->path, resource_to->path);
 	php_url_free(resource);
+	php_url_free(resource_to);
 
 	zend_list_delete(sftp_rsrcid);
 
