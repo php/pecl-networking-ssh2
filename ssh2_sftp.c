@@ -417,7 +417,10 @@ static int php_ssh2_sftp_unlink(php_stream_wrapper *wrapper, char *url, int opti
 
 	resource = php_ssh2_fopen_wraper_parse_path(url, "sftp", context, &session, &resource_id, &sftp, &sftp_rsrcid TSRMLS_CC);
 	if (!resource || !session || !sftp || !resource->path) {
-		return -1;
+		if (resource) {
+			php_url_free(resource);
+		}
+		return 0;
 	}
 
 	result = libssh2_sftp_unlink(sftp, resource->path);
@@ -425,7 +428,8 @@ static int php_ssh2_sftp_unlink(php_stream_wrapper *wrapper, char *url, int opti
 
 	zend_list_delete(sftp_rsrcid);
 
-	return (result == 0) ? 0 : -1;
+	/* libssh2 uses 0 for success and the streams API uses 0 for failure, so invert */
+	return (result == 0) ? -1 : 0;
 }
 /* }}} */
 
@@ -441,18 +445,24 @@ static int php_ssh2_sftp_rename(php_stream_wrapper *wrapper, char *url_from, cha
 
 	if (strncmp(url_from, "ssh2.sftp://", sizeof("ssh2.sftp://") - 1) ||
 		strncmp(url_to, "ssh2.sftp://", sizeof("ssh2.sftp://") - 1)) {
-		return -1;
+		return 0;
 	}
 
 	resource_to = php_url_parse(url_to);
 	if (!resource_to || !resource_to->path) {
-		return -1;
+		if (resource_to) {
+			php_url_free(resource_to);
+		}
+		return 0;
 	}
 
 	resource = php_ssh2_fopen_wraper_parse_path(url_from, "sftp", context, &session, &resource_id, &sftp, &sftp_rsrcid TSRMLS_CC);
 	if (!resource || !session || !sftp || !resource->path) {
+		if (resource) {
+			php_url_free(resource);
+		}
 		php_url_free(resource_to);
-		return -1;
+		return 0;
 	}
 
 	result = libssh2_sftp_rename(sftp, resource->path, resource_to->path);
@@ -460,7 +470,8 @@ static int php_ssh2_sftp_rename(php_stream_wrapper *wrapper, char *url_from, cha
 
 	zend_list_delete(sftp_rsrcid);
 
-	return (result == 0) ? 0 : -1;
+	/* libssh2 uses 0 for success and the streams API uses 0 for failure, so invert */
+	return (result == 0) ? -1 : 0;
 }
 /* }}} */
 
@@ -476,7 +487,10 @@ static int php_ssh2_sftp_mkdir(php_stream_wrapper *wrapper, char *url, int mode,
 
 	resource = php_ssh2_fopen_wraper_parse_path(url, "sftp", context, &session, &resource_id, &sftp, &sftp_rsrcid TSRMLS_CC);
 	if (!resource || !session || !sftp || !resource->path) {
-		return -1;
+		if (resource) {
+			php_url_free(resource);
+		}
+		return 0;
 	}
 
 	if (options & PHP_STREAM_MKDIR_RECURSIVE) {
@@ -492,7 +506,8 @@ static int php_ssh2_sftp_mkdir(php_stream_wrapper *wrapper, char *url, int mode,
 
 	zend_list_delete(sftp_rsrcid);
 
-	return (result == 0) ? 0 : -1;
+	/* libssh2 uses 0 for success and the streams API uses 0 for failure, so invert */
+	return (result == 0) ? -1 : 0;
 }
 /* }}} */
 
@@ -508,7 +523,10 @@ static int php_ssh2_sftp_rmdir(php_stream_wrapper *wrapper, char *url, int optio
 
 	resource = php_ssh2_fopen_wraper_parse_path(url, "sftp", context, &session, &resource_id, &sftp, &sftp_rsrcid TSRMLS_CC);
 	if (!resource || !session || !sftp || !resource->path) {
-		return -1;
+		if (resource) {
+			php_url_free(resource);
+		}
+		return 0;
 	}
 
 	result = libssh2_sftp_rmdir(sftp, resource->path);
@@ -516,7 +534,8 @@ static int php_ssh2_sftp_rmdir(php_stream_wrapper *wrapper, char *url, int optio
 
 	zend_list_delete(sftp_rsrcid);
 
-	return (result == 0) ? 0 : -1;
+	/* libssh2 uses 0 for success and the streams API uses 0 for failure, so invert */
+	return (result == 0) ? -1 : 0;
 }
 /* }}} */
 #endif
