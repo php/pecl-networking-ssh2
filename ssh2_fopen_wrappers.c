@@ -40,10 +40,13 @@ static size_t php_ssh2_channel_stream_write(php_stream *stream, const char *buf,
 static size_t php_ssh2_channel_stream_read(php_stream *stream, char *buf, size_t count TSRMLS_DC)
 {
 	php_ssh2_channel_data *abstract = (php_ssh2_channel_data*)stream->abstract;
+	ssize_t readstate;
 
 	stream->eof = libssh2_channel_eof(abstract->channel);
 	libssh2_channel_set_blocking(abstract->channel, abstract->is_blocking);
-	return libssh2_channel_read_ex(abstract->channel, abstract->streamid, buf, count);
+		
+	readstate = libssh2_channel_read_ex(abstract->channel, abstract->streamid, buf, count);
+	return (readstate == LIBSSH2_ERROR_EAGAIN ? 0 : readstate);
 }
 
 static int php_ssh2_channel_stream_close(php_stream *stream, int close_handle TSRMLS_DC)
