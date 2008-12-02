@@ -889,7 +889,7 @@ PHP_FUNCTION(ssh2_poll)
 	for(i = 0; i < numfds; i++) {
 		zval *subarray = *pollmap[i];
 
-		if (!subarray->is_ref && subarray->refcount > 1) {
+		if (!Z_ISREF_P(subarray) && Z_REFCOUNT_P(subarray) > 1) {
 			/* Make a new copy of the subarray zval* */
 			MAKE_STD_ZVAL(subarray);
 			*subarray = **pollmap[i];
@@ -899,8 +899,8 @@ PHP_FUNCTION(ssh2_poll)
 			zval_copy_ctor(subarray);
 
 			/* Fixup its refcount */
-			subarray->is_ref = 0;
-			subarray->refcount = 1;
+			Z_UNSET_ISREF_P(subarray);
+			Z_SET_REFCOUNT_P(subarray, 1);
 		}
 		zend_hash_del(Z_ARRVAL_P(subarray), "revents", sizeof("revents"));
 		add_assoc_long(subarray, "revents", pollfds[i].revents);
@@ -1009,8 +1009,8 @@ PHP_FUNCTION(ssh2_publickey_add)
 			}
 
 			zval_copy_ctor(&copyval);
-			copyval.is_ref = 0;
-			copyval.refcount = 1;
+			Z_UNSET_ISREF_P(&copyval);
+			Z_SET_REFCOUNT_P(&copyval, 1);
 			convert_to_string(&copyval);
 
 			if (*key == '*') {

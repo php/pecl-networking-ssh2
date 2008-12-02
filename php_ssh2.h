@@ -109,6 +109,32 @@ typedef struct _php_ssh2_pkey_subsys_data {
 #define SSH2_TSRMLS_FETCH(datap)
 #endif
 
+/* < 5.3 compatibility */
+#ifndef Z_REFCOUNT_P
+#define Z_REFCOUNT_P(pz)              (pz)->refcount
+#define Z_REFCOUNT_PP(ppz)            Z_REFCOUNT_P(*(ppz))
+#endif
+
+#ifndef Z_SET_REFCOUNT_P
+#define Z_SET_REFCOUNT_P(pz, rc)      (pz)->refcount = rc
+#define Z_SET_REFCOUNT_PP(ppz, rc)    Z_SET_REFCOUNT_P(*(ppz), rc)
+#endif
+
+#ifndef Z_ISREF_P
+#define Z_ISREF_P(pz)                 (pz)->is_ref
+#define Z_ISREF_PP(ppz)               Z_ISREF_P(*(ppz))
+#endif
+
+#ifndef Z_SET_ISREF_P
+#define Z_SET_ISREF_P(pz)             (pz)->is_ref = 1
+#define Z_SET_ISREF_PP(ppz)           Z_SET_ISREF_P(*(ppz))
+#endif
+
+#ifndef Z_UNSET_ISREF_P
+#define Z_UNSET_ISREF_P(pz)           (pz)->is_ref = 0
+#define Z_UNSET_ISREF_PP(ppz)         Z_UNSET_ISREF_P(*(ppz))
+#endif
+
 
 typedef struct _php_ssh2_channel_data {
 	LIBSSH2_CHANNEL *channel;
