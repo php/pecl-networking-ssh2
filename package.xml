@@ -9,6 +9,12 @@
   <license>PHP</license>
   <maintainers>
     <maintainer>
+      <user>mikesul</user>
+      <name>Mike Sullivan</name>
+      <email>mikesul@php.net</email>
+      <role>lead</role>
+    </maintainer>
+    <maintainer>
       <user>pollita</user>
       <name>Sara Golemon</name>
       <email>pollita@php.net</email>
@@ -23,15 +29,25 @@
     <file role="src" name="ssh2_sftp.c"/>
   </filelist>
   <release>
-    <version>0.10</version>
+    <version>0.11.0</version>
     <state>beta</state>
-    <date>2005-11-01</date>
-    <notes>Added support for publickey subsystem.</notes>
+    <date>2008-12-08</date>
+    <notes>- Support for latest libssh2 release
+- Fix build with PHP 5.3
+- Fixed incorrect return values for rename/unlink/mkdir/rmdir with sftp functions/streams
+- Fixed various memory leaks and segfaults
+</notes>
   </release>
   <configureoptions>
     <configureoption name="with-ssh2" default="/usr" prompt="libssh2 prefix?"/>
   </configureoptions>
   <changelog>
+	<release>
+		<version>0.10</version>
+		<state>beta</state>
+		<date>2005-11-01</date>
+		<notes>Added support for publickey subsystem.</notes>
+	</release>
     <release>
       <version>0.9</version>
       <state>beta</state>
