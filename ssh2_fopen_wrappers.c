@@ -46,7 +46,7 @@ static size_t php_ssh2_channel_stream_read(php_stream *stream, char *buf, size_t
 	libssh2_channel_set_blocking(abstract->channel, abstract->is_blocking);
 		
 	readstate = libssh2_channel_read_ex(abstract->channel, abstract->streamid, buf, count);
-	return (readstate == LIBSSH2_ERROR_EAGAIN ? 0 : readstate);
+	return (readstate < 0 ? 0 : readstate);
 }
 
 static int php_ssh2_channel_stream_close(php_stream *stream, int close_handle TSRMLS_DC)
