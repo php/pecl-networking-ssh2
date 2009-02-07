@@ -248,7 +248,7 @@ LIBSSH2_DISCONNECT_FUNC(php_ssh2_disconnect_cb)
 /* {{{ php_ssh2_set_callback
  * Try to set a method if it's passed in with the hash table
  */
-static int php_ssh2_set_callback(LIBSSH2_SESSION *session, HashTable *ht, char *callback, int callback_len, int callback_type, php_ssh2_session_data *data)
+static int php_ssh2_set_callback(LIBSSH2_SESSION *session, HashTable *ht, char *callback, int callback_len, int callback_type, php_ssh2_session_data *data TSRMLS_DC)
 {
 	zval **handler, *copyval;
 	void *internal_handler;
@@ -257,7 +257,7 @@ static int php_ssh2_set_callback(LIBSSH2_SESSION *session, HashTable *ht, char *
 		return 0;
 	}
 
-	if (!handler || !*handler || !zend_is_callable(*handler, 0, NULL)) {
+	if (!handler || !*handler || !zend_is_callable(*handler, 0, NULL TSRMLS_CC)) {
 		return -1;
 	}
 
@@ -411,19 +411,19 @@ LIBSSH2_SESSION *php_ssh2_session_connect(char *host, int port, zval *methods, z
 	if (callbacks) {
 		/* ignore debug disconnect macerror */
 
-		if (php_ssh2_set_callback(session, HASH_OF(callbacks), "ignore", sizeof("ignore") - 1, LIBSSH2_CALLBACK_IGNORE, data)) {
+		if (php_ssh2_set_callback(session, HASH_OF(callbacks), "ignore", sizeof("ignore") - 1, LIBSSH2_CALLBACK_IGNORE, data TSRMLS_CC)) {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failed setting IGNORE callback");
 		}
 
-		if (php_ssh2_set_callback(session, HASH_OF(callbacks), "debug", sizeof("debug") - 1, LIBSSH2_CALLBACK_DEBUG, data)) {
+		if (php_ssh2_set_callback(session, HASH_OF(callbacks), "debug", sizeof("debug") - 1, LIBSSH2_CALLBACK_DEBUG, data TSRMLS_CC)) {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failed setting DEBUG callback");
 		}
 
-		if (php_ssh2_set_callback(session, HASH_OF(callbacks), "macerror", sizeof("macerror") - 1, LIBSSH2_CALLBACK_MACERROR, data)) {
+		if (php_ssh2_set_callback(session, HASH_OF(callbacks), "macerror", sizeof("macerror") - 1, LIBSSH2_CALLBACK_MACERROR, data TSRMLS_CC)) {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failed setting MACERROR callback");
 		}
 
-		if (php_ssh2_set_callback(session, HASH_OF(callbacks), "disconnect", sizeof("disconnect") - 1, LIBSSH2_CALLBACK_DISCONNECT, data)) {
+		if (php_ssh2_set_callback(session, HASH_OF(callbacks), "disconnect", sizeof("disconnect") - 1, LIBSSH2_CALLBACK_DISCONNECT, data TSRMLS_CC)) {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failed setting DISCONNECT callback");
 		}
 	}
