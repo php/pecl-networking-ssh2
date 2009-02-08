@@ -10,8 +10,8 @@ if (PHP_SSH2 != "no") {
 		CHECK_LIB("ssleay32.lib", "ssh2", PHP_SSH2) &&
 		CHECK_LIB("ws2_32.lib", "ssh2", PHP_SSH2)) {
 
-		FSO.CopyFile(configure_module_dirname + "\\libssh2\\include\\libssh2_config.h.in.w32",
-	  		 	configure_module_dirname + "\\libssh2\\include\\libssh2_config.h");
+		FSO.CopyFile(configure_module_dirname + "\\libssh2\\src\\libssh2_config.h.in.w32",
+				configure_module_dirname + "\\libssh2\\src\\libssh2_config.h");
 
 		AC_DEFINE('HAVE_SSH2LIB', 1);
 		AC_DEFINE('PHP_SSH2_REMOTE_FORWARDING', 1);
@@ -23,10 +23,10 @@ if (PHP_SSH2 != "no") {
 				configure_module_dirname + '/libssh2/include');
 
 		EXTENSION("ssh2", "ssh2.c ssh2_fopen_wrappers.c ssh2_sftp.c");
-
-		ADD_SOURCES(configure_module_dirname + "/libssh2/src", "channel.c  crypt.c \
-				kex.c misc.c publickey.c scp.c sftp.c comp.c hostkey.c mac.c packet.c \
-				session.c userauth.c", "ssh2");
+		
+		ADD_SOURCES(configure_module_dirname + "/libssh2/src", "channel.c comp.c crypt.c \
+				hostkey.c kex.c mac.c misc.c openssl.c packet.c pem.c publickey.c scp.c \
+				session.c sftp.c transport.c userauth.c", "ssh2");
 	} else {
 		WARNING("ssh2 not enabled: libraries or headers not found");
 	}
