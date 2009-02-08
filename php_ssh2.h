@@ -109,6 +109,12 @@ typedef struct _php_ssh2_pkey_subsys_data {
 #define SSH2_TSRMLS_FETCH(datap)
 #endif
 
+#if (PHP_MAJOR_VERSION == 5) && (PHP_MINOR_VERSION >= 3)
+#define ZEND_IS_CALLABLE_TSRMLS_CC		TSRMLS_CC
+#else
+#define ZEND_IS_CALLABLE_TSRMLS_CC
+#endif
+
 /* < 5.3 compatibility */
 #ifndef Z_REFCOUNT_P
 #define Z_REFCOUNT_P(pz)              (pz)->refcount

@@ -47,14 +47,9 @@ int le_ssh2_sftp;
 int le_ssh2_pkey_subsys;
 #endif
 
-#ifdef ZEND_ENGINE_2
-static
-    ZEND_BEGIN_ARG_INFO(php_ssh2_first_arg_force_ref, 0)
-        ZEND_ARG_PASS_INFO(1)
-    ZEND_END_ARG_INFO()
-#else
-static unsigned char php_ssh2_first_arg_force_ref[] = { 1, BYREF_FORCE };
-#endif
+ZEND_BEGIN_ARG_INFO(php_ssh2_first_arg_force_ref, 0)
+    ZEND_ARG_PASS_INFO(1)
+ZEND_END_ARG_INFO()
 
 /* *************
    * Callbacks *
@@ -257,7 +252,7 @@ static int php_ssh2_set_callback(LIBSSH2_SESSION *session, HashTable *ht, char *
 		return 0;
 	}
 
-	if (!handler || !*handler || !zend_is_callable(*handler, 0, NULL TSRMLS_CC)) {
+	if (!handler || !*handler || !zend_is_callable(*handler, 0, NULL ZEND_IS_CALLABLE_TSRMLS_CC)) {
 		return -1;
 	}
 
