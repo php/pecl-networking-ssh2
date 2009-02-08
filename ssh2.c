@@ -353,7 +353,7 @@ LIBSSH2_SESSION *php_ssh2_session_connect(char *host, int port, zval *methods, z
 	if (!session) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to initialize SSH2 session");
 		efree(data);
-		close(socket);
+		closesocket(socket);
 		return NULL;
 	}
 	libssh2_banner_set(session, LIBSSH2_SSH_DEFAULT_BANNER " PHP");
@@ -429,7 +429,7 @@ LIBSSH2_SESSION *php_ssh2_session_connect(char *host, int port, zval *methods, z
 
 		last_error = libssh2_session_last_error(session, &error_msg, NULL, 0);
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Error starting up SSH connection(%d): %s", last_error, error_msg);
-		close(socket);
+		closesocket(socket);
 		libssh2_session_free(session);
 		efree(data);
 		return NULL;
@@ -1143,7 +1143,7 @@ static void php_ssh2_session_dtor(zend_rsrc_list_entry *rsrc TSRMLS_DC)
 			zval_ptr_dtor(&(*data)->disconnect_cb);
 		}
 
-		close((*data)->socket);
+		closesocket((*data)->socket);
 
 		efree(*data);
 		*data = NULL;

@@ -101,6 +101,10 @@ typedef struct _php_ssh2_pkey_subsys_data {
 } php_ssh2_pkey_subsys_data;
 #endif
 
+#ifndef PHP_WIN32
+#define closesocket(s)	close(s)
+#endif
+
 #ifdef ZTS
 #define SSH2_TSRMLS_SET(datap)		((php_ssh2_session_data*)(datap))->tsrm_ls = TSRMLS_C
 #define SSH2_TSRMLS_FETCH(datap)	TSRMLS_D = ((php_ssh2_session_data*)(datap))->tsrm_ls
