@@ -1269,7 +1269,7 @@ PHP_MINFO_FUNCTION(ssh2)
 
 /* {{{ ssh2_functions[]
  */
-function_entry ssh2_functions[] = {
+zend_function_entry ssh2_functions[] = {
 	PHP_FE(ssh2_connect,						NULL)
 	PHP_FE(ssh2_methods_negotiated,				NULL)
 	PHP_FE(ssh2_fingerprint,					NULL)
