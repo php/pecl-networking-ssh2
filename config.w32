@@ -18,6 +18,10 @@ if (PHP_SSH2 != "no") {
 
 			ADD_FLAG('CFLAGS_SSH2', '/DLIBSSH2_WIN32=1 /DLIBSSH2_API= /I ' + 
 					configure_module_dirname + '/libssh2/include');
+
+			ADD_SOURCES(configure_module_dirname + "/libssh2/src", "channel.c comp.c crypt.c \
+					hostkey.c kex.c mac.c misc.c openssl.c packet.c pem.c publickey.c scp.c \
+					session.c sftp.c transport.c userauth.c", "ssh2");
 		}
 
 		AC_DEFINE('HAVE_SSH2LIB', 1);
@@ -28,9 +32,6 @@ if (PHP_SSH2 != "no") {
 
 		EXTENSION("ssh2", "ssh2.c ssh2_fopen_wrappers.c ssh2_sftp.c");
 
-		ADD_SOURCES(configure_module_dirname + "/libssh2/src", "channel.c comp.c crypt.c \
-				hostkey.c kex.c mac.c misc.c openssl.c packet.c pem.c publickey.c scp.c \
-				session.c sftp.c transport.c userauth.c", "ssh2");
 	} else {
 		WARNING("ssh2 not enabled: libraries or headers not found");
 	}
