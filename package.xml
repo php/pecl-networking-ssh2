@@ -5,42 +5,44 @@
   <summary>Bindings for the libssh2 library</summary>
   <description>
     Provides bindings to the functions of libssh2 which implements the SSH2 protocol.
-    libssh2 is available from http://www.sourceforge.net/projects/libssh2
+    libssh2 is available from http:/libssh2.org/
   </description>
-
-	<lead>
-	  <name>Mike Sullivan</name>
-	  <user>mikesul</user>
-	  <email>mikesul@php.net</email>
-	  <active>yes</active>
-	</lead>
-	<lead>
-	  <name>Sara Golemon</name>
-	  <user>pollita</user>
-	  <email>pollita@php.net</email>
-	  <active>no</active>
-	</lead>
-
+  <lead>
+    <name>Pierre Joye</name>
+    <user>pajoye</user>
+    <email>pierre@php.net</email>
+    <active>yes</active>
+  </lead>
+  <lead>
+    <name>Mike Sullivan</name>
+    <user>mikesul</user>
+    <email>mikesul@php.net</email>
+    <active>yes</active>
+  </lead>
+  <lead>
+    <name>Sara Golemon</name>
+    <user>pollita</user>
+    <email>pollita@php.net</email>
+    <active>no</active>
+  </lead>
   <date>2009-11-28</date>
   <version>
-    <release>0.11.1-dev</release>
+    <release>0.11.1</release>
     <api>0.11.0</api>
   </version>
-  
   <stability>
     <release>beta</release>
     <api>beta</api>
   </stability>
-  
   <license uri="http://www.php.net/license">PHP License</license>
-   
   <notes>
+  - Fixed bug #9500, SSH2 sockets not being closed properly because of close vs closesocket difference
+  - Fixed Windows support 
   - Support for latest libssh2 release
   - Fix build with PHP 5.3
   - Fixed incorrect return values for rename/unlink/mkdir/rmdir with sftp functions/streams
   - Fixed various memory leaks and segfaults
   </notes>
-  
   <contents>
     <dir name="/">
       <file role="src" name="config.m4"/>
@@ -50,7 +52,6 @@
       <file role="src" name="ssh2_sftp.c"/>
     </dir>
   </contents>
-  
   <dependencies>
     <required>
       <php>
@@ -62,33 +63,46 @@
       </pearinstaller>
     </required>
   </dependencies>
-  
   <providesextension>ssh2</providesextension>
-    
   <extsrcrelease>
-    <configureoption name="with-ssh2" default="autodetect" prompt="libssh2 prefix?" />
+    <configureoption name="with-ssh2" default="autodetect" prompt="libssh2 prefix?"/>
   </extsrcrelease>
   <changelog>
-   <release>
- <date>2008-12-08</date>
-  <version>
-    <release>0.11.0</release>
-    <api>0.11.0</api>
-  </version>
-  
-  <stability>
-    <release>beta</release>
-    <api>beta</api>
-  </stability>
-  
-  <license uri="http://www.php.net/license">PHP License</license>
-   
-  <notes>
+    <release>
+      <date>2009-11-28</date>
+      <version>
+        <release>0.11.1-dev</release>
+        <api>0.11.0</api>
+      </version>
+      <stability>
+        <release>beta</release>
+        <api>beta</api>
+      </stability>
+      <license uri="http://www.php.net/license">PHP License</license>
+      <notes>
   - Support for latest libssh2 release
   - Fix build with PHP 5.3
   - Fixed incorrect return values for rename/unlink/mkdir/rmdir with sftp functions/streams
   - Fixed various memory leaks and segfaults
   </notes>
-   </release>
+    </release>
+    <release>
+      <date>2008-12-08</date>
+      <version>
+        <release>0.11.0</release>
+        <api>0.11.0</api>
+      </version>
+      <stability>
+        <release>beta</release>
+        <api>beta</api>
+      </stability>
+      <license uri="http://www.php.net/license">PHP License</license>
+      <notes>
+  - Support for latest libssh2 release
+  - Fix build with PHP 5.3
+  - Fixed incorrect return values for rename/unlink/mkdir/rmdir with sftp functions/streams
+  - Fixed various memory leaks and segfaults
+  </notes>
+    </release>
   </changelog>
 </package>
