@@ -4,26 +4,8 @@
 ARG_WITH("ssh2", "SSH2 support", "no");
 
 if (PHP_SSH2 != "no") {
-	if ((((PHP_ZLIB=="no") && (CHECK_LIB("zlib_a.lib", "ssh2", PHP_SSH2) ||  CHECK_LIB("zlib.lib", "ssh2", PHP_SSH2))) || 
-		(PHP_ZLIB_SHARED && CHECK_LIB("zlib.lib", "ssh2", PHP_SSH2)) || (PHP_ZLIB == "yes" && (!PHP_ZLIB_SHARED))) &&
-		CHECK_LIB("libeay32.lib", "ssh2", PHP_SSH2) &&
-		CHECK_LIB("ssleay32.lib", "ssh2", PHP_SSH2) &&
-		CHECK_LIB("ws2_32.lib", "ssh2", PHP_SSH2)) {
-
-		// Use bundled lib if none installed, even if it is outdated.
-		if (!(CHECK_LIB("libssh2_a.lib;libssh2.lib", "ssh2", PHP_SSH2) &&
+		if ((CHECK_LIB("libssh2_a.lib;libssh2.lib", "ssh2", PHP_SSH2) &&
 				CHECK_HEADER_ADD_INCLUDE("libssh2.h", "CFLAGS_SSH2", PHP_PHP_BUILD + "\\include\\libssh2"))) {
-			FSO.CopyFile(configure_module_dirname + "\\libssh2\\src\\libssh2_config.h.in.w32",
-					configure_module_dirname + "\\libssh2\\src\\libssh2_config.h");
-
-			ADD_FLAG('CFLAGS_SSH2', '/DLIBSSH2_WIN32=1 /DLIBSSH2_API= /I ' + 
-					configure_module_dirname + '/libssh2/include');
-
-			ADD_SOURCES(configure_module_dirname + "/libssh2/src", "channel.c comp.c crypt.c \
-					hostkey.c kex.c mac.c misc.c openssl.c packet.c pem.c publickey.c scp.c \
-					session.c sftp.c transport.c userauth.c", "ssh2");
-		}
-
 		AC_DEFINE('HAVE_SSH2LIB', 1);
 		AC_DEFINE('PHP_SSH2_REMOTE_FORWARDING', 1);
 		AC_DEFINE('PHP_SSH2_HOSTBASED_AUTH', 1);
