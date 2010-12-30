@@ -81,6 +81,7 @@ inline int php_ssh2_sftp_attr2ssb(php_stream_statbuf *ssb, LIBSSH2_SFTP_ATTRIBUT
 	if (attrs->flags & LIBSSH2_SFTP_ATTR_SIZE) {
 		ssb->sb.st_size = attrs->filesize;
 	}
+	
 	if (attrs->flags & LIBSSH2_SFTP_ATTR_UIDGID) {
 		ssb->sb.st_uid = attrs->uid;
 		ssb->sb.st_gid = attrs->gid;

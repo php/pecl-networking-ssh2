@@ -316,16 +316,16 @@ php_url *php_ssh2_fopen_wraper_parse_path(	char *path, char *type, php_stream_co
 		php_url_free(resource);
 		return NULL;
 	}
-	ZEND_REGISTER_RESOURCE(&zsession, session, le_ssh2_session);
 
 	/* Authenticate */
 	if (pubkey_file && privkey_file) {
+		if (SSH2_OPENBASEDIR_CHECKPATH(pubkey_file) || SSH2_OPENBASEDIR_CHECKPATH(privkey_file)) {
+			php_url_free(resource);
+			return NULL;
+		}
+
 		/* Attempt pubkey authentication */
-		if ((!PG(safe_mode) || php_checkuid(pubkey_file, NULL, CHECKUID_CHECK_FILE_AND_DIR)) && 
-			(!PG(safe_mode) || php_checkuid(privkey_file, NULL, CHECKUID_CHECK_FILE_AND_DIR)) &&
-			!php_check_open_basedir(pubkey_file TSRMLS_CC) && 
-			!php_check_open_basedir(privkey_file TSRMLS_CC) &&
-			!libssh2_userauth_publickey_fromfile(session, username, pubkey_file, privkey_file, password)) {
+		if (!libssh2_userauth_publickey_fromfile(session, username, pubkey_file, privkey_file, password)) {
 			goto session_authed;
 		}
 	}
@@ -342,7 +342,8 @@ php_url *php_ssh2_fopen_wraper_parse_path(	char *path, char *type, php_stream_co
 	zend_list_delete(Z_LVAL(zsession));
 	return NULL;
 
- session_authed:
+session_authed:
+	ZEND_REGISTER_RESOURCE(&zsession, session, le_ssh2_session);
 
 	if (psftp) {
 		LIBSSH2_SFTP *sftp;
@@ -1030,7 +1031,11 @@ PHP_FUNCTION(ssh2_scp_send)
 
 	remote_file = libssh2_scp_send_ex(session, remote_filename, create_mode, ssb.sb.st_size, ssb.sb.st_atime, ssb.sb.st_mtime);
 	if (!remote_file) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failure creating remote file");
+		int last_error = 0;
+		char *error_msg = NULL;
+
+		last_error = libssh2_session_last_error(session, &error_msg, NULL, 0);
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failure creating remote file: %s", error_msg);
 		php_stream_close(local_file);
 		RETURN_FALSE;
 	}
@@ -1042,7 +1047,7 @@ PHP_FUNCTION(ssh2_scp_send)
 		size_t bytesread = php_stream_read(local_file, buffer, toread);
 
 		if (bytesread <= 0 || bytesread > toread) {
-			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failed copying file");
+			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failed copying file 2");
 			php_stream_close(local_file);
 			libssh2_channel_free(remote_file);
 			RETURN_FALSE;

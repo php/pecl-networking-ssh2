@@ -28,6 +28,10 @@
 #include "php_ssh2.h"
 #include "main/php_network.h"
 
+#if (OPENSSL_VERSION_NUMBER >= 0x00908000L)
+#include <openssl/applink.c>
+#endif
+
 /* Internal Constants */
 #ifndef SHA_DIGEST_LENGTH
 #define SHA_DIGEST_LENGTH	20
@@ -471,7 +475,7 @@ PHP_FUNCTION(ssh2_methods_negotiated)
 {
 	LIBSSH2_SESSION *session;
 	zval *zsession, *endpoint;
-	const char *kex, *hostkey, *crypt_cs, *crypt_sc, *mac_cs, *mac_sc, *comp_cs, *comp_sc, *lang_cs, *lang_sc;
+	char *kex, *hostkey, *crypt_cs, *crypt_sc, *mac_cs, *mac_sc, *comp_cs, *comp_sc, *lang_cs, *lang_sc;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &zsession) == FAILURE) {
 		RETURN_FALSE;
@@ -643,17 +647,7 @@ PHP_FUNCTION(ssh2_auth_pubkey_file)
 		RETURN_FALSE;
 	}
 
-	if (PG(safe_mode) && !php_checkuid(pubkey, NULL, CHECKUID_CHECK_FILE_AND_DIR)) {
-		RETURN_FALSE;
-	}
-	if (PG(safe_mode) && !php_checkuid(privkey, NULL, CHECKUID_CHECK_FILE_AND_DIR)) {
-		RETURN_FALSE;
-	}
-
-	if (php_check_open_basedir(pubkey TSRMLS_CC)) {
-		RETURN_FALSE;
-	}
-	if (php_check_open_basedir(privkey TSRMLS_CC)) {
+	if (SSH2_OPENBASEDIR_CHECKPATH(pubkey) || SSH2_OPENBASEDIR_CHECKPATH(privkey)) {
 		RETURN_FALSE;
 	}
 
@@ -661,7 +655,10 @@ PHP_FUNCTION(ssh2_auth_pubkey_file)
 
 	/* TODO: Support passphrase callback */
 	if (libssh2_userauth_publickey_fromfile_ex(session, username, username_len, pubkey, privkey, passphrase)) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Authentication failed for %s using public key", username);
+		char *buf;
+		int len;
+		libssh2_session_last_error(session, &buf, &len, 0);
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Authentication failed for %s using public key: %s", username, buf);
 		RETURN_FALSE;
 	}
 
@@ -689,17 +686,7 @@ PHP_FUNCTION(ssh2_auth_hostbased_file)
 		RETURN_FALSE;
 	}
 
-	if (PG(safe_mode) && !php_checkuid(pubkey, NULL, CHECKUID_CHECK_FILE_AND_DIR)) {
-		RETURN_FALSE;
-	}
-	if (PG(safe_mode) && !php_checkuid(privkey, NULL, CHECKUID_CHECK_FILE_AND_DIR)) {
-		RETURN_FALSE;
-	}
-
-	if (php_check_open_basedir(pubkey TSRMLS_CC)) {
-		RETURN_FALSE;
-	}
-	if (php_check_open_basedir(privkey TSRMLS_CC)) {
+	if (SSH2_OPENBASEDIR_CHECKPATH(pubkey) || SSH2_OPENBASEDIR_CHECKPATH(privkey)) {
 		RETURN_FALSE;
 	}
 
