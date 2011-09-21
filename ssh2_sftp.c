@@ -686,8 +686,11 @@ PHP_FUNCTION(ssh2_sftp_mkdir)
 		/* Just attempt to make every directory, some will fail, but we only care about the last success/failure */
 		p = filename;
 		while ((p = strchr(p + 1, '/'))) {
+			if ((p - filename) + 1 == filename_len) {
+				break;
+			}
 			libssh2_sftp_mkdir_ex(data->sftp, filename, p - filename, mode);
-		}	
+		}
 	}
 
 
