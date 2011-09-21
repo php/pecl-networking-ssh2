@@ -25,9 +25,9 @@
     <email>pollita@php.net</email>
     <active>no</active>
   </lead>
-  <date>2009-11-28</date>
+  <date>2011-09-22</date>
   <version>
-    <release>0.11.2</release>
+    <release>0.11.3</release>
     <api>0.11.0</api>
   </version>
   <stability>
@@ -36,8 +36,7 @@
   </stability>
   <license uri="http://www.php.net/license">PHP License</license>
   <notes>
-  - Fixed the extension version info 
-    . no other changes since 0.11.1
+    - Fixed bug#22729 (using ssh2.sftp stream on 64bit vs. 32bit)
   </notes>
   <contents>
     <dir name="/">
@@ -64,6 +63,22 @@
     <configureoption name="with-ssh2" default="autodetect" prompt="libssh2 prefix?"/>
   </extsrcrelease>
   <changelog>
+    <release>
+      <date>2009-11-28</date>
+      <version>
+        <release>0.11.1</release>
+        <api>0.11.0</api>
+      </version>
+      <stability>
+        <release>beta</release>
+        <api>beta</api>
+      </stability>
+      <license uri="http://www.php.net/license">PHP License</license>
+      <notes>
+        - Fixed the extension version info 
+        . no other changes since 0.11.1
+      </notes>
+    </release>
     <release>
       <date>2009-11-28</date>
       <version>

@@ -263,7 +263,7 @@ static size_t php_ssh2_sftp_dirstream_read(php_stream *stream, char *buf, size_t
 	php_stream_dirent *ent = (php_stream_dirent*)buf;
 	size_t bytesread = libssh2_sftp_readdir(data->handle, ent->d_name, sizeof(ent->d_name) - 1, NULL);
 	char *basename = NULL;
-	int basename_len = 0;
+	size_t basename_len = 0;
 
 	if (bytesread <= 0) {
 		return 0;
