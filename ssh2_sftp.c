@@ -108,8 +108,11 @@ typedef struct _php_ssh2_sftp_handle_data {
 static size_t php_ssh2_sftp_stream_write(php_stream *stream, const char *buf, size_t count TSRMLS_DC)
 {
 	php_ssh2_sftp_handle_data *data = (php_ssh2_sftp_handle_data*)stream->abstract;
+	ssize_t bytes_written;
 
-	return libssh2_sftp_write(data->handle, buf, count);
+	bytes_written = libssh2_sftp_write(data->handle, buf, count);
+
+	return (size_t)(bytes_written<0 ? 0 : bytes_written);
 }
 /* }}} */
 
@@ -118,8 +121,13 @@ static size_t php_ssh2_sftp_stream_write(php_stream *stream, const char *buf, si
 static size_t php_ssh2_sftp_stream_read(php_stream *stream, char *buf, size_t count TSRMLS_DC)
 {
 	php_ssh2_sftp_handle_data *data = (php_ssh2_sftp_handle_data*)stream->abstract;
+	ssize_t bytes_read;
 
-	return libssh2_sftp_read(data->handle, buf, count);
+	bytes_read = libssh2_sftp_read(data->handle, buf, count);
+
+	stream->eof = (bytes_read <= 0 && bytes_read != LIBSSH2_ERROR_EAGAIN);
+
+	return (size_t)(bytes_read<0 ? 0 : bytes_read);
 }
 /* }}} */
 

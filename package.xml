@@ -37,6 +37,7 @@
   <license uri="http://www.php.net/license">PHP License</license>
   <notes>
     - Fixed bug#22729 (using ssh2.sftp stream on 64bit vs. 32bit)
+    - Fixed bug#17142 (Missing EOF detection in ssh2.sftp:// streams)
   </notes>
   <contents>
     <dir name="/">
