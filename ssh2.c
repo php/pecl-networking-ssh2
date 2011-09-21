@@ -600,7 +600,6 @@ PHP_FUNCTION(ssh2_auth_none)
 	if (strlen(s)) {
 		add_next_index_string(return_value, s, 1);
 	}
-	efree(methods);
 }
 /* }}} */
 
