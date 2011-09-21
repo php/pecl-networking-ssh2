@@ -300,14 +300,6 @@ static size_t php_ssh2_sftp_dirstream_read(php_stream *stream, char *buf, size_t
 	ent->d_name[bytesread] = 0;
 	efree(basename);
 
-	/* Trim off trailing whitespace characters */
-	bytesread--;
-	while (bytesread >= 0 &&
-			(ent->d_name[bytesread] == '\n' || ent->d_name[bytesread] == '\r' ||
-			 ent->d_name[bytesread] == '\t' || ent->d_name[bytesread] == ' ')) {
-		ent->d_name[bytesread--] = '\0';
-	}
-
 	return sizeof(php_stream_dirent);
 }
 /* }}} */

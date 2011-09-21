@@ -38,6 +38,7 @@
   <notes>
     - Fixed bug#24349 (ssh2_sftp_mkdir fails with trailing slash)
     - Fixed bug#22729 (using ssh2.sftp stream on 64bit vs. 32bit)
+    - Fixed bug#22671 (trailing spaces trimmed from filenames)
     - Fixed bug#17142 (Missing EOF detection in ssh2.sftp:// streams)
     - Fixed bug#16944 (Segmentation fault SIGSEGV with protected variable with ssh2)
   </notes>
