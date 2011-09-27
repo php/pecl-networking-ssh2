@@ -27,7 +27,7 @@
   </lead>
   <date>2011-09-22</date>
   <version>
-    <release>0.11.3</release>
+    <release>0.11.4-dev</release>
     <api>0.11.0</api>
   </version>
   <stability>
@@ -36,11 +36,6 @@
   </stability>
   <license uri="http://www.php.net/license">PHP License</license>
   <notes>
-    - Fixed bug#24349 (ssh2_sftp_mkdir fails with trailing slash)
-    - Fixed bug#22729 (using ssh2.sftp stream on 64bit vs. 32bit)
-    - Fixed bug#22671 (trailing spaces trimmed from filenames)
-    - Fixed bug#17142 (Missing EOF detection in ssh2.sftp:// streams)
-    - Fixed bug#16944 (Segmentation fault SIGSEGV with protected variable with ssh2)
   </notes>
   <contents>
     <dir name="/">
@@ -67,6 +62,20 @@
     <configureoption name="with-ssh2" default="autodetect" prompt="libssh2 prefix?"/>
   </extsrcrelease>
   <changelog>
+    <release>
+      <date>2011-09-22</date>
+      <version>
+        <release>0.11.3</release>
+        <api>0.11.0</api>
+      </version>
+      <notes>
+    - Fixed bug#24349 (ssh2_sftp_mkdir fails with trailing slash)
+    - Fixed bug#22729 (using ssh2.sftp stream on 64bit vs. 32bit)
+    - Fixed bug#22671 (trailing spaces trimmed from filenames)
+    - Fixed bug#17142 (Missing EOF detection in ssh2.sftp:// streams)
+    - Fixed bug#16944 (Segmentation fault SIGSEGV with protected variable with ssh2)
+  </notes>
+    </release>
     <release>
       <date>2009-11-28</date>
       <version>
