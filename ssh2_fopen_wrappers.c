@@ -594,7 +594,7 @@ PHP_FUNCTION(ssh2_shell)
 	int argc = ZEND_NUM_ARGS();
 
 	if (argc == 5) {
-		php_error_docref(NULL TSRMLS_CC, E_ERROR, "width specified without height paramter");
+		php_error_docref(NULL TSRMLS_CC, E_ERROR, "width specified without height parameter");
 		RETURN_FALSE;
 	}
 
