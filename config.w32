@@ -11,6 +11,7 @@ if (PHP_SSH2 != "no") {
 		AC_DEFINE('PHP_SSH2_HOSTBASED_AUTH', 1);
 		AC_DEFINE('PHP_SSH2_POLL', 1);
 		AC_DEFINE('PHP_SSH2_PUBLICKEY_SUBSYSTEM', 1);
+		AC_DEFINE('PHP_SSH2_AGENT_AUTH', 1);
 
 		EXTENSION("ssh2", "ssh2.c ssh2_fopen_wrappers.c ssh2_sftp.c");
 

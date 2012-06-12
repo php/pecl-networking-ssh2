@@ -1104,6 +1104,84 @@ PHP_FUNCTION(ssh2_publickey_list)
 /* }}} */
 #endif /* PHP_SSH2_PUBLICKEY_SUBSYSTEM */
 
+#ifdef PHP_SSH2_AGENT_AUTH
+/* {{{ proto array ssh2_auth_agent(resource session, string username)
+Authenticate using the ssh agent */
+PHP_FUNCTION(ssh2_auth_agent)
+{
+	zval *zsession;
+	char *username;
+	int username_len;
+
+	LIBSSH2_SESSION *session;
+	char *userauthlist;
+	LIBSSH2_AGENT *agent = NULL;
+	int rc;
+	struct libssh2_agent_publickey *identity, *prev_identity = NULL;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zsession, &username, &username_len) == FAILURE) {
+		RETURN_FALSE;
+	}
+
+	ZEND_FETCH_RESOURCE(session, LIBSSH2_SESSION*, &zsession, -1, PHP_SSH2_SESSION_RES_NAME, le_ssh2_session);
+
+	/* check what authentication methods are available */
+	userauthlist = libssh2_userauth_list(session, username, username_len);
+
+	if (strstr(userauthlist, "publickey") == NULL) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "\"publickey\" authentication is not supported");
+		RETURN_FALSE;
+	}
+
+	/* Connect to the ssh-agent */
+	agent = libssh2_agent_init(session);
+
+	if (!agent) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failure initializing ssh-agent support");
+		RETURN_FALSE;
+	}
+
+	if (libssh2_agent_connect(agent)) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failure connecting to ssh-agent");
+		libssh2_agent_free(agent);
+		RETURN_FALSE;
+	}
+
+	if (libssh2_agent_list_identities(agent)) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failure requesting identities to ssh-agent");
+		libssh2_agent_disconnect(agent);
+		libssh2_agent_free(agent);
+		RETURN_FALSE;
+	}
+
+	while (1) {
+		rc = libssh2_agent_get_identity(agent, &identity, prev_identity);
+
+		if (rc == 1) {
+			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Couldn't continue authentication");
+			libssh2_agent_disconnect(agent);
+			libssh2_agent_free(agent);
+			RETURN_FALSE;
+		}
+
+		if (rc < 0) {
+			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failure obtaining identity from ssh-agent support");
+			libssh2_agent_disconnect(agent);
+			libssh2_agent_free(agent);
+			RETURN_FALSE;
+		}
+
+		if (!libssh2_agent_userauth(agent, username, identity)) {
+			libssh2_agent_disconnect(agent);
+			libssh2_agent_free(agent);
+			RETURN_TRUE;
+		}
+		prev_identity = identity;
+	}
+}
+/* }}} */
+#endif /* PHP_SSH2_AGENT_AUTH */
+
 /* ***********************
    * Module Housekeeping *
    *********************** */
@@ -1304,6 +1382,10 @@ zend_function_entry ssh2_functions[] = {
 	PHP_FE(ssh2_publickey_remove,				NULL)
 	PHP_FE(ssh2_publickey_list,					NULL)
 #endif
+
+#ifdef PHP_SSH2_AGENT_AUTH
+	PHP_FE(ssh2_auth_agent,						NULL)
+#endif 
 
 	{NULL, NULL, NULL}
 };

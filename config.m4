@@ -74,7 +74,16 @@ if test "$PHP_SSH2" != "no"; then
   ],[
     -L$SSH2_DIR/lib -lm 
   ])
-  
+
+  PHP_CHECK_LIBRARY($LIBNAME,libssh2_agent_init,
+  [
+    AC_DEFINE(PHP_SSH2_AGENT_AUTH, 1, [Have libssh2 with ssh-agent support])
+  ],[
+    AC_MSG_WARN([libssh2 <= 1.2.3, ssh-agent subsystem support not enabled])
+  ],[
+    -L$SSH2_DIR/lib -lm 
+  ])
+
   PHP_SUBST(SSH2_SHARED_LIBADD)
 
   PHP_NEW_EXTENSION(ssh2, ssh2.c ssh2_fopen_wrappers.c ssh2_sftp.c, $ext_shared)
