@@ -1053,15 +1053,22 @@ PHP_FUNCTION(ssh2_scp_send)
 			RETURN_FALSE;
 		}
 
-		if (bytesread != libssh2_channel_write(remote_file, buffer, bytesread)) {
-			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failed copying file");
-			php_stream_close(local_file);
-			libssh2_channel_free(remote_file);
-			RETURN_FALSE;
+		size_t sent = 0;
+		size_t justsent = 0;
+
+		while (bytesread - sent > 0) {
+			if ((justsent = libssh2_channel_write(remote_file, (buffer + sent), bytesread - sent)) < 0) {
+				php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failed copying file");
+				php_stream_close(local_file);
+				libssh2_channel_free(remote_file);
+				RETURN_FALSE;
+			}
+			sent = sent + justsent;
 		}
 		ssb.sb.st_size -= bytesread;
 	}
 
+	libssh2_channel_flush_ex(remote_file, LIBSSH2_CHANNEL_FLUSH_ALL);
 	php_stream_close(local_file);
 	libssh2_channel_free(remote_file);
 	RETURN_TRUE;
