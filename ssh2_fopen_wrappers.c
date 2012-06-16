@@ -607,7 +607,7 @@ PHP_FUNCTION(ssh2_shell)
 	}
 
 	if (zend_parse_parameters(argc TSRMLS_CC, "r|sa!lll", &zsession, &term, &term_len, &environment, &width, &height, &type) == FAILURE) {
-		RETURN_FALSE;
+		return;
 	}
 
 	ZEND_FETCH_RESOURCE(session, LIBSSH2_SESSION*, &zsession, -1, PHP_SSH2_SESSION_RES_NAME, le_ssh2_session);
@@ -824,7 +824,7 @@ PHP_FUNCTION(ssh2_exec)
 	int term_len = 0;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs|z!z!lll", &zsession, &command, &command_len, &zpty, &environment, &width, &height, &type) == FAILURE) {
-		RETURN_FALSE;
+		return;
 	}
 
 	if (zpty && Z_TYPE_P(zpty) == IS_ARRAY) {
@@ -958,7 +958,7 @@ PHP_FUNCTION(ssh2_scp_recv)
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss", &zsession,  &remote_filename, &remote_filename_len, 
 																			&local_filename, &local_filename_len) == FAILURE) {
-		RETURN_FALSE;
+		return;
 	}
 
 	ZEND_FETCH_RESOURCE(session, LIBSSH2_SESSION*, &zsession, -1, PHP_SSH2_SESSION_RES_NAME, le_ssh2_session);
@@ -1016,7 +1016,7 @@ PHP_FUNCTION(ssh2_scp_send)
 
 	if (zend_parse_parameters(argc TSRMLS_CC, "rss|l", &zsession, &local_filename, &local_filename_len, 
 													   &remote_filename, &remote_filename_len, &create_mode) == FAILURE) {
-		RETURN_FALSE;
+		return;
 	}
 
 	ZEND_FETCH_RESOURCE(session, LIBSSH2_SESSION*, &zsession, -1, PHP_SSH2_SESSION_RES_NAME, le_ssh2_session);
@@ -1201,7 +1201,7 @@ PHP_FUNCTION(ssh2_tunnel)
 	long port;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsl", &zsession, &host, &host_len, &port) == FAILURE) {
-		RETURN_FALSE;
+		return;
 	}
 
 	ZEND_FETCH_RESOURCE(session, LIBSSH2_SESSION*, &zsession, -1, PHP_SSH2_SESSION_RES_NAME, le_ssh2_session);
@@ -1233,7 +1233,7 @@ PHP_FUNCTION(ssh2_fetch_stream)
 	long streamid;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &zparent, &streamid) == FAILURE) {
-		RETURN_FALSE;
+		return;
 	}
 
 	if (streamid < 0) {

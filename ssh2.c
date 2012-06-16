@@ -455,7 +455,7 @@ PHP_FUNCTION(ssh2_connect)
 	int host_len;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|la!a!", &host, &host_len, &port, &methods, &callbacks) == FAILURE) {
-		RETURN_FALSE;
+		return;
 	}
 
 	session = php_ssh2_session_connect(host, port, methods, callbacks TSRMLS_CC);
@@ -478,7 +478,7 @@ PHP_FUNCTION(ssh2_methods_negotiated)
 	char *kex, *hostkey, *crypt_cs, *crypt_sc, *mac_cs, *mac_sc, *comp_cs, *comp_sc, *lang_cs, *lang_sc;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &zsession) == FAILURE) {
-		RETURN_FALSE;
+		return;
 	}
 
 	ZEND_FETCH_RESOURCE(session, LIBSSH2_SESSION*, &zsession, -1, PHP_SSH2_SESSION_RES_NAME, le_ssh2_session);
@@ -533,7 +533,7 @@ PHP_FUNCTION(ssh2_fingerprint)
 	int i, fingerprint_len;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|l", &zsession, &flags) == FAILURE) {
-		RETURN_FALSE;
+		return;
 	}
 	fingerprint_len = (flags & PHP_SSH2_FINGERPRINT_SHA1) ? SHA_DIGEST_LENGTH : MD5_DIGEST_LENGTH;
 
@@ -579,7 +579,7 @@ PHP_FUNCTION(ssh2_auth_none)
 	int username_len;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zsession, &username, &username_len) == FAILURE) {
-		RETURN_FALSE;
+		return;
 	}
 
 	ZEND_FETCH_RESOURCE(session, LIBSSH2_SESSION*, &zsession, -1, PHP_SSH2_SESSION_RES_NAME, le_ssh2_session);
@@ -637,7 +637,7 @@ PHP_FUNCTION(ssh2_auth_password)
 	char *userauthlist;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss", &zsession, &username, &username_len, &password, &password_len) == FAILURE) {
-		RETURN_FALSE;
+		return;
 	}
 
 	ZEND_FETCH_RESOURCE(session, LIBSSH2_SESSION*, &zsession, -1, PHP_SSH2_SESSION_RES_NAME, le_ssh2_session);
@@ -674,7 +674,7 @@ PHP_FUNCTION(ssh2_auth_pubkey_file)
 																				&pubkey, &pubkey_len,
 																				&privkey, &privkey_len,
 																				&passphrase, &passphrase_len) == FAILURE) {
-		RETURN_FALSE;
+		return;
 	}
 
 	if (SSH2_OPENBASEDIR_CHECKPATH(pubkey) || SSH2_OPENBASEDIR_CHECKPATH(privkey)) {
@@ -713,7 +713,7 @@ PHP_FUNCTION(ssh2_auth_hostbased_file)
 																					&privkey, &privkey_len,
 																					&passphrase, &passphrase_len,
 																					&local_username, &local_username_len) == FAILURE) {
-		RETURN_FALSE;
+		return;
 	}
 
 	if (SSH2_OPENBASEDIR_CHECKPATH(pubkey) || SSH2_OPENBASEDIR_CHECKPATH(privkey)) {
@@ -754,7 +754,7 @@ PHP_FUNCTION(ssh2_forward_listen)
 	long max_connections = PHP_SSH2_LISTEN_MAX_QUEUED;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl|sl", &zsession, &port, &host, &host_len, &max_connections) == FAILURE) {
-		RETURN_FALSE;
+		return;
 	}
 
 	ZEND_FETCH_RESOURCE(session, LIBSSH2_SESSION*, &zsession, -1, PHP_SSH2_SESSION_RES_NAME, le_ssh2_session);
@@ -788,7 +788,7 @@ PHP_FUNCTION(ssh2_forward_accept)
 	php_stream *stream;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &zlistener) == FAILURE) {
-		RETURN_FALSE;
+		return;
 	}
 
 	ZEND_FETCH_RESOURCE(data, php_ssh2_listener_data*, &zlistener, -1, PHP_SSH2_LISTENER_RES_NAME, le_ssh2_listener);
@@ -845,7 +845,7 @@ PHP_FUNCTION(ssh2_poll)
 	zval ***pollmap;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "a|l", &zdesc, &timeout) == FAILURE) {
-		RETURN_NULL();
+		return;
 	}
 
 	numfds = zend_hash_num_elements(Z_ARRVAL_P(zdesc));
@@ -941,7 +941,7 @@ PHP_FUNCTION(ssh2_publickey_init)
 	php_ssh2_pkey_subsys_data *data;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &zsession) == FAILURE) {
-		RETURN_FALSE;
+		return;
 	}
 
 	ZEND_FETCH_RESOURCE(session, LIBSSH2_SESSION*, &zsession, -1, PHP_SSH2_SESSION_RES_NAME, le_ssh2_session);
@@ -980,7 +980,7 @@ PHP_FUNCTION(ssh2_publickey_add)
 	zend_bool overwrite = 0;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss|ba", &zpkey_data, &algo, &algo_len, &blob, &blob_len, &overwrite, &zattrs) == FAILURE) {
-		RETURN_FALSE;
+		return;
 	}
 
 	ZEND_FETCH_RESOURCE(data, php_ssh2_pkey_subsys_data*, &zpkey_data, -1, PHP_SSH2_PKEY_SUBSYS_RES_NAME, le_ssh2_pkey_subsys);
@@ -1071,7 +1071,7 @@ PHP_FUNCTION(ssh2_publickey_remove)
 	int algo_len, blob_len;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss", &zpkey_data, &algo, &algo_len, &blob, &blob_len) == FAILURE) {
-		RETURN_FALSE;
+		return;
 	}
 
 	ZEND_FETCH_RESOURCE(data, php_ssh2_pkey_subsys_data*, &zpkey_data, -1, PHP_SSH2_PKEY_SUBSYS_RES_NAME, le_ssh2_pkey_subsys);
@@ -1095,7 +1095,7 @@ PHP_FUNCTION(ssh2_publickey_list)
 	libssh2_publickey_list *keys;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &zpkey_data) == FAILURE) {
-		RETURN_FALSE;
+		return;
 	}
 
 	ZEND_FETCH_RESOURCE(data, php_ssh2_pkey_subsys_data*, &zpkey_data, -1, PHP_SSH2_PKEY_SUBSYS_RES_NAME, le_ssh2_pkey_subsys);
@@ -1151,7 +1151,7 @@ PHP_FUNCTION(ssh2_auth_agent)
 	struct libssh2_agent_publickey *identity, *prev_identity = NULL;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zsession, &username, &username_len) == FAILURE) {
-		RETURN_FALSE;
+		return;
 	}
 
 	ZEND_FETCH_RESOURCE(session, LIBSSH2_SESSION*, &zsession, -1, PHP_SSH2_SESSION_RES_NAME, le_ssh2_session);

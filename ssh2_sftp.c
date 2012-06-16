@@ -587,7 +587,7 @@ PHP_FUNCTION(ssh2_sftp)
 	zval *zsession;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &zsession) == FAILURE) {
-		RETURN_FALSE;
+		return;
 	}
 
 	ZEND_FETCH_RESOURCE(session, LIBSSH2_SESSION*, &zsession, -1, PHP_SSH2_SESSION_RES_NAME, le_ssh2_session);
@@ -623,7 +623,7 @@ PHP_FUNCTION(ssh2_sftp_rename)
 	int src_len, dst_len;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss", &zsftp, &src, &src_len, &dst, &dst_len) == FAILURE) {
-		RETURN_FALSE;
+		return;
 	}
 
 	ZEND_FETCH_RESOURCE(data, php_ssh2_sftp_data*, &zsftp, -1, PHP_SSH2_SFTP_RES_NAME, le_ssh2_sftp);
@@ -643,7 +643,7 @@ PHP_FUNCTION(ssh2_sftp_unlink)
 	int filename_len;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zsftp, &filename, &filename_len) == FAILURE) {
-		RETURN_FALSE;
+		return;
 	}
 
 	ZEND_FETCH_RESOURCE(data, php_ssh2_sftp_data*, &zsftp, -1, PHP_SSH2_SFTP_RES_NAME, le_ssh2_sftp);
@@ -665,7 +665,7 @@ PHP_FUNCTION(ssh2_sftp_mkdir)
 	char *p;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs|lb", &zsftp, &filename, &filename_len, &mode, &recursive) == FAILURE) {
-		RETURN_FALSE;
+		return;
 	}
 
 	if (filename_len < 1) {
@@ -700,7 +700,7 @@ PHP_FUNCTION(ssh2_sftp_rmdir)
 	int filename_len;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zsftp, &filename, &filename_len) == FAILURE) {
-		RETURN_FALSE;
+		return;
 	}
 
 	ZEND_FETCH_RESOURCE(data, php_ssh2_sftp_data*, &zsftp, -1, PHP_SSH2_SFTP_RES_NAME, le_ssh2_sftp);
@@ -723,7 +723,7 @@ static void php_ssh2_sftp_stat_func(INTERNAL_FUNCTION_PARAMETERS, int stat_type)
 	int path_len;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zsftp, &path, &path_len) == FAILURE) {
-		RETURN_FALSE;
+		return;
 	}
 
 	ZEND_FETCH_RESOURCE(data, php_ssh2_sftp_data*, &zsftp, -1, PHP_SSH2_SFTP_RES_NAME, le_ssh2_sftp);
@@ -786,7 +786,7 @@ PHP_FUNCTION(ssh2_sftp_symlink)
 	int targ_len, link_len;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss", &zsftp, &targ, &targ_len, &link, &link_len) == FAILURE) {
-		RETURN_FALSE;
+		return;
 	}
 
 	ZEND_FETCH_RESOURCE(data, php_ssh2_sftp_data*, &zsftp, -1, PHP_SSH2_SFTP_RES_NAME, le_ssh2_sftp);
@@ -806,7 +806,7 @@ PHP_FUNCTION(ssh2_sftp_readlink)
 	char targ[8192];
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zsftp, &link, &link_len) == FAILURE) {
-		RETURN_FALSE;
+		return;
 	}
 
 	ZEND_FETCH_RESOURCE(data, php_ssh2_sftp_data*, &zsftp, -1, PHP_SSH2_SFTP_RES_NAME, le_ssh2_sftp);
@@ -831,7 +831,7 @@ PHP_FUNCTION(ssh2_sftp_realpath)
 	char targ[8192];
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zsftp, &link, &link_len) == FAILURE) {
-		RETURN_FALSE;
+		return;
 	}
 
 	ZEND_FETCH_RESOURCE(data, php_ssh2_sftp_data*, &zsftp, -1, PHP_SSH2_SFTP_RES_NAME, le_ssh2_sftp);
