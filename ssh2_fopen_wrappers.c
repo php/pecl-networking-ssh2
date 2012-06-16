@@ -147,7 +147,15 @@ php_url *php_ssh2_fopen_wraper_parse_path(	char *path, char *type, php_stream_co
 	if (!resource->host) {
 		return NULL;
 	}
-	
+
+	/*
+		Find resource->path in the path string, then copy the entire string from the original path.
+		This includes ?query#fragment in the path string
+	*/
+	s = resource->path;
+	resource->path = estrdup(strstr(path, resource->path));
+	efree(s);
+
 	/* Look for a resource ID to reuse a session */
 	s = resource->host;
 	if (strncmp(resource->host, "Resource id #", sizeof("Resource id #") - 1) == 0) {
