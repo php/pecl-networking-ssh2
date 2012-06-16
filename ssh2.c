@@ -603,6 +603,28 @@ PHP_FUNCTION(ssh2_auth_none)
 }
 /* }}} */
 
+char *password_for_kbd_callback;
+
+static void kbd_callback(const char *name, int name_len,
+							const char *instruction, int instruction_len,
+							int num_prompts,
+							const LIBSSH2_USERAUTH_KBDINT_PROMPT *prompts,
+							LIBSSH2_USERAUTH_KBDINT_RESPONSE *responses,
+							void **abstract)
+{
+	(void)name;
+	(void)name_len;
+	(void)instruction;
+	(void)instruction_len;
+	if (num_prompts == 1) {
+		// line below does NOT estrdup() because it is used and freed by the libssh2 library
+		responses[0].text = strdup(password_for_kbd_callback);
+		responses[0].length = strlen(password_for_kbd_callback);
+	}
+	(void)prompts;
+	(void)abstract;
+}
+
 /* {{{ proto bool ssh2_auth_password(resource session, string username, string password)
  * Authenticate over SSH using a plain password
  */
@@ -612,12 +634,21 @@ PHP_FUNCTION(ssh2_auth_password)
 	zval *zsession;
 	char *username, *password;
 	int username_len, password_len;
+	char *userauthlist;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss", &zsession, &username, &username_len, &password, &password_len) == FAILURE) {
 		RETURN_FALSE;
 	}
 
 	ZEND_FETCH_RESOURCE(session, LIBSSH2_SESSION*, &zsession, -1, PHP_SSH2_SESSION_RES_NAME, le_ssh2_session);
+
+	userauthlist = libssh2_userauth_list(session, username, username_len);
+	password_for_kbd_callback = password;
+	if (strstr(userauthlist, "keyboard-interactive") != NULL) {
+		if (libssh2_userauth_keyboard_interactive(session, username, &kbd_callback) == 0) {
+			RETURN_TRUE;
+		}
+	}
 
 	/* TODO: Support password change callback */
 	if (libssh2_userauth_password_ex(session, username, username_len, password, password_len, NULL)) {
