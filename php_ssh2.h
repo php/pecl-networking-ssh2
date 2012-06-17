@@ -81,16 +81,13 @@ typedef struct _php_ssh2_sftp_data {
     int session_rsrcid;
 } php_ssh2_sftp_data;
 
-#ifdef PHP_SSH2_REMOTE_FORWARDING
 typedef struct _php_ssh2_listener_data {
     LIBSSH2_SESSION *session;
     LIBSSH2_LISTENER *listener;
 
     int session_rsrcid;
 } php_ssh2_listener_data;
-#endif
 
-#ifdef PHP_SSH2_PUBLICKEY_SUBSYSTEM
 #include "libssh2_publickey.h"
 
 typedef struct _php_ssh2_pkey_subsys_data {
@@ -99,7 +96,6 @@ typedef struct _php_ssh2_pkey_subsys_data {
 
 	int session_rsrcid;
 } php_ssh2_pkey_subsys_data;
-#endif
 
 #ifndef PHP_WIN32
 #define closesocket(s)	close(s)

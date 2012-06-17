@@ -43,13 +43,9 @@
 
 /* True global resources - no need for thread safety here */
 int le_ssh2_session;
-#ifdef PHP_SSH2_REMOTE_FORWARDING
 int le_ssh2_listener;
-#endif
 int le_ssh2_sftp;
-#ifdef PHP_SSH2_PUBLICKEY_SUBSYSTEM
 int le_ssh2_pkey_subsys;
-#endif
 
 ZEND_BEGIN_ARG_INFO(php_ssh2_first_arg_force_ref, 0)
     ZEND_ARG_PASS_INFO(1)
@@ -483,9 +479,6 @@ PHP_FUNCTION(ssh2_methods_negotiated)
 
 	ZEND_FETCH_RESOURCE(session, LIBSSH2_SESSION*, &zsession, -1, PHP_SSH2_SESSION_RES_NAME, le_ssh2_session);
 
-#if defined(LIBSSH2_APINO) && LIBSSH2_APINO < 200412301450
-	libssh2_session_methods(session, &kex, &hostkey, &crypt_cs, &crypt_sc, &mac_cs, &mac_sc, &comp_cs, &comp_sc, &lang_cs, &lang_sc);
-#else
 	kex = (char*)libssh2_session_methods(session, LIBSSH2_METHOD_KEX);
 	hostkey = (char*)libssh2_session_methods(session, LIBSSH2_METHOD_HOSTKEY);
 	crypt_cs = (char*)libssh2_session_methods(session, LIBSSH2_METHOD_CRYPT_CS);
@@ -496,7 +489,6 @@ PHP_FUNCTION(ssh2_methods_negotiated)
 	comp_sc = (char*)libssh2_session_methods(session, LIBSSH2_METHOD_COMP_SC);
 	lang_cs = (char*)libssh2_session_methods(session, LIBSSH2_METHOD_LANG_CS);
 	lang_sc = (char*)libssh2_session_methods(session, LIBSSH2_METHOD_LANG_SC);
-#endif
 
 	array_init(return_value);
 	add_assoc_string(return_value, "kex", kex, 1);
@@ -696,7 +688,6 @@ PHP_FUNCTION(ssh2_auth_pubkey_file)
 }
 /* }}} */
 
-#ifdef PHP_SSH2_HOSTBASED_AUTH
 /* {{{ proto bool ssh2_auth_hostbased_file(resource session, string username, string local_hostname, string pubkeyfile, string privkeyfile[, string passphrase[, string local_username]])
  * Authenticate using a hostkey
  */
@@ -736,9 +727,7 @@ PHP_FUNCTION(ssh2_auth_hostbased_file)
 	RETURN_TRUE;
 }
 /* }}} */
-#endif /* PHP_SSH2_HOSTBASED_AUTH */
 
-#ifdef PHP_SSH2_REMOTE_FORWARDING
 /* {{{ proto resource ssh2_forward_listen(resource session, int port[, string host[, long max_connections]])
  * Bind a port on the remote server and listen for connections
  */
@@ -818,9 +807,7 @@ PHP_FUNCTION(ssh2_forward_accept)
 	php_stream_to_zval(stream, return_value);
 }
 /* }}} */
-#endif /* PHP_SSH2_REMOTE_FORWARDING */
 
-#ifdef PHP_SSH2_POLL
 /* {{{ proto int ssh2_poll(array &polldes[, int timeout])
  * Poll the channels/listeners/streams for events
  * Returns number of descriptors which returned non-zero revents
@@ -924,9 +911,7 @@ PHP_FUNCTION(ssh2_poll)
 	RETURN_LONG(fds_ready);
 }
 /* }}} */
-#endif /* PHP_SSH2_POLL */
 
-#ifdef PHP_SSH2_PUBLICKEY_SUBSYSTEM
 /* ***********************
    * Publickey Subsystem *
    *********************** */
@@ -1133,9 +1118,7 @@ PHP_FUNCTION(ssh2_publickey_list)
 	libssh2_publickey_list_free(data->pkey, keys);
 }
 /* }}} */
-#endif /* PHP_SSH2_PUBLICKEY_SUBSYSTEM */
 
-#ifdef PHP_SSH2_AGENT_AUTH
 /* {{{ proto array ssh2_auth_agent(resource session, string username)
 Authenticate using the ssh agent */
 PHP_FUNCTION(ssh2_auth_agent)
@@ -1211,7 +1194,6 @@ PHP_FUNCTION(ssh2_auth_agent)
 	}
 }
 /* }}} */
-#endif /* PHP_SSH2_AGENT_AUTH */
 
 /* ***********************
    * Module Housekeeping *
@@ -1247,7 +1229,6 @@ static void php_ssh2_session_dtor(zend_rsrc_list_entry *rsrc TSRMLS_DC)
 	libssh2_session_free(session);
 }
 
-#ifdef PHP_SSH2_REMOTE_FORWARDING
 static void php_ssh2_listener_dtor(zend_rsrc_list_entry *rsrc TSRMLS_DC)
 {
 	php_ssh2_listener_data *data = (php_ssh2_listener_data*)rsrc->ptr;
@@ -1257,9 +1238,7 @@ static void php_ssh2_listener_dtor(zend_rsrc_list_entry *rsrc TSRMLS_DC)
 	zend_list_delete(data->session_rsrcid);
 	efree(data);
 }
-#endif /* PHP_SSH2_REMOTE_FORWARDING */
 
-#ifdef PHP_SSH2_PUBLICKEY_SUBSYSTEM
 static void php_ssh2_pkey_subsys_dtor(zend_rsrc_list_entry *rsrc TSRMLS_DC)
 {
 	php_ssh2_pkey_subsys_data *data = (php_ssh2_pkey_subsys_data*)rsrc->ptr;
@@ -1269,20 +1248,15 @@ static void php_ssh2_pkey_subsys_dtor(zend_rsrc_list_entry *rsrc TSRMLS_DC)
 	zend_list_delete(data->session_rsrcid);
 	efree(data);
 }
-#endif /* PHP_SSH2_PUBLICKEY_SUBSYSTEM */
 
 /* {{{ PHP_MINIT_FUNCTION
  */
 PHP_MINIT_FUNCTION(ssh2)
 {
 	le_ssh2_session		= zend_register_list_destructors_ex(php_ssh2_session_dtor, NULL, PHP_SSH2_SESSION_RES_NAME, module_number);
-#ifdef PHP_SSH2_REMOTE_FORWARDING
 	le_ssh2_listener	= zend_register_list_destructors_ex(php_ssh2_listener_dtor, NULL, PHP_SSH2_LISTENER_RES_NAME, module_number);
-#endif /* PHP_SSH2_REMOTE_FORWARDING */
 	le_ssh2_sftp		= zend_register_list_destructors_ex(php_ssh2_sftp_dtor, NULL, PHP_SSH2_SFTP_RES_NAME, module_number);
-#ifdef PHP_SSH2_PUBLICKEY_SUBSYSTEM
 	le_ssh2_pkey_subsys	= zend_register_list_destructors_ex(php_ssh2_pkey_subsys_dtor, NULL, PHP_SSH2_PKEY_SUBSYS_RES_NAME, module_number);
-#endif /* PHP_SSH2_PUBLICKEY_SUBSYSTEM */
 
 	REGISTER_LONG_CONSTANT("SSH2_FINGERPRINT_MD5",		PHP_SSH2_FINGERPRINT_MD5,		CONST_CS | CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("SSH2_FINGERPRINT_SHA1",		PHP_SSH2_FINGERPRINT_SHA1,		CONST_CS | CONST_PERSISTENT);
@@ -1300,7 +1274,6 @@ PHP_MINIT_FUNCTION(ssh2)
 	REGISTER_LONG_CONSTANT("SSH2_STREAM_STDIO",			0,								CONST_CS | CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("SSH2_STREAM_STDERR",		SSH_EXTENDED_DATA_STDERR,		CONST_CS | CONST_PERSISTENT);
 
-#ifdef PHP_SSH2_POLL
 	/* events/revents */
 	REGISTER_LONG_CONSTANT("SSH2_POLLIN",				LIBSSH2_POLLFD_POLLIN,			CONST_CS | CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("SSH2_POLLEXT",				LIBSSH2_POLLFD_POLLEXT,			CONST_CS | CONST_PERSISTENT);
@@ -1310,12 +1283,9 @@ PHP_MINIT_FUNCTION(ssh2)
 	REGISTER_LONG_CONSTANT("SSH2_POLLERR",				LIBSSH2_POLLFD_POLLERR,			CONST_CS | CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("SSH2_POLLHUP",				LIBSSH2_POLLFD_POLLHUP,			CONST_CS | CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("SSH2_POLLNVAL",				LIBSSH2_POLLFD_POLLNVAL,		CONST_CS | CONST_PERSISTENT);
-#if (defined(LIBSSH2_APINO) && (LIBSSH2_APINO > 200503221619)) || (defined(LIBSSH2_VERSION_NUM) && LIBSSH2_VERSION_NUM >= 0x001000)
 	REGISTER_LONG_CONSTANT("SSH2_POLL_SESSION_CLOSED",	LIBSSH2_POLLFD_SESSION_CLOSED,	CONST_CS | CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("SSH2_POLL_CHANNEL_CLOSED",	LIBSSH2_POLLFD_CHANNEL_CLOSED,	CONST_CS | CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("SSH2_POLL_LISTENER_CLOSED",	LIBSSH2_POLLFD_LISTENER_CLOSED,	CONST_CS | CONST_PERSISTENT);
-#endif /* >= LIBSSH2-0.10 */
-#endif /* POLL */
 
 	return (php_register_url_stream_wrapper("ssh2.shell", &php_ssh2_stream_wrapper_shell TSRMLS_CC) == SUCCESS &&
 			php_register_url_stream_wrapper("ssh2.exec", &php_ssh2_stream_wrapper_exec TSRMLS_CC) == SUCCESS &&
@@ -1346,18 +1316,6 @@ PHP_MINFO_FUNCTION(ssh2)
 	php_info_print_table_row(2, "extension version", PHP_SSH2_VERSION);
 	php_info_print_table_row(2, "libssh2 version", LIBSSH2_VERSION);
 	php_info_print_table_row(2, "banner", LIBSSH2_SSH_BANNER);
-#ifdef PHP_SSH2_REMOTE_FORWARDING
-	php_info_print_table_row(2, "remote forwarding", "enabled");
-#endif
-#ifdef PHP_SSH2_HOSTBASED_AUTH
-	php_info_print_table_row(2, "hostbased auth", "enabled");
-#endif
-#ifdef PHP_SSH2_POLL
-	php_info_print_table_row(2, "polling support", "enabled");
-#endif
-#ifdef PHP_SSH2_PUBLICKEY_SUBSYSTEM
-	php_info_print_table_row(2, "publickey subsystem", "enabled");
-#endif
 	php_info_print_table_end();
 }
 /* }}} */
@@ -1372,14 +1330,10 @@ zend_function_entry ssh2_functions[] = {
 	PHP_FE(ssh2_auth_none,						NULL)
 	PHP_FE(ssh2_auth_password,					NULL)
 	PHP_FE(ssh2_auth_pubkey_file,				NULL)
-#ifdef PHP_SSH2_HOSTBASED_AUTH
 	PHP_FE(ssh2_auth_hostbased_file,			NULL)
-#endif /* PHP_SSH2_HOSTBASED_AUTH */
 
-#ifdef PHP_SSH2_REMOTE_FORWARDING
 	PHP_FE(ssh2_forward_listen,					NULL)
 	PHP_FE(ssh2_forward_accept,					NULL)
-#endif /* PHP_SSH2_REMOTE_FORWARDING */
 
 	/* Stream Stuff */
 	PHP_FE(ssh2_shell,							NULL)
@@ -1388,9 +1342,7 @@ zend_function_entry ssh2_functions[] = {
 	PHP_FE(ssh2_scp_recv,						NULL)
 	PHP_FE(ssh2_scp_send,						NULL)
 	PHP_FE(ssh2_fetch_stream,					NULL)
-#ifdef PHP_SSH2_POLL
 	PHP_FE(ssh2_poll,							php_ssh2_first_arg_force_ref)
-#endif
 
 	/* SFTP Stuff */
 	PHP_FE(ssh2_sftp,							NULL)
@@ -1407,16 +1359,12 @@ zend_function_entry ssh2_functions[] = {
 	PHP_FE(ssh2_sftp_realpath,					NULL)
 
 	/* Publickey subsystem */
-#ifdef PHP_SSH2_PUBLICKEY_SUBSYSTEM
 	PHP_FE(ssh2_publickey_init,					NULL)
 	PHP_FE(ssh2_publickey_add,					NULL)
 	PHP_FE(ssh2_publickey_remove,				NULL)
 	PHP_FE(ssh2_publickey_list,					NULL)
-#endif
 
-#ifdef PHP_SSH2_AGENT_AUTH
 	PHP_FE(ssh2_auth_agent,						NULL)
-#endif 
 
 	{NULL, NULL, NULL}
 };

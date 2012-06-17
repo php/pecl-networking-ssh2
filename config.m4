@@ -27,59 +27,14 @@ if test "$PHP_SSH2" != "no"; then
   PHP_ADD_INCLUDE($SSH2_DIR/include)
 
   LIBNAME=ssh2
-  LIBSYMBOL=libssh2_banner_set
+  LIBSYMBOL=libssh2_agent_init
 
   PHP_CHECK_LIBRARY($LIBNAME,$LIBSYMBOL,
   [
     PHP_ADD_LIBRARY_WITH_PATH($LIBNAME, $SSH2_DIR/lib, SSH2_SHARED_LIBADD)
     AC_DEFINE(HAVE_SSH2LIB,1,[Have libssh2])
   ],[
-    AC_MSG_ERROR([libssh2 version >= 0.4 not found])
-  ],[
-    -L$SSH2_DIR/lib -lm 
-  ])
-
-  PHP_CHECK_LIBRARY($LIBNAME,libssh2_channel_forward_listen_ex,
-  [
-    AC_DEFINE(PHP_SSH2_REMOTE_FORWARDING, 1, [Have libssh2 with remote forwarding])
-  ],[
-    AC_MSG_WARN([libssh2 <= 0.4, remote forwarding not enabled])
-  ],[
-    -L$SSH2_DIR/lib -lm 
-  ])
-
-  PHP_CHECK_LIBRARY($LIBNAME,libssh2_userauth_hostbased_fromfile_ex,
-  [
-    AC_DEFINE(PHP_SSH2_HOSTBASED_AUTH, 1, [Have libssh2 with hostbased authentication])
-  ],[
-    AC_MSG_WARN([libssh2 <= 0.6, hostbased authentication not enabled])
-  ],[
-    -L$SSH2_DIR/lib -lm 
-  ])
-
-  PHP_CHECK_LIBRARY($LIBNAME,libssh2_poll,
-  [
-    AC_DEFINE(PHP_SSH2_POLL, 1, [Have libssh2 with poll() support])
-  ],[
-    AC_MSG_WARN([libssh2 <= 0.7, poll support not enabled])
-  ],[
-    -L$SSH2_DIR/lib -lm 
-  ])
-
-  PHP_CHECK_LIBRARY($LIBNAME,libssh2_publickey_init,
-  [
-    AC_DEFINE(PHP_SSH2_PUBLICKEY_SUBSYSTEM, 1, [Have libssh2 with publickey subsystem support])
-  ],[
-    AC_MSG_WARN([libssh2 <= 0.11, publickey subsystem support not enabled])
-  ],[
-    -L$SSH2_DIR/lib -lm 
-  ])
-
-  PHP_CHECK_LIBRARY($LIBNAME,libssh2_agent_init,
-  [
-    AC_DEFINE(PHP_SSH2_AGENT_AUTH, 1, [Have libssh2 with ssh-agent support])
-  ],[
-    AC_MSG_WARN([libssh2 <= 1.2.3, ssh-agent subsystem support not enabled])
+    AC_MSG_ERROR([libssh2 version >= 1.2.3 not found])
   ],[
     -L$SSH2_DIR/lib -lm 
   ])
