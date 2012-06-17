@@ -709,6 +709,34 @@ PHP_FUNCTION(ssh2_sftp_rmdir)
 }
 /* }}} */
 
+/* {{{ proto bool ssh2_sftp_chmod(resource sftp, string filename, int mode)
+ */
+PHP_FUNCTION(ssh2_sftp_chmod)
+{
+	php_ssh2_sftp_data *data;
+	zval *zsftp;
+	char *filename;
+	int filename_len;
+	long mode;
+	LIBSSH2_SFTP_ATTRIBUTES attrs;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsl", &zsftp, &filename, &filename_len, &mode) == FAILURE) {
+		return;
+	}
+
+	if (filename_len < 1) {
+		RETURN_FALSE;
+	}
+
+	ZEND_FETCH_RESOURCE(data, php_ssh2_sftp_data*, &zsftp, -1, PHP_SSH2_SFTP_RES_NAME, le_ssh2_sftp);
+
+	attrs.permissions = mode;
+	attrs.flags = LIBSSH2_SFTP_ATTR_PERMISSIONS;
+
+	RETURN_BOOL(!libssh2_sftp_stat_ex(data->sftp, filename, filename_len, LIBSSH2_SFTP_SETSTAT, &attrs));
+}
+/* }}} */
+
 /* {{{ php_ssh2_sftp_stat_func
  * In PHP4.3 this is the only way to request stat into, in PHP >= 5 you can use the fopen wrapper approach
  * Both methods will return identical structures

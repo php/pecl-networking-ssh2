@@ -1352,6 +1352,7 @@ zend_function_entry ssh2_functions[] = {
 	PHP_FE(ssh2_sftp_unlink,					NULL)
 	PHP_FE(ssh2_sftp_mkdir,						NULL)
 	PHP_FE(ssh2_sftp_rmdir,						NULL)
+	PHP_FE(ssh2_sftp_chmod,						NULL)
 	PHP_FE(ssh2_sftp_stat,						NULL)
 	PHP_FE(ssh2_sftp_lstat,						NULL)
 	PHP_FE(ssh2_sftp_symlink,					NULL)

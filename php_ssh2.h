@@ -172,6 +172,7 @@ PHP_FUNCTION(ssh2_sftp_rename);
 PHP_FUNCTION(ssh2_sftp_unlink);
 PHP_FUNCTION(ssh2_sftp_mkdir);
 PHP_FUNCTION(ssh2_sftp_rmdir);
+PHP_FUNCTION(ssh2_sftp_chmod);
 PHP_FUNCTION(ssh2_sftp_stat);
 PHP_FUNCTION(ssh2_sftp_lstat);
 PHP_FUNCTION(ssh2_sftp_symlink);
