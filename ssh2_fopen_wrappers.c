@@ -32,20 +32,44 @@
 static size_t php_ssh2_channel_stream_write(php_stream *stream, const char *buf, size_t count TSRMLS_DC)
 {
 	php_ssh2_channel_data *abstract = (php_ssh2_channel_data*)stream->abstract;
+	size_t ret;
+	LIBSSH2_SESSION *session;
 
 	libssh2_channel_set_blocking(abstract->channel, abstract->is_blocking);
-	return libssh2_channel_write_ex(abstract->channel, abstract->streamid, buf, count);
+
+	if (abstract->is_blocking) {
+		session = (LIBSSH2_SESSION *)zend_fetch_resource(NULL TSRMLS_CC, abstract->session_rsrc, PHP_SSH2_SESSION_RES_NAME, NULL, 1, le_ssh2_session);
+		libssh2_session_set_timeout(session, abstract->timeout);
+	}
+
+	ret = libssh2_channel_write_ex(abstract->channel, abstract->streamid, buf, count);
+
+	if (abstract->is_blocking) {
+		libssh2_session_set_timeout(session, 0);
+	}
+
+	return ret;
 }
 
 static size_t php_ssh2_channel_stream_read(php_stream *stream, char *buf, size_t count TSRMLS_DC)
 {
 	php_ssh2_channel_data *abstract = (php_ssh2_channel_data*)stream->abstract;
 	ssize_t readstate;
+	LIBSSH2_SESSION *session;
 
 	stream->eof = libssh2_channel_eof(abstract->channel);
 	libssh2_channel_set_blocking(abstract->channel, abstract->is_blocking);
-		
+	if (abstract->is_blocking) {
+		session = (LIBSSH2_SESSION *)zend_fetch_resource(NULL TSRMLS_CC, abstract->session_rsrc, PHP_SSH2_SESSION_RES_NAME, NULL, 1, le_ssh2_session);
+		libssh2_session_set_timeout(session, abstract->timeout);
+	}
+
 	readstate = libssh2_channel_read_ex(abstract->channel, abstract->streamid, buf, count);
+
+	if (abstract->is_blocking) {
+		libssh2_session_set_timeout(session, 0);
+	}
+
 	return (readstate < 0 ? 0 : readstate);
 }
 
@@ -85,6 +109,14 @@ static int php_ssh2_channel_stream_set_option(php_stream *stream, int option, in
 			abstract->is_blocking = value;
 			return ret;
 			break;
+
+		case PHP_STREAM_OPTION_READ_TIMEOUT:
+			ret = abstract->timeout;
+			struct timeval tv = *(struct timeval*)ptrparam;
+			abstract->timeout = tv.tv_sec * 1000 + (tv.tv_usec / 1000);
+			return ret;
+			break;
+
 #if PHP_MAJOR_VERSION >= 5
 		case PHP_STREAM_OPTION_CHECK_LIVENESS:
 			return stream->eof = libssh2_channel_eof(abstract->channel);
@@ -452,6 +484,7 @@ static php_stream *php_ssh2_shell_open(LIBSSH2_SESSION *session, int resource_id
 	channel_data->channel = channel;
 	channel_data->streamid = 0;
 	channel_data->is_blocking = 0;
+	channel_data->timeout = 0;
 	channel_data->session_rsrc = resource_id;
 	channel_data->refcount = NULL;
 
@@ -697,6 +730,7 @@ static php_stream *php_ssh2_exec_command(LIBSSH2_SESSION *session, int resource_
 	channel_data->channel = channel;
 	channel_data->streamid = 0;
 	channel_data->is_blocking = 0;
+	channel_data->timeout = 0;
 	channel_data->session_rsrc = resource_id;
 	channel_data->refcount = NULL;
 
@@ -885,6 +919,7 @@ static php_stream *php_ssh2_scp_xfer(LIBSSH2_SESSION *session, int resource_id, 
 	channel_data->channel = channel;
 	channel_data->streamid = 0;
 	channel_data->is_blocking = 0;
+	channel_data->timeout = 0;
 	channel_data->session_rsrc = resource_id;
 	channel_data->refcount = NULL;
 
@@ -1107,6 +1142,7 @@ static php_stream *php_ssh2_direct_tcpip(LIBSSH2_SESSION *session, int resource_
 	channel_data->channel = channel;
 	channel_data->streamid = 0;
 	channel_data->is_blocking = 0;
+	channel_data->timeout = 0;
 	channel_data->session_rsrc = resource_id;
 	channel_data->refcount = NULL;
 

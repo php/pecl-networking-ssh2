@@ -148,6 +148,7 @@ typedef struct _php_ssh2_channel_data {
 	/* Distinguish which stream we should read/write from/to */
 	unsigned int streamid;
 	char is_blocking;
+	long timeout;
 
 	/* Resource ID, zend_list_addref() when opening, zend_list_delete() when closing */
 	long session_rsrc;
