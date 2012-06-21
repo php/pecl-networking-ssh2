@@ -26,15 +26,21 @@ if test "$PHP_SSH2" != "no"; then
 
   PHP_ADD_INCLUDE($SSH2_DIR/include)
 
-  LIBNAME=ssh2
-  LIBSYMBOL=libssh2_agent_init
-
-  PHP_CHECK_LIBRARY($LIBNAME,$LIBSYMBOL,
+  PHP_CHECK_LIBRARY(ssh2,libssh2_agent_init,
   [
-    PHP_ADD_LIBRARY_WITH_PATH($LIBNAME, $SSH2_DIR/lib, SSH2_SHARED_LIBADD)
+    PHP_ADD_LIBRARY_WITH_PATH(ssh2, $SSH2_DIR/lib, SSH2_SHARED_LIBADD)
     AC_DEFINE(HAVE_SSH2LIB,1,[Have libssh2])
   ],[
     AC_MSG_ERROR([libssh2 version >= 1.2.3 not found])
+  ],[
+    -L$SSH2_DIR/lib -lm 
+  ])
+
+  PHP_CHECK_LIBRARY(ssh2,libssh2_session_set_timeout,
+  [
+    AC_DEFINE(PHP_SSH2_SESSION_TIMEOUT, 1, [Have libssh2 with session timeout support])
+  ],[
+    AC_MSG_WARN([libssh2 < 1.2.9, session timeout support not enabled])
   ],[
     -L$SSH2_DIR/lib -lm 
   ])

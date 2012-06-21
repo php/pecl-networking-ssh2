@@ -37,16 +37,20 @@ static size_t php_ssh2_channel_stream_write(php_stream *stream, const char *buf,
 
 	libssh2_channel_set_blocking(abstract->channel, abstract->is_blocking);
 
+#ifdef PHP_SSH2_SESSION_TIMEOUT
 	if (abstract->is_blocking) {
 		session = (LIBSSH2_SESSION *)zend_fetch_resource(NULL TSRMLS_CC, abstract->session_rsrc, PHP_SSH2_SESSION_RES_NAME, NULL, 1, le_ssh2_session);
 		libssh2_session_set_timeout(session, abstract->timeout);
 	}
+#endif
 
 	ret = libssh2_channel_write_ex(abstract->channel, abstract->streamid, buf, count);
 
+#ifdef PHP_SSH2_SESSION_TIMEOUT
 	if (abstract->is_blocking) {
 		libssh2_session_set_timeout(session, 0);
 	}
+#endif
 
 	return ret;
 }
@@ -59,16 +63,21 @@ static size_t php_ssh2_channel_stream_read(php_stream *stream, char *buf, size_t
 
 	stream->eof = libssh2_channel_eof(abstract->channel);
 	libssh2_channel_set_blocking(abstract->channel, abstract->is_blocking);
+
+#ifdef PHP_SSH2_SESSION_TIMEOUT
 	if (abstract->is_blocking) {
 		session = (LIBSSH2_SESSION *)zend_fetch_resource(NULL TSRMLS_CC, abstract->session_rsrc, PHP_SSH2_SESSION_RES_NAME, NULL, 1, le_ssh2_session);
 		libssh2_session_set_timeout(session, abstract->timeout);
 	}
+#endif
 
 	readstate = libssh2_channel_read_ex(abstract->channel, abstract->streamid, buf, count);
 
+#ifdef PHP_SSH2_SESSION_TIMEOUT
 	if (abstract->is_blocking) {
 		libssh2_session_set_timeout(session, 0);
 	}
+#endif
 
 	return (readstate < 0 ? 0 : readstate);
 }
@@ -112,8 +121,12 @@ static int php_ssh2_channel_stream_set_option(php_stream *stream, int option, in
 
 		case PHP_STREAM_OPTION_READ_TIMEOUT:
 			ret = abstract->timeout;
+#ifdef PHP_SSH2_SESSION_TIMEOUT
 			struct timeval tv = *(struct timeval*)ptrparam;
 			abstract->timeout = tv.tv_sec * 1000 + (tv.tv_usec / 1000);
+#else
+			php_error_docref(NULL TSRMLS_CC, E_WARNING, "No support for ssh2 stream timeout. Please recompile with libssh2 >= 1.2.9");
+#endif
 			return ret;
 			break;
 
