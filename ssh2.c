@@ -609,8 +609,7 @@ static void kbd_callback(const char *name, int name_len,
 	(void)instruction;
 	(void)instruction_len;
 	if (num_prompts == 1) {
-		// line below does NOT estrdup() because it is used and freed by the libssh2 library
-		responses[0].text = strdup(password_for_kbd_callback);
+		responses[0].text = estrdup(password_for_kbd_callback);
 		responses[0].length = strlen(password_for_kbd_callback);
 	}
 	(void)prompts;
