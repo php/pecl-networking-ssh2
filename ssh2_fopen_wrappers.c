@@ -32,27 +32,40 @@
 static size_t php_ssh2_channel_stream_write(php_stream *stream, const char *buf, size_t count TSRMLS_DC)
 {
 	php_ssh2_channel_data *abstract = (php_ssh2_channel_data*)stream->abstract;
-	size_t ret;
+	size_t writestate;
 	LIBSSH2_SESSION *session;
 
 	libssh2_channel_set_blocking(abstract->channel, abstract->is_blocking);
+	session = (LIBSSH2_SESSION *)zend_fetch_resource(NULL TSRMLS_CC, abstract->session_rsrc, PHP_SSH2_SESSION_RES_NAME, NULL, 1, le_ssh2_session);
 
 #ifdef PHP_SSH2_SESSION_TIMEOUT
 	if (abstract->is_blocking) {
-		session = (LIBSSH2_SESSION *)zend_fetch_resource(NULL TSRMLS_CC, abstract->session_rsrc, PHP_SSH2_SESSION_RES_NAME, NULL, 1, le_ssh2_session);
 		libssh2_session_set_timeout(session, abstract->timeout);
 	}
 #endif
 
-	ret = libssh2_channel_write_ex(abstract->channel, abstract->streamid, buf, count);
+	writestate = libssh2_channel_write_ex(abstract->channel, abstract->streamid, buf, count);
 
-#ifdef PHP_SSH2_SESSION_TIMEOUT
 	if (abstract->is_blocking) {
+		if (writestate == LIBSSH2_ERROR_EAGAIN) {
+			writestate = 0;
+		}
+#ifdef PHP_SSH2_SESSION_TIMEOUT
 		libssh2_session_set_timeout(session, 0);
-	}
 #endif
+	}
 
-	return ret;
+	if (writestate < 0) {
+		char *error_msg = NULL;
+		if (libssh2_session_last_error(session, &error_msg, NULL, 0) == writestate) {
+			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failure '%s' (%d)", error_msg, writestate);
+		}
+
+		stream->eof = 1;
+		writestate = 0;
+	}
+
+	return writestate;
 }
 
 static size_t php_ssh2_channel_stream_read(php_stream *stream, char *buf, size_t count TSRMLS_DC)
@@ -63,23 +76,35 @@ static size_t php_ssh2_channel_stream_read(php_stream *stream, char *buf, size_t
 
 	stream->eof = libssh2_channel_eof(abstract->channel);
 	libssh2_channel_set_blocking(abstract->channel, abstract->is_blocking);
+	session = (LIBSSH2_SESSION *)zend_fetch_resource(NULL TSRMLS_CC, abstract->session_rsrc, PHP_SSH2_SESSION_RES_NAME, NULL, 1, le_ssh2_session);
 
 #ifdef PHP_SSH2_SESSION_TIMEOUT
 	if (abstract->is_blocking) {
-		session = (LIBSSH2_SESSION *)zend_fetch_resource(NULL TSRMLS_CC, abstract->session_rsrc, PHP_SSH2_SESSION_RES_NAME, NULL, 1, le_ssh2_session);
 		libssh2_session_set_timeout(session, abstract->timeout);
 	}
 #endif
 
 	readstate = libssh2_channel_read_ex(abstract->channel, abstract->streamid, buf, count);
 
-#ifdef PHP_SSH2_SESSION_TIMEOUT
 	if (abstract->is_blocking) {
+		if (readstate == LIBSSH2_ERROR_EAGAIN) {
+			readstate = 0;
+		}
+#ifdef PHP_SSH2_SESSION_TIMEOUT
 		libssh2_session_set_timeout(session, 0);
-	}
 #endif
+	}
 
-	return (readstate < 0 ? 0 : readstate);
+	if (readstate < 0) {
+		char *error_msg = NULL;
+		if (libssh2_session_last_error(session, &error_msg, NULL, 0) == readstate) {
+			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failure '%s' (%d)", error_msg, readstate);
+		}
+
+		stream->eof = 1;
+		readstate = 0;
+	}
+	return readstate;
 }
 
 static int php_ssh2_channel_stream_close(php_stream *stream, int close_handle TSRMLS_DC)
