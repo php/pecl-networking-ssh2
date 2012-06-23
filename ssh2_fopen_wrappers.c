@@ -58,7 +58,7 @@ static size_t php_ssh2_channel_stream_write(php_stream *stream, const char *buf,
 	if (writestate < 0) {
 		char *error_msg = NULL;
 		if (libssh2_session_last_error(session, &error_msg, NULL, 0) == writestate) {
-			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failure '%s' (%d)", error_msg, writestate);
+			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failure '%s' (%ld)", error_msg, writestate);
 		}
 
 		stream->eof = 1;
@@ -98,7 +98,7 @@ static size_t php_ssh2_channel_stream_read(php_stream *stream, char *buf, size_t
 	if (readstate < 0) {
 		char *error_msg = NULL;
 		if (libssh2_session_last_error(session, &error_msg, NULL, 0) == readstate) {
-			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failure '%s' (%d)", error_msg, readstate);
+			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failure '%s' (%ld)", error_msg, readstate);
 		}
 
 		stream->eof = 1;
