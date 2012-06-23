@@ -46,14 +46,13 @@ static size_t php_ssh2_channel_stream_write(php_stream *stream, const char *buf,
 
 	writestate = libssh2_channel_write_ex(abstract->channel, abstract->streamid, buf, count);
 
-	if (abstract->is_blocking) {
 #ifdef PHP_SSH2_SESSION_TIMEOUT
+	if (abstract->is_blocking) {
 		libssh2_session_set_timeout(session, 0);
+	}
 #endif
-	} else {
-		if (writestate == LIBSSH2_ERROR_EAGAIN) {
-			writestate = 0;
-		}
+	if (writestate == LIBSSH2_ERROR_EAGAIN) {
+		writestate = 0;
 	}
 
 	if (writestate < 0) {
@@ -87,14 +86,13 @@ static size_t php_ssh2_channel_stream_read(php_stream *stream, char *buf, size_t
 
 	readstate = libssh2_channel_read_ex(abstract->channel, abstract->streamid, buf, count);
 
-	if (abstract->is_blocking) {
 #ifdef PHP_SSH2_SESSION_TIMEOUT
+	if (abstract->is_blocking) {
 		libssh2_session_set_timeout(session, 0);
+	}
 #endif
-	} else {
-		if (readstate == LIBSSH2_ERROR_EAGAIN) {
-			readstate = 0;
-		}
+	if (readstate == LIBSSH2_ERROR_EAGAIN) {
+		readstate = 0;
 	}
 
 	if (readstate < 0) {
