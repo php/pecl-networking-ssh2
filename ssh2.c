@@ -660,6 +660,8 @@ PHP_FUNCTION(ssh2_auth_pubkey_file)
 	zval *zsession;
 	char *username, *pubkey, *privkey, *passphrase = NULL;
 	int username_len, pubkey_len, privkey_len, passphrase_len;
+	char *newpath;
+	struct passwd *pws;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsss|s", &zsession,	&username, &username_len,
 																				&pubkey, &pubkey_len,
@@ -673,6 +675,24 @@ PHP_FUNCTION(ssh2_auth_pubkey_file)
 	}
 
 	ZEND_FETCH_RESOURCE(session, LIBSSH2_SESSION*, &zsession, -1, PHP_SSH2_SESSION_RES_NAME, le_ssh2_session);
+
+	// Explode '~/paths' stopgap fix because libssh2 does not accept tilde for homedir
+	// This should be ifdef'ed when a fix is available to support older libssh2 versions
+	pws = getpwuid(geteuid());
+	if (pubkey_len >= 2 && *pubkey == '~' && *(pubkey+1) == '/') {
+		newpath = emalloc(strlen(pws->pw_dir) + strlen(pubkey));
+		strcpy(newpath, pws->pw_dir);
+		strcat(newpath, pubkey+1);
+		efree(pubkey);
+		pubkey = newpath;
+	}
+	if (privkey_len >= 2 && *privkey == '~' && *(privkey+1) == '/') {
+		newpath = emalloc(strlen(pws->pw_dir) + strlen(privkey));
+		strcpy(newpath, pws->pw_dir);
+		strcat(newpath, privkey+1);
+		efree(privkey);
+		privkey = newpath;
+	}
 
 	/* TODO: Support passphrase callback */
 	if (libssh2_userauth_publickey_fromfile_ex(session, username, username_len, pubkey, privkey, passphrase)) {
