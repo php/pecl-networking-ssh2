@@ -236,6 +236,8 @@ LIBSSH2_DISCONNECT_FUNC(php_ssh2_disconnect_cb)
 }
 /* }}} */
 
+
+
 /* *****************
    * Userspace API *
    ***************** */
@@ -631,12 +633,7 @@ PHP_FUNCTION(ssh2_auth_password)
 		return;
 	}
 
-	ZEND_FETCH_RESOURCE(session, LIBSSH2_SESSION*, &zsession, -1, PHP_SSH2_SESSION_RES_NAME, le_ssh2_session);
-
-	if (libssh2_userauth_authenticated(session)) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Connection already authenticated");
-		RETURN_FALSE;
-	}
+	SSH2_FETCH_NONAUTHENTICATED_SESSION(session, zsession);
 
 	userauthlist = libssh2_userauth_list(session, username, username_len);
 	password_for_kbd_callback = password;
@@ -679,12 +676,7 @@ PHP_FUNCTION(ssh2_auth_pubkey_file)
 		RETURN_FALSE;
 	}
 
-	ZEND_FETCH_RESOURCE(session, LIBSSH2_SESSION*, &zsession, -1, PHP_SSH2_SESSION_RES_NAME, le_ssh2_session);
-
-	if (libssh2_userauth_authenticated(session)) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Connection already authenticated");
-		RETURN_FALSE;
-	}
+	SSH2_FETCH_NONAUTHENTICATED_SESSION(session, zsession);
 
 	// Explode '~/paths' stopgap fix because libssh2 does not accept tilde for homedir
 	// This should be ifdef'ed when a fix is available to support older libssh2 versions
@@ -740,12 +732,7 @@ PHP_FUNCTION(ssh2_auth_hostbased_file)
 		RETURN_FALSE;
 	}
 
-	ZEND_FETCH_RESOURCE(session, LIBSSH2_SESSION*, &zsession, -1, PHP_SSH2_SESSION_RES_NAME, le_ssh2_session);
-
-	if (libssh2_userauth_authenticated(session)) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Connection already authenticated");
-		RETURN_FALSE;
-	}
+	SSH2_FETCH_NONAUTHENTICATED_SESSION(session, zsession);
 
 	if (!local_username) {
 		local_username = username;
@@ -780,12 +767,7 @@ PHP_FUNCTION(ssh2_forward_listen)
 		return;
 	}
 
-	ZEND_FETCH_RESOURCE(session, LIBSSH2_SESSION*, &zsession, -1, PHP_SSH2_SESSION_RES_NAME, le_ssh2_session);
-
-	if (!libssh2_userauth_authenticated(session)) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Connection not authenticated");
-		RETURN_FALSE;
-	}
+	SSH2_FETCH_AUTHENTICATED_SESSION(session, zsession);
 
 	listener = libssh2_channel_forward_listen_ex(session, host, port, NULL, max_connections);	
 
@@ -968,12 +950,7 @@ PHP_FUNCTION(ssh2_publickey_init)
 		return;
 	}
 
-	ZEND_FETCH_RESOURCE(session, LIBSSH2_SESSION*, &zsession, -1, PHP_SSH2_SESSION_RES_NAME, le_ssh2_session);
-
-	if (!libssh2_userauth_authenticated(session)) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Connection not authenticated");
-		RETURN_FALSE;
-	}
+	SSH2_FETCH_AUTHENTICATED_SESSION(session, zsession);
 
 	pkey = libssh2_publickey_init(session);
 
@@ -1181,12 +1158,7 @@ PHP_FUNCTION(ssh2_auth_agent)
 		return;
 	}
 
-	ZEND_FETCH_RESOURCE(session, LIBSSH2_SESSION*, &zsession, -1, PHP_SSH2_SESSION_RES_NAME, le_ssh2_session);
-
-	if (libssh2_userauth_authenticated(session)) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Connection already authenticated");
-		RETURN_FALSE;
-	}
+	SSH2_FETCH_NONAUTHENTICATED_SESSION(session, zsession);
 
 	/* check what authentication methods are available */
 	userauthlist = libssh2_userauth_list(session, username, username_len);

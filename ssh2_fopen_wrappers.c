@@ -681,12 +681,7 @@ PHP_FUNCTION(ssh2_shell)
 		return;
 	}
 
-	ZEND_FETCH_RESOURCE(session, LIBSSH2_SESSION*, &zsession, -1, PHP_SSH2_SESSION_RES_NAME, le_ssh2_session);
-
-	if (!libssh2_userauth_authenticated(session)) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Connection not authenticated");
-		RETURN_FALSE;
-	}
+	SSH2_FETCH_AUTHENTICATED_SESSION(session, zsession);
 
 	stream = php_ssh2_shell_open(session, Z_LVAL_P(zsession), term, term_len, environment, width, height, type TSRMLS_CC);
 	if (!stream) {
@@ -922,12 +917,7 @@ PHP_FUNCTION(ssh2_exec)
 		term_len = Z_STRLEN_P(zpty);
 	}
 
-	ZEND_FETCH_RESOURCE(session, LIBSSH2_SESSION*, &zsession, -1, PHP_SSH2_SESSION_RES_NAME, le_ssh2_session);
-
-	if (!libssh2_userauth_authenticated(session)) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Connection not authenticated");
-		RETURN_FALSE;
-	}
+	SSH2_FETCH_AUTHENTICATED_SESSION(session, zsession);
 
 	stream = php_ssh2_exec_command(session, Z_LVAL_P(zsession), command, term, term_len, environment, width, height, type TSRMLS_CC);
 	if (!stream) {
@@ -1044,12 +1034,7 @@ PHP_FUNCTION(ssh2_scp_recv)
 		return;
 	}
 
-	ZEND_FETCH_RESOURCE(session, LIBSSH2_SESSION*, &zsession, -1, PHP_SSH2_SESSION_RES_NAME, le_ssh2_session);
-
-	if (!libssh2_userauth_authenticated(session)) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Connection not authenticated");
-		RETURN_FALSE;
-	}
+	SSH2_FETCH_AUTHENTICATED_SESSION(session, zsession);
 
 	remote_file = libssh2_scp_recv(session, remote_filename, &sb);
 	if (!remote_file) {
@@ -1107,12 +1092,7 @@ PHP_FUNCTION(ssh2_scp_send)
 		return;
 	}
 
-	ZEND_FETCH_RESOURCE(session, LIBSSH2_SESSION*, &zsession, -1, PHP_SSH2_SESSION_RES_NAME, le_ssh2_session);
-
-	if (!libssh2_userauth_authenticated(session)) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Connection not authenticated");
-		RETURN_FALSE;
-	}
+	SSH2_FETCH_AUTHENTICATED_SESSION(session, zsession);
 
 	local_file = php_stream_open_wrapper(local_filename, "rb", ENFORCE_SAFE_MODE | REPORT_ERRORS, NULL);
 	if (!local_file) {
@@ -1298,12 +1278,7 @@ PHP_FUNCTION(ssh2_tunnel)
 		return;
 	}
 
-	ZEND_FETCH_RESOURCE(session, LIBSSH2_SESSION*, &zsession, -1, PHP_SSH2_SESSION_RES_NAME, le_ssh2_session);
-
-	if (!libssh2_userauth_authenticated(session)) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Connection not authenticated");
-		RETURN_FALSE;
-	}
+	SSH2_FETCH_AUTHENTICATED_SESSION(session, zsession);
 
 	stream = php_ssh2_direct_tcpip(session, Z_LVAL_P(zsession), host, port TSRMLS_CC);
 	if (!stream) {

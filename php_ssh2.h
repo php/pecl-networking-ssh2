@@ -141,6 +141,19 @@ typedef struct _php_ssh2_pkey_subsys_data {
 #define Z_UNSET_ISREF_PP(ppz)         Z_UNSET_ISREF_P(*(ppz))
 #endif
 
+#define SSH2_FETCH_NONAUTHENTICATED_SESSION(session, zsession) \
+ZEND_FETCH_RESOURCE(session, LIBSSH2_SESSION*, &zsession, -1, PHP_SSH2_SESSION_RES_NAME, le_ssh2_session); \
+if (libssh2_userauth_authenticated(session)) { \
+	php_error_docref(NULL TSRMLS_CC, E_WARNING, "Connection already authenticated"); \
+	RETURN_FALSE; \
+}
+
+#define SSH2_FETCH_AUTHENTICATED_SESSION(session, zsession) \
+ZEND_FETCH_RESOURCE(session, LIBSSH2_SESSION*, &zsession, -1, PHP_SSH2_SESSION_RES_NAME, le_ssh2_session); \
+if (!libssh2_userauth_authenticated(session)) { \
+	php_error_docref(NULL TSRMLS_CC, E_WARNING, "Connection not authenticated"); \
+	RETURN_FALSE; \
+}
 
 typedef struct _php_ssh2_channel_data {
 	LIBSSH2_CHANNEL *channel;
