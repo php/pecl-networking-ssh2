@@ -1139,7 +1139,29 @@ PHP_FUNCTION(ssh2_scp_send)
 
 		while (bytesread - sent > 0) {
 			if ((justsent = libssh2_channel_write(remote_file, (buffer + sent), bytesread - sent)) < 0) {
-				php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failed copying file");
+
+				switch (justsent) {
+					case LIBSSH2_ERROR_EAGAIN:
+						php_error_docref(NULL TSRMLS_CC, E_WARNING, "Operation would block");
+						break;
+
+					case LIBSSH2_ERROR_ALLOC:
+						php_error_docref(NULL TSRMLS_CC,E_WARNING, "An internal memory allocation call failed");
+						break;
+
+					case LIBSSH2_ERROR_SOCKET_SEND:
+						php_error_docref(NULL TSRMLS_CC,E_WARNING, "Unable to send data on socket");
+						break;
+
+					case LIBSSH2_ERROR_CHANNEL_CLOSED:
+						php_error_docref(NULL TSRMLS_CC,E_WARNING, "The channel has been closed");
+						break;
+
+					case LIBSSH2_ERROR_CHANNEL_EOF_SENT:
+						php_error_docref(NULL TSRMLS_CC,E_WARNING, "The channel has been requested to be closed");
+						break;
+				}
+
 				php_stream_close(local_file);
 				libssh2_channel_free(remote_file);
 				RETURN_FALSE;
