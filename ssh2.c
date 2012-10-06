@@ -1144,6 +1144,7 @@ PHP_FUNCTION(ssh2_publickey_list)
 Authenticate using the ssh agent */
 PHP_FUNCTION(ssh2_auth_agent)
 {
+#ifdef PHP_SSH2_AGENT_AUTH
 	zval *zsession;
 	char *username;
 	int username_len;
@@ -1213,6 +1214,10 @@ PHP_FUNCTION(ssh2_auth_agent)
 		}
 		prev_identity = identity;
 	}
+#else
+	php_error_docref(NULL TSRMLS_CC, E_WARNING, "Upgrade the libssh2 library (needs 1.2.3 or higher) and reinstall the ssh2 extension for ssh2 agent support");
+	RETURN_FALSE;
+#endif /* PHP_SSH2_AGENT_AUTH */
 }
 /* }}} */
 

@@ -26,14 +26,23 @@ if test "$PHP_SSH2" != "no"; then
 
   PHP_ADD_INCLUDE($SSH2_DIR/include)
 
-  PHP_CHECK_LIBRARY(ssh2,libssh2_agent_init,
+  PHP_CHECK_LIBRARY(ssh2,libssh2_session_hostkey,
   [
     PHP_ADD_LIBRARY_WITH_PATH(ssh2, $SSH2_DIR/lib, SSH2_SHARED_LIBADD)
     AC_DEFINE(HAVE_SSH2LIB,1,[Have libssh2])
   ],[
-    AC_MSG_ERROR([libssh2 version >= 1.2.3 not found])
+    AC_MSG_ERROR([libssh2 version >= 1.2 not found])
   ],[
     -L$SSH2_DIR/lib -lm 
+  ])
+  
+  PHP_CHECK_LIBRARY(ssh2,libssh2_agent_init,	 
+  [	 
+    AC_DEFINE(PHP_SSH2_AGENT_AUTH, 1, [Have libssh2 with ssh-agent support])	 
+  ],[	 
+    AC_MSG_WARN([libssh2 <= 1.2.3, ssh-agent subsystem support not enabled])	 
+  ],[	   ],[
+    -L$SSH2_DIR/lib -lm	     -L$SSH2_DIR/lib -lm
   ])
 
   PHP_CHECK_LIBRARY(ssh2,libssh2_session_set_timeout,
