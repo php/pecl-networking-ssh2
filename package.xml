@@ -8,6 +8,12 @@
     libssh2 is available from http:/libssh2.org/
   </description>
   <lead>
+    <name>Casper Langemeijer</name>
+    <user>langemeijer</user>
+    <email>langemeijer@php.net</email>
+    <active>yes</active>
+  </lead>  
+  <lead>
     <name>Pierre Joye</name>
     <user>pajoye</user>
     <email>pierre@php.net</email>
@@ -17,7 +23,7 @@
     <name>Mike Sullivan</name>
     <user>mikesul</user>
     <email>mikesul@php.net</email>
-    <active>yes</active>
+    <active>no</active>
   </lead>
   <lead>
     <name>Sara Golemon</name>
@@ -25,10 +31,10 @@
     <email>pollita@php.net</email>
     <active>no</active>
   </lead>
-  <date>2011-09-22</date>
+  <date>2012-10-12</date>
   <version>
-    <release>0.11.4-dev</release>
-    <api>0.11.0</api>
+    <release>0.12</release>
+    <api>0.12</api>
   </version>
   <stability>
     <release>beta</release>
@@ -36,6 +42,18 @@
   </stability>
   <license uri="http://www.php.net/license">PHP License</license>
   <notes>
+    - Bumped libssh2 version requirement to 1.2 (aug 2009)
+    - Added ssh2_auth_agent() - SSH agent authentication support (with libssh >= 1.2.3)
+    - Added ssh2_sftp_chmod() (fixed bug #59880)
+    - Added support for stream_set_timeout() to channel streams (fixed bug #56377) (with libssh >= 1.2.9)
+    - Added keyboard-interactive to ssh2_auth_password() (fixed bugs #61760 and #54916)
+    - Add license file as requested in bug #59980
+    - Allow for tilde (~) in public and private keyfile paths
+    - Be more verbose about any errors within ssh2_scp_send
+    - Fixed bug #56425 - Problem with ssh2_scp_send
+    - Fixed bug #59794 - ssh2.sftp protocol wrapper works incorrectly for paths which contain a '#'
+    - Fixed bug #63192 - Check if connection is authenticated.
+    - Fixed bug #58576 - Handle error values from reads and writes to a channel.
   </notes>
   <contents>
     <dir name="/">
@@ -44,6 +62,7 @@
       <file role="src" name="php_ssh2.h"/>
       <file role="src" name="ssh2_fopen_wrappers.c"/>
       <file role="src" name="ssh2_sftp.c"/>
+      <file role="src" name="LICENSE"/>
     </dir>
   </contents>
   <dependencies>
