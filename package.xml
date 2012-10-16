@@ -33,7 +33,7 @@
   </lead>
   <date>2012-10-15</date>
   <version>
-    <release>0.12</release>
+    <release>0.12+dev</release>
     <api>0.12</api>
   </version>
   <stability>
@@ -42,18 +42,7 @@
   </stability>
   <license uri="http://www.php.net/license">PHP License</license>
   <notes>
-    - Bumped libssh2 version requirement to 1.2 (aug 2009)
-    - Added ssh2_auth_agent() - SSH agent authentication support (with libssh >= 1.2.3)
-    - Added ssh2_sftp_chmod() (fixed bug #59880)
-    - Added support for stream_set_timeout() to channel streams (fixed bug #56377) (with libssh >= 1.2.9)
-    - Added keyboard-interactive to ssh2_auth_password() (fixed bugs #61760 and #54916)
-    - Add license file as requested in bug #59980
-    - Allow for tilde (~) in public and private keyfile paths
-    - Be more verbose about any errors within ssh2_scp_send
-    - Fixed bug #56425 - Problem with ssh2_scp_send
-    - Fixed bug #59794 - ssh2.sftp protocol wrapper works incorrectly for paths which contain a '#'
-    - Fixed bug #63192 - Check if connection is authenticated.
-    - Fixed bug #58576 - Handle error values from reads and writes to a channel.
+  
   </notes>
   <contents>
     <dir name="/">
@@ -81,6 +70,27 @@
     <configureoption name="with-ssh2" default="autodetect" prompt="libssh2 prefix?"/>
   </extsrcrelease>
   <changelog>
+    <release>
+      <date>2012-10-15</date>
+      <version>
+        <release>0.12</release>
+        <api>0.12</api>
+      </version>
+      <notes>
+    - Bumped libssh2 version requirement to 1.2 (aug 2009)
+    - Added ssh2_auth_agent() - SSH agent authentication support (with libssh >= 1.2.3)
+    - Added ssh2_sftp_chmod() (fixed bug #59880)
+    - Added support for stream_set_timeout() to channel streams (fixed bug #56377) (with libssh >= 1.2.9)
+    - Added keyboard-interactive to ssh2_auth_password() (fixed bugs #61760 and #54916)
+    - Add license file as requested in bug #59980
+    - Allow for tilde (~) in public and private keyfile paths
+    - Be more verbose about any errors within ssh2_scp_send
+    - Fixed bug #56425 - Problem with ssh2_scp_send
+    - Fixed bug #59794 - ssh2.sftp protocol wrapper works incorrectly for paths which contain a '#'
+    - Fixed bug #63192 - Check if connection is authenticated.
+    - Fixed bug #58576 - Handle error values from reads and writes to a channel.
+      </notes>
+    </release>
     <release>
       <date>2011-09-22</date>
       <version>
