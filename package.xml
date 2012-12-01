@@ -42,7 +42,7 @@
   </stability>
   <license uri="http://www.php.net/license">PHP License</license>
   <notes>
-  
+    - Fixed Bug #63660 php_ssh2_fopen_wrapper_parse_path segfaults
   </notes>
   <contents>
     <dir name="/">
