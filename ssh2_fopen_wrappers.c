@@ -198,7 +198,7 @@ php_url *php_ssh2_fopen_wraper_parse_path(	char *path, char *type, php_stream_co
 	int username_len = 0, password_len = 0;
 
 	resource = php_url_parse(path);
-	if (!resource) {
+	if (!resource || !resource->path) {
 		return NULL;
 	}
 
