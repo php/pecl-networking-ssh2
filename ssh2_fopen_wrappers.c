@@ -1126,6 +1126,8 @@ PHP_FUNCTION(ssh2_scp_send)
 		char buffer[8192];
 		size_t toread = MIN(8192, ssb.sb.st_size);
 		size_t bytesread = php_stream_read(local_file, buffer, toread);
+		size_t sent = 0;
+		size_t justsent = 0;
 
 		if (bytesread <= 0 || bytesread > toread) {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failed copying file 2");
@@ -1134,8 +1136,6 @@ PHP_FUNCTION(ssh2_scp_send)
 			RETURN_FALSE;
 		}
 
-		size_t sent = 0;
-		size_t justsent = 0;
 
 		while (bytesread - sent > 0) {
 			if ((justsent = libssh2_channel_write(remote_file, (buffer + sent), bytesread - sent)) < 0) {

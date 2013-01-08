@@ -677,9 +677,9 @@ PHP_FUNCTION(ssh2_auth_pubkey_file)
 	}
 
 	SSH2_FETCH_NONAUTHENTICATED_SESSION(session, zsession);
-
-	// Explode '~/paths' stopgap fix because libssh2 does not accept tilde for homedir
-	// This should be ifdef'ed when a fix is available to support older libssh2 versions
+#ifndef PHP_WIN32
+	/* Explode '~/paths' stopgap fix because libssh2 does not accept tilde for homedir
+	  This should be ifdef'ed when a fix is available to support older libssh2 versions*/
 	pws = getpwuid(geteuid());
 	if (pubkey_len >= 2 && *pubkey == '~' && *(pubkey+1) == '/') {
 		newpath = emalloc(strlen(pws->pw_dir) + strlen(pubkey));
@@ -695,6 +695,7 @@ PHP_FUNCTION(ssh2_auth_pubkey_file)
 		efree(privkey);
 		privkey = newpath;
 	}
+#endif
 
 	/* TODO: Support passphrase callback */
 	if (libssh2_userauth_publickey_fromfile_ex(session, username, username_len, pubkey, privkey, passphrase)) {
