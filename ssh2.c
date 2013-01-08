@@ -662,8 +662,10 @@ PHP_FUNCTION(ssh2_auth_pubkey_file)
 	zval *zsession;
 	char *username, *pubkey, *privkey, *passphrase = NULL;
 	int username_len, pubkey_len, privkey_len, passphrase_len;
+#ifndef PHP_WIN32
 	char *newpath;
 	struct passwd *pws;
+#endif
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsss|s", &zsession,	&username, &username_len,
 																				&pubkey, &pubkey_len,
