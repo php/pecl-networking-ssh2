@@ -43,6 +43,7 @@
   <license uri="http://www.php.net/license">PHP License</license>
   <notes>
     - Fixed Bug #63660 php_ssh2_fopen_wrapper_parse_path segfaults
+	- Fixed bug #64535 php_ssh2_sftp_dirstream_read segfault on error
   </notes>
   <contents>
     <dir name="/">
