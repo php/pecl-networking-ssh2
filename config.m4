@@ -42,7 +42,7 @@ if test "$PHP_SSH2" != "no"; then
   ],[
     AC_MSG_WARN([libssh2 <= 1.2.3, ssh-agent subsystem support not enabled])
   ],[
-    -L$SSH2_DIR/lib -lm	     -L$SSH2_DIR/lib -lm
+    -L$SSH2_DIR/lib -lm
   ])
 
   PHP_CHECK_LIBRARY(ssh2,libssh2_session_set_timeout,
