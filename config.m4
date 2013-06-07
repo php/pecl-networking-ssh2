@@ -41,7 +41,7 @@ if test "$PHP_SSH2" != "no"; then
     AC_DEFINE(PHP_SSH2_AGENT_AUTH, 1, [Have libssh2 with ssh-agent support])	 
   ],[	 
     AC_MSG_WARN([libssh2 <= 1.2.3, ssh-agent subsystem support not enabled])	 
-  ],[	   ],[
+  ],[
     -L$SSH2_DIR/lib -lm	     -L$SSH2_DIR/lib -lm
   ])
 
