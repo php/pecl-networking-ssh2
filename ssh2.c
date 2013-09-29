@@ -535,7 +535,7 @@ PHP_FUNCTION(ssh2_fingerprint)
 
 	fingerprint = (char*)libssh2_hostkey_hash(session, (flags & PHP_SSH2_FINGERPRINT_SHA1) ? LIBSSH2_HOSTKEY_HASH_SHA1 : LIBSSH2_HOSTKEY_HASH_MD5);
 	if (!fingerprint) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to retreive fingerprint from specified session");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to retrieve fingerprint from specified session");
 		RETURN_FALSE;
 	}
 
