@@ -53,7 +53,7 @@
       <file role="src" name="php_ssh2.h"/>
       <file role="src" name="ssh2_fopen_wrappers.c"/>
       <file role="src" name="ssh2_sftp.c"/>
-      <file role="src" name="LICENSE"/>
+      <file role="doc" name="LICENSE"/>
     </dir>
   </contents>
   <dependencies>
