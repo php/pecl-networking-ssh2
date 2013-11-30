@@ -54,6 +54,14 @@
       <file role="src" name="ssh2_fopen_wrappers.c"/>
       <file role="src" name="ssh2_sftp.c"/>
       <file role="doc" name="LICENSE"/>
+      <dir name="tests">
+        <file role="test" name="ssh2_auth.phpt"/>
+        <file role="test" name="ssh2_connect.phpt"/>
+        <file role="test" name="ssh2_sftp_001.phpt"/>
+        <file role="test" name="ssh2_sftp_002.phpt"/>
+        <file role="test" name="ssh2_skip.inc"/>
+        <file role="test" name="ssh2_test.inc"/>
+      </dir>
     </dir>
   </contents>
   <dependencies>
