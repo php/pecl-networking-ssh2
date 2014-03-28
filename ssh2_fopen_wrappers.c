@@ -144,6 +144,10 @@ static int php_ssh2_channel_stream_set_option(php_stream *stream, int option, in
 			return ret;
 			break;
 
+		case PHP_STREAM_OPTION_META_DATA_API:
+			add_assoc_long((zval*)ptrparam, "exit_status", libssh2_channel_get_exit_status(abstract->channel));
+			break;
+
 		case PHP_STREAM_OPTION_READ_TIMEOUT:
 			ret = abstract->timeout;
 #ifdef PHP_SSH2_SESSION_TIMEOUT
