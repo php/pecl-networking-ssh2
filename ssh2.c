@@ -636,17 +636,20 @@ PHP_FUNCTION(ssh2_auth_password)
 	SSH2_FETCH_NONAUTHENTICATED_SESSION(session, zsession);
 
 	userauthlist = libssh2_userauth_list(session, username, username_len);
-	password_for_kbd_callback = password;
-	if (strstr(userauthlist, "keyboard-interactive") != NULL) {
-		if (libssh2_userauth_keyboard_interactive(session, username, &kbd_callback) == 0) {
-			RETURN_TRUE;
-		}
-	}
 
-	/* TODO: Support password change callback */
-	if (libssh2_userauth_password_ex(session, username, username_len, password, password_len, NULL)) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Authentication failed for %s using password", username);
-		RETURN_FALSE;
+	if (userauthlist != NULL) {
+		password_for_kbd_callback = password;
+		if (strstr(userauthlist, "keyboard-interactive") != NULL) {
+			if (libssh2_userauth_keyboard_interactive(session, username, &kbd_callback) == 0) {
+				RETURN_TRUE;
+			}
+		}
+
+		/* TODO: Support password change callback */
+		if (libssh2_userauth_password_ex(session, username, username_len, password, password_len, NULL)) {
+			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Authentication failed for %s using password", username);
+			RETURN_FALSE;
+		}
 	}
 
 	RETURN_TRUE;
@@ -1167,7 +1170,7 @@ PHP_FUNCTION(ssh2_auth_agent)
 	/* check what authentication methods are available */
 	userauthlist = libssh2_userauth_list(session, username, username_len);
 
-	if (strstr(userauthlist, "publickey") == NULL) {
+	if (userauthlist != NULL && strstr(userauthlist, "publickey") == NULL) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "\"publickey\" authentication is not supported");
 		RETURN_FALSE;
 	}
