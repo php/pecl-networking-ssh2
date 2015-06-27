@@ -30,7 +30,7 @@
    * Resource Housekeeping *
    ************************* */
 
-void php_ssh2_sftp_dtor(zend_rsrc_list_entry *rsrc TSRMLS_DC)
+void php_ssh2_sftp_dtor(zend_resource *rsrc TSRMLS_DC)
 {
 	php_ssh2_sftp_data *data = (php_ssh2_sftp_data*)rsrc->ptr;
 
@@ -81,7 +81,7 @@ inline int php_ssh2_sftp_attr2ssb(php_stream_statbuf *ssb, LIBSSH2_SFTP_ATTRIBUT
 	if (attrs->flags & LIBSSH2_SFTP_ATTR_SIZE) {
 		ssb->sb.st_size = attrs->filesize;
 	}
-	
+
 	if (attrs->flags & LIBSSH2_SFTP_ATTR_UIDGID) {
 		ssb->sb.st_uid = attrs->uid;
 		ssb->sb.st_gid = attrs->gid;
@@ -398,7 +398,7 @@ static int php_ssh2_sftp_urlstat(php_stream_wrapper *wrapper, char *url, int fla
 		zend_list_delete(sftp_rsrcid);
 		return -1;
 	}
-	
+
 	php_url_free(resource);
 
 	/* parse_path addrefs the resource, but we're not holding on to it so we have to delref it before we leave */

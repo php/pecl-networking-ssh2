@@ -15,7 +15,7 @@
   | Author: Sara Golemon <pollita@php.net>                               |
   +----------------------------------------------------------------------+
 
-  $Id$ 
+  $Id$
 */
 
 #ifndef PHP_SSH2_H
@@ -70,7 +70,7 @@ typedef struct _php_ssh2_session_data {
 
 #ifdef ZTS
 	/* Avoid unnecessary TSRMLS_FETCH() calls */
-	TSRMLS_D;
+	//TSRMLS_D;
 #endif
 } php_ssh2_session_data;
 
@@ -97,13 +97,9 @@ typedef struct _php_ssh2_pkey_subsys_data {
 	int session_rsrcid;
 } php_ssh2_pkey_subsys_data;
 
-#ifndef PHP_WIN32
-#define closesocket(s)	close(s)
-#endif
-
 #ifdef ZTS
 #define SSH2_TSRMLS_SET(datap)		((php_ssh2_session_data*)(datap))->tsrm_ls = TSRMLS_C
-#define SSH2_TSRMLS_FETCH(datap)	TSRMLS_D = ((php_ssh2_session_data*)(datap))->tsrm_ls
+#define SSH2_TSRMLS_FETCH(datap)	TSRMLS_D = ((php_ssh2_session_data*)(datap))->tsrm_ls;
 #else
 #define SSH2_TSRMLS_SET(datap)
 #define SSH2_TSRMLS_FETCH(datap)
@@ -194,7 +190,7 @@ PHP_FUNCTION(ssh2_sftp_readlink);
 PHP_FUNCTION(ssh2_sftp_realpath);
 
 LIBSSH2_SESSION *php_ssh2_session_connect(char *host, int port, zval *methods, zval *callbacks TSRMLS_DC);
-void php_ssh2_sftp_dtor(zend_rsrc_list_entry *rsrc TSRMLS_DC);
+void php_ssh2_sftp_dtor(zend_resource *rsrc TSRMLS_DC);
 php_url *php_ssh2_fopen_wraper_parse_path(	char *path, char *type, php_stream_context *context,
 											LIBSSH2_SESSION **psession, int *presource_id,
 											LIBSSH2_SFTP **psftp, int *psftp_rsrcid
