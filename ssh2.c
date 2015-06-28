@@ -456,8 +456,9 @@ PHP_FUNCTION(ssh2_methods_negotiated)
 		return;
 	}
 
-	// TODO Sean-Der
-	//ZEND_FETCH_RESOURCE(session, LIBSSH2_SESSION*, &zsession, -1, PHP_SSH2_SESSION_RES_NAME, le_ssh2_session);
+	if ((session = (LIBSSH2_SESSION *)zend_fetch_resource(Z_RES_P(zsession), PHP_SSH2_SESSION_RES_NAME, le_ssh2_session)) == NULL) {
+        RETURN_FALSE;
+    }
 
 	kex = (char*)libssh2_session_methods(session, LIBSSH2_METHOD_KEX);
 	hostkey = (char*)libssh2_session_methods(session, LIBSSH2_METHOD_HOSTKEY);
@@ -507,8 +508,9 @@ PHP_FUNCTION(ssh2_fingerprint)
 	}
 	fingerprint_len = (flags & PHP_SSH2_FINGERPRINT_SHA1) ? SHA_DIGEST_LENGTH : MD5_DIGEST_LENGTH;
 
-	//TODO Sean-Der
-	//ZEND_FETCH_RESOURCE(session, LIBSSH2_SESSION*, &zsession, -1, PHP_SSH2_SESSION_RES_NAME, le_ssh2_session);
+	if ((session = (LIBSSH2_SESSION *)zend_fetch_resource(Z_RES_P(zsession), PHP_SSH2_SESSION_RES_NAME, le_ssh2_session)) == NULL) {
+        RETURN_FALSE;
+    }
 
 	fingerprint = (char*)libssh2_hostkey_hash(session, (flags & PHP_SSH2_FINGERPRINT_SHA1) ? LIBSSH2_HOSTKEY_HASH_SHA1 : LIBSSH2_HOSTKEY_HASH_MD5);
 	if (!fingerprint) {
@@ -553,8 +555,9 @@ PHP_FUNCTION(ssh2_auth_none)
 		return;
 	}
 
-	// TODO Sean-Der
-	//ZEND_FETCH_RESOURCE(session, LIBSSH2_SESSION*, &zsession, -1, PHP_SSH2_SESSION_RES_NAME, le_ssh2_session);
+	if ((session = (LIBSSH2_SESSION *)zend_fetch_resource(Z_RES_P(zsession), PHP_SSH2_SESSION_RES_NAME, le_ssh2_session)) == NULL) {
+        RETURN_FALSE;
+    }
 
 	s = methods = libssh2_userauth_list(session, username, username_len);
 	if (!methods) {
@@ -611,8 +614,7 @@ PHP_FUNCTION(ssh2_auth_password)
 		return;
 	}
 
-	// TODO Sean-Der
-	//SSH2_FETCH_NONAUTHENTICATED_SESSION(session, zsession);
+	SSH2_FETCH_NONAUTHENTICATED_SESSION(session, zsession);
 
 	userauthlist = libssh2_userauth_list(session, username, username_len);
 
@@ -660,8 +662,7 @@ PHP_FUNCTION(ssh2_auth_pubkey_file)
 		RETURN_FALSE;
 	}
 
-	// TDO Sean-Der
-	//SSH2_FETCH_NONAUTHENTICATED_SESSION(session, zsession);
+	SSH2_FETCH_NONAUTHENTICATED_SESSION(session, zsession);
 #ifndef PHP_WIN32
 	/* Explode '~/paths' stopgap fix because libssh2 does not accept tilde for homedir
 	  This should be ifdef'ed when a fix is available to support older libssh2 versions*/
@@ -718,8 +719,7 @@ PHP_FUNCTION(ssh2_auth_hostbased_file)
 		RETURN_FALSE;
 	}
 
-	// TODO Sean-Der
-	//SSH2_FETCH_NONAUTHENTICATED_SESSION(session, zsession);
+	SSH2_FETCH_NONAUTHENTICATED_SESSION(session, zsession);
 
 	if (!local_username) {
 		local_username = username;
@@ -754,8 +754,7 @@ PHP_FUNCTION(ssh2_forward_listen)
 		return;
 	}
 
-	// TODO Sean-Der
-	// SSH2_FETCH_AUTHENTICATED_SESSION(session, zsession);
+	SSH2_FETCH_AUTHENTICATED_SESSION(session, zsession);
 
 	listener = libssh2_channel_forward_listen_ex(session, host, port, NULL, max_connections);
 
@@ -789,8 +788,9 @@ PHP_FUNCTION(ssh2_forward_accept)
 		return;
 	}
 
-	// TODO Sean-Der
-	//ZEND_FETCH_RESOURCE(data, php_ssh2_listener_data*, &zlistener, -1, PHP_SSH2_LISTENER_RES_NAME, le_ssh2_listener);
+	if ((data = (php_ssh2_listener_data *)zend_fetch_resource(Z_RES_P(zlistener), PHP_SSH2_LISTENER_RES_NAME, le_ssh2_listener)) == NULL) {
+        RETURN_FALSE;
+    }
 
 	channel = libssh2_channel_forward_accept(data->listener);
 
@@ -882,8 +882,7 @@ PHP_FUNCTION(ssh2_poll)
 		zend_string_release(hash_key_zstring);
 
 		zend_list_find(Z_LVAL_PP(tmpzval), &res_type);
-		//TODO Sean-Der
-		//res = zend_fetch_resource(tmpzval TSRMLS_CC, -1, "Poll Resource", NULL, 1, res_type);
+		res = zend_fetch_resource_ex(tmpzval, "Poll Resource", res_type);
 		if (res_type == le_ssh2_listener) {
 			pollfds[i].type = LIBSSH2_POLLFD_LISTENER;
 			pollfds[i].fd.listener = ((php_ssh2_listener_data*)res)->listener;
@@ -952,8 +951,7 @@ PHP_FUNCTION(ssh2_publickey_init)
 		return;
 	}
 
-	// TODO Sean-Der
-	//SSH2_FETCH_AUTHENTICATED_SESSION(session, zsession);
+	SSH2_FETCH_AUTHENTICATED_SESSION(session, zsession);
 
 	pkey = libssh2_publickey_init(session);
 
@@ -992,8 +990,9 @@ PHP_FUNCTION(ssh2_publickey_add)
 		return;
 	}
 
-	// TODO Sean-Der
-	//ZEND_FETCH_RESOURCE(data, php_ssh2_pkey_subsys_data*, &zpkey_data, -1, PHP_SSH2_PKEY_SUBSYS_RES_NAME, le_ssh2_pkey_subsys);
+	if ((data = (php_ssh2_pkey_subsys_data *)zend_fetch_resource(Z_RES_P(zpkey_data), PHP_SSH2_PKEY_SUBSYS_RES_NAME, le_ssh2_pkey_subsys)) == NULL) {
+        RETURN_FALSE;
+    }
 
 	if (zattrs) {
 		HashPosition pos;
@@ -1086,8 +1085,9 @@ PHP_FUNCTION(ssh2_publickey_remove)
 		return;
 	}
 
-	// TODO Sean-Der
-	//ZEND_FETCH_RESOURCE(data, php_ssh2_pkey_subsys_data*, &zpkey_data, -1, PHP_SSH2_PKEY_SUBSYS_RES_NAME, le_ssh2_pkey_subsys);
+	if ((data = (php_ssh2_pkey_subsys_data *)zend_fetch_resource(Z_RES_P(zpkey_data), PHP_SSH2_PKEY_SUBSYS_RES_NAME, le_ssh2_pkey_subsys)) == NULL) {
+        RETURN_FALSE;
+    }
 
 	if (libssh2_publickey_remove_ex(data->pkey, algo, algo_len, blob, blob_len)) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to remove %s key", algo);
@@ -1112,8 +1112,9 @@ PHP_FUNCTION(ssh2_publickey_list)
 		return;
 	}
 
-	// TODO Sean-Der
-	//ZEND_FETCH_RESOURCE(data, php_ssh2_pkey_subsys_data*, &zpkey_data, -1, PHP_SSH2_PKEY_SUBSYS_RES_NAME, le_ssh2_pkey_subsys);
+	if ((data = (php_ssh2_pkey_subsys_data *)zend_fetch_resource(Z_RES_P(zpkey_data), PHP_SSH2_PKEY_SUBSYS_RES_NAME, le_ssh2_pkey_subsys)) == NULL) {
+        RETURN_FALSE;
+    }
 
 	if (libssh2_publickey_list_fetch(data->pkey, &num_keys, &keys)) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to list keys on remote server");
@@ -1168,8 +1169,7 @@ PHP_FUNCTION(ssh2_auth_agent)
 		return;
 	}
 
-	// TODO Sean-Der
-	//SSH2_FETCH_NONAUTHENTICATED_SESSION(session, zsession);
+	SSH2_FETCH_NONAUTHENTICATED_SESSION(session, zsession);
 
 	/* check what authentication methods are available */
 	userauthlist = libssh2_userauth_list(session, username, username_len);
