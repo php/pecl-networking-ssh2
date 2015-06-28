@@ -307,14 +307,7 @@ LIBSSH2_SESSION *php_ssh2_session_connect(char *host, int port, zval *methods, z
 	tv.tv_sec = FG(default_socket_timeout);
 	tv.tv_usec = 0;
 
-// TODO Sean-Der
-//#if PHP_MAJOR_VERSION > 5 || (PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION > 0)
-//	socket = php_network_connect_socket_to_host(host, port, SOCK_STREAM, 0, &tv, NULL, NULL, NULL, 0 TSRMLS_CC);
-//#elif PHP_MAJOR_VERSION == 5
-//	socket = php_network_connect_socket_to_host(host, port, SOCK_STREAM, 0, &tv, NULL, NULL TSRMLS_CC);
-//#else
-//	socket = php_hostconnect(host, port, SOCK_STREAM, &tv TSRMLS_CC);
-//#endif
+	socket = php_network_connect_socket_to_host(host, port, SOCK_STREAM, 0, &tv, NULL, NULL, NULL, 0, STREAM_SOCKOP_NONE);
 
 	if (socket <= 0) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to connect to %s on port %d", host, port);
@@ -439,7 +432,7 @@ PHP_FUNCTION(ssh2_connect)
 		RETURN_FALSE;
 	}
 
-	ZEND_REGISTER_RESOURCE(return_value, session, le_ssh2_session);
+	RETURN_RES(zend_register_resource(session, le_ssh2_session));
 }
 /* }}} */
 
@@ -769,7 +762,7 @@ PHP_FUNCTION(ssh2_forward_listen)
 	zend_list_addref(data->session_rsrcid);
 	data->listener = listener;
 
-	ZEND_REGISTER_RESOURCE(return_value, data, le_ssh2_listener);
+	RETURN_RES(zend_register_resource(data, le_ssh2_listener));
 }
 /* }}} */
 
@@ -970,7 +963,7 @@ PHP_FUNCTION(ssh2_publickey_init)
 	zend_list_addref(data->session_rsrcid);
 	data->pkey = pkey;
 
-	ZEND_REGISTER_RESOURCE(return_value, data, le_ssh2_pkey_subsys);
+	RETURN_RES(zend_register_resource(data, le_ssh2_pkey_subsys));
 }
 /* }}} */
 
