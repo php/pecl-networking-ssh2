@@ -346,7 +346,7 @@ LIBSSH2_SESSION *php_ssh2_session_connect(char *host, int port, zval *methods, z
 		}
 
 		hash_lookup_zstring = zend_string_init("client_to_server", sizeof("client_to_server") - 1, 0);
-		if ((container = zend_hash_find(HASH_OF(methods), hash_lookup_zstring)) != NULL && Z_TYPE_PP(container) == IS_ARRAY) {
+		if ((container = zend_hash_find(HASH_OF(methods), hash_lookup_zstring)) != NULL && Z_TYPE_P(container) == IS_ARRAY) {
 			if (php_ssh2_set_method(session, HASH_OF(container), "crypt", sizeof("crypt") - 1, LIBSSH2_METHOD_CRYPT_CS)) {
 				php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failed overriding client to server CRYPT method");
 			}
@@ -856,7 +856,7 @@ PHP_FUNCTION(ssh2_poll)
 		int res_type = 0;
 		void *res;
 
-		if (Z_TYPE_PP(subarray) != IS_ARRAY) {
+		if (Z_TYPE_P(subarray) != IS_ARRAY) {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Invalid element in poll array, not a sub array");
 			numfds--;
 			continue;
@@ -881,7 +881,7 @@ PHP_FUNCTION(ssh2_poll)
 		}
 		zend_string_release(hash_key_zstring);
 
-		zend_list_find(Z_LVAL_PP(tmpzval), &res_type);
+		zend_list_find(Z_LVAL_P(tmpzval), &res_type);
 		res = zend_fetch_resource_ex(tmpzval, "Poll Resource", res_type);
 		if (res_type == le_ssh2_listener) {
 			pollfds[i].type = LIBSSH2_POLLFD_LISTENER;
