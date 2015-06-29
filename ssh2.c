@@ -599,29 +599,28 @@ PHP_FUNCTION(ssh2_auth_password)
 {
 	LIBSSH2_SESSION *session;
 	zval *zsession;
-	char *username, *password;
-	int username_len, password_len;
+	zend_string *username, *password;
 	char *userauthlist;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss", &zsession, &username, &username_len, &password, &password_len) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rSS", &zsession, &username, &password) == FAILURE) {
 		return;
 	}
 
 	SSH2_FETCH_NONAUTHENTICATED_SESSION(session, zsession);
 
-	userauthlist = libssh2_userauth_list(session, username, username_len);
+	userauthlist = libssh2_userauth_list(session, username->val, username->len);
 
 	if (userauthlist != NULL) {
-		password_for_kbd_callback = password;
+		password_for_kbd_callback = password->val;
 		if (strstr(userauthlist, "keyboard-interactive") != NULL) {
-			if (libssh2_userauth_keyboard_interactive(session, username, &kbd_callback) == 0) {
+			if (libssh2_userauth_keyboard_interactive(session, username->val, &kbd_callback) == 0) {
 				RETURN_TRUE;
 			}
 		}
 
 		/* TODO: Support password change callback */
-		if (libssh2_userauth_password_ex(session, username, username_len, password, password_len, NULL)) {
-			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Authentication failed for %s using password", username);
+		if (libssh2_userauth_password_ex(session, username->val, username->len, password->val, password->len, NULL)) {
+			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Authentication failed for %s using password", username->val);
 			RETURN_FALSE;
 		}
 	}
@@ -1442,7 +1441,7 @@ ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_INFO(arginfo_ssh2_sftp, 1)
  	ZEND_ARG_INFO(0, session)
 ZEND_END_ARG_INFO()
-	
+
 ZEND_BEGIN_ARG_INFO(arginfo_ssh2_sftp_rename, 3)
  	ZEND_ARG_INFO(0, sftp)
  	ZEND_ARG_INFO(0, from)
