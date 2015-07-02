@@ -226,7 +226,7 @@ static int php_ssh2_set_callback(LIBSSH2_SESSION *session, HashTable *ht, char *
 		return -1;
 	}
 
-	*copyval = *handler;
+	copyval = handler;
 	zval_copy_ctor(copyval);
 
 	switch (callback_type) {
@@ -758,7 +758,8 @@ PHP_FUNCTION(ssh2_forward_listen)
 	data = emalloc(sizeof(php_ssh2_listener_data));
 	data->session = session;
 	data->session_rsrcid = Z_LVAL_P(zsession);
-	zend_list_addref(data->session_rsrcid);
+	//TODO Sean-Der
+	//zend_list_addref(data->session_rsrcid);
 	data->listener = listener;
 
 	RETURN_RES(zend_register_resource(data, le_ssh2_listener));
@@ -804,7 +805,8 @@ PHP_FUNCTION(ssh2_forward_accept)
 		libssh2_channel_free(channel);
 		RETURN_FALSE;
 	}
-	zend_list_addref(channel_data->session_rsrc);
+	//TODO Sean-Der
+	//zend_list_addref(channel_data->session_rsrc);
 
 	php_stream_to_zval(stream, return_value);
 }
@@ -873,7 +875,8 @@ PHP_FUNCTION(ssh2_poll)
 		}
 		zend_string_release(hash_key_zstring);
 
-		zend_list_find(Z_LVAL_P(tmpzval), &res_type);
+		//TODO Sean-Der
+		//zend_list_find(Z_LVAL_P(tmpzval), &res_type);
 		res = zend_fetch_resource_ex(tmpzval, "Poll Resource", res_type);
 		if (res_type == le_ssh2_listener) {
 			pollfds[i].type = LIBSSH2_POLLFD_LISTENER;
@@ -900,7 +903,8 @@ PHP_FUNCTION(ssh2_poll)
 
 		if (!Z_ISREF_P(subarray) && Z_REFCOUNT_P(subarray) > 1) {
 			/* Make a new copy of the subarray zval* */
-			MAKE_STD_ZVAL(subarray);
+			// TODO Sean-Der
+			//MAKE_STD_ZVAL(subarray);
 			*subarray = **pollmap[i];
 
 			/* Point the pData to the new zval* and duplicate its resources */
@@ -959,7 +963,8 @@ PHP_FUNCTION(ssh2_publickey_init)
 	data = emalloc(sizeof(php_ssh2_pkey_subsys_data));
 	data->session = session;
 	data->session_rsrcid = Z_LVAL_P(zsession);
-	zend_list_addref(data->session_rsrcid);
+	//TODO Sean-Der
+	//zend_list_addref(data->session_rsrcid);
 	data->pkey = pkey;
 
 	RETURN_RES(zend_register_resource(data, le_ssh2_pkey_subsys));
@@ -999,7 +1004,7 @@ PHP_FUNCTION(ssh2_publickey_add)
 			zend_hash_move_forward_ex(Z_ARRVAL_P(zattrs), &pos)) {
 			zend_string *key;
 			int type;
-			long idx;
+			ulong idx;
 			zval copyval = *attr_val;
 
 			type = zend_hash_get_current_key_ex(Z_ARRVAL_P(zattrs), &key, &idx, &pos);
@@ -1044,7 +1049,7 @@ PHP_FUNCTION(ssh2_publickey_add)
 		}
 	}
 
-	if (libssh2_publickey_add_ex(data->pkey, algo, algo_len, blob, blob_len, overwrite, num_attrs, attrs)) {
+	if (libssh2_publickey_add_ex(data->pkey, (unsigned char *) algo, algo_len, (unsigned char *) blob, blob_len, overwrite, num_attrs, attrs)) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to add %s key", algo);
 		RETVAL_FALSE;
 	} else {
@@ -1081,7 +1086,7 @@ PHP_FUNCTION(ssh2_publickey_remove)
         RETURN_FALSE;
     }
 
-	if (libssh2_publickey_remove_ex(data->pkey, algo, algo_len, blob, blob_len)) {
+	if (libssh2_publickey_remove_ex(data->pkey, (unsigned char *) algo, algo_len, (unsigned char *) blob, blob_len)) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to remove %s key", algo);
 		RETURN_FALSE;
 	}
@@ -1115,14 +1120,13 @@ PHP_FUNCTION(ssh2_publickey_list)
 
 	array_init(return_value);
 	for(i = 0; i < num_keys; i++) {
-		zval *key, attrs;
+		zval key, attrs;
 		unsigned long j;
 
-		MAKE_STD_ZVAL(key);
-		array_init(key);
+		array_init(&key);
 
-		add_assoc_stringl(key, "name", (char *) keys[i].name, keys[i].name_len);
-		add_assoc_stringl(key, "blob", (char *) keys[i].blob, keys[i].blob_len);
+		add_assoc_stringl(&key, "name", (char *) keys[i].name, keys[i].name_len);
+		add_assoc_stringl(&key, "blob", (char *) keys[i].blob, keys[i].blob_len);
 
 		array_init(&attrs);
 		for(j = 0; j < keys[i].num_attrs; j++) {
@@ -1133,9 +1137,9 @@ PHP_FUNCTION(ssh2_publickey_list)
 			zend_hash_add(Z_ARRVAL_P(&attrs), hash_key_zstring, &attr);
 			zend_string_release(hash_key_zstring);
 		}
-		add_assoc_zval(key, "attrs", &attrs);
+		add_assoc_zval(&key, "attrs", &attrs);
 
-		add_next_index_zval(return_value, key);
+		add_next_index_zval(return_value, &key);
 	}
 
 	libssh2_publickey_list_free(data->pkey, keys);

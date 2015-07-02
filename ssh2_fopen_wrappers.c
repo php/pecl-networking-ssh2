@@ -465,7 +465,7 @@ session_authed:
 		sftp_data->session_rsrcid = Z_LVAL(zsession);
 
 		//TODO Sean-Der
-		ZEND_REGISTER_RESOURCE(sftp_data, le_ssh2_sftp);
+		//ZEND_REGISTER_RESOURCE(sftp_data, le_ssh2_sftp);
 		*psftp_rsrcid = Z_LVAL(zsftp);
 		*psftp = sftp;
 	}
@@ -501,7 +501,7 @@ static php_stream *php_ssh2_shell_open(LIBSSH2_SESSION *session, int resource_id
 	if (environment) {
 		zend_string *key;
 		int key_type;
-		long idx;
+		ulong idx;
 
 		for(zend_hash_internal_pointer_reset(HASH_OF(environment));
 			(key_type = zend_hash_get_current_key_ex(HASH_OF(environment), &key, &idx, NULL)) != HASH_KEY_NON_EXISTENT;
@@ -574,7 +574,7 @@ static php_stream *php_ssh2_fopen_wrapper_shell(php_stream_wrapper *wrapper, con
 	long type = PHP_SSH2_DEFAULT_TERM_UNIT;
 	int resource_id = 0, terminal_len = sizeof(PHP_SSH2_DEFAULT_TERMINAL) - 1;
 	php_url *resource;
-	char *s, *e;
+	char *s;
 
 	resource = php_ssh2_fopen_wraper_parse_path((char *)path, "shell", context, &session, &resource_id, NULL, NULL TSRMLS_CC);
 	if (!resource || !session) {
@@ -620,7 +620,6 @@ static php_stream *php_ssh2_fopen_wrapper_shell(php_stream_wrapper *wrapper, con
 	}
 
 	s = resource->path ? resource->path : NULL;
-	e = s ? s + strlen(s) : NULL;
 
 	if (s && s[0] == '/') {
 		/* Terminal type encoded into URL overrides context terminal type */
@@ -740,7 +739,7 @@ static php_stream *php_ssh2_exec_command(LIBSSH2_SESSION *session, int resource_
 	if (environment) {
 		zend_string *key;
 		int key_type;
-		long idx;
+		ulong idx;
 
 		for(zend_hash_internal_pointer_reset(HASH_OF(environment));
 			(key_type = zend_hash_get_current_key_ex(HASH_OF(environment), &key, &idx, NULL)) != HASH_KEY_NON_EXISTENT;
@@ -1131,10 +1130,8 @@ PHP_FUNCTION(ssh2_scp_send)
 
 	remote_file = libssh2_scp_send_ex(session, remote_filename, create_mode, ssb.sb.st_size, ssb.sb.st_atime, ssb.sb.st_mtime);
 	if (!remote_file) {
-		int last_error = 0;
 		char *error_msg = NULL;
 
-		last_error = libssh2_session_last_error(session, &error_msg, NULL, 0);
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failure creating remote file: %s", error_msg);
 		php_stream_close(local_file);
 		RETURN_FALSE;
@@ -1387,7 +1384,7 @@ PHP_FUNCTION(ssh2_fetch_stream)
 	if (!stream) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Error opening substream");
 		efree(stream_data);
-		*(data->refcount)--;
+		(data->refcount)--;
 		RETURN_FALSE;
 	}
 
