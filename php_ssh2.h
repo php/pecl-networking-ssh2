@@ -67,11 +67,6 @@ typedef struct _php_ssh2_session_data {
 	zval *disconnect_cb;
 
 	int socket;
-
-#ifdef ZTS
-	/* Avoid unnecessary TSRMLS_FETCH() calls */
-	//TSRMLS_D;
-#endif
 } php_ssh2_session_data;
 
 typedef struct _php_ssh2_sftp_data {
@@ -96,20 +91,6 @@ typedef struct _php_ssh2_pkey_subsys_data {
 
 	int session_rsrcid;
 } php_ssh2_pkey_subsys_data;
-
-#ifdef ZTS
-#define SSH2_TSRMLS_SET(datap)		((php_ssh2_session_data*)(datap))->tsrm_ls = TSRMLS_C
-#define SSH2_TSRMLS_FETCH(datap)	TSRMLS_D = ((php_ssh2_session_data*)(datap))->tsrm_ls;
-#else
-#define SSH2_TSRMLS_SET(datap)
-#define SSH2_TSRMLS_FETCH(datap)
-#endif
-
-#if (PHP_MAJOR_VERSION == 5) && (PHP_MINOR_VERSION >= 3)
-#define ZEND_IS_CALLABLE_TSRMLS_CC		TSRMLS_CC
-#else
-#define ZEND_IS_CALLABLE_TSRMLS_CC
-#endif
 
 #define SSH2_FETCH_NONAUTHENTICATED_SESSION(session, zsession) \
 if ((session = (LIBSSH2_SESSION *)zend_fetch_resource(Z_RES_P(zsession), PHP_SSH2_SESSION_RES_NAME, le_ssh2_session)) == NULL) { \

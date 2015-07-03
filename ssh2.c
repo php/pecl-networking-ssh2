@@ -89,7 +89,6 @@ LIBSSH2_DEBUG_FUNC(php_ssh2_debug_cb)
 {
 	php_ssh2_session_data *data;
 	zval args[3];
-	SSH2_TSRMLS_FETCH(*abstract);
 
 	if (!abstract || !*abstract) {
 		return;
@@ -117,7 +116,6 @@ LIBSSH2_IGNORE_FUNC(php_ssh2_ignore_cb)
 	php_ssh2_session_data *data;
 	zval zretval;
 	zval args[1];
-	SSH2_TSRMLS_FETCH(*abstract);
 
 	if (!abstract || !*abstract) {
 		return;
@@ -148,7 +146,6 @@ LIBSSH2_MACERROR_FUNC(php_ssh2_macerror_cb)
 	zval zretval;
 	zval args[1];
 	int retval = -1;
-	SSH2_TSRMLS_FETCH(*abstract);
 
 	if (!abstract || !*abstract) {
 		return -1;
@@ -180,7 +177,6 @@ LIBSSH2_DISCONNECT_FUNC(php_ssh2_disconnect_cb)
 {
 	php_ssh2_session_data *data;
 	zval args[3];
-	SSH2_TSRMLS_FETCH(*abstract);
 
 	if (!abstract || !*abstract) {
 		return;
@@ -222,7 +218,7 @@ static int php_ssh2_set_callback(LIBSSH2_SESSION *session, HashTable *ht, char *
 	}
 	zend_string_release(callback_zstring);
 
-	if (!zend_is_callable(handler, 0, NULL ZEND_IS_CALLABLE_TSRMLS_CC)) {
+	if (!zend_is_callable(handler, 0, NULL)) {
 		return -1;
 	}
 
@@ -315,7 +311,6 @@ LIBSSH2_SESSION *php_ssh2_session_connect(char *host, int port, zval *methods, z
 	}
 
 	data = ecalloc(1, sizeof(php_ssh2_session_data));
-	SSH2_TSRMLS_SET(data);
 	data->socket = socket;
 
 	session = libssh2_session_init_ex(php_ssh2_alloc_cb, php_ssh2_free_cb, php_ssh2_realloc_cb, data);
