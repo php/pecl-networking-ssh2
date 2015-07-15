@@ -1349,52 +1349,227 @@ PHP_MINFO_FUNCTION(ssh2)
 }
 /* }}} */
 
+/* {{{ ZEND_BEGIN_ARG_INFO
+ */
+ZEND_BEGIN_ARG_INFO(arginfo_ssh2_connect, 2)
+ 	ZEND_ARG_INFO(0, host)
+ 	ZEND_ARG_INFO(0, port)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_ssh2_methods_negotiated, 1)
+ 	ZEND_ARG_INFO(0, resource)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_ssh2_fingerprint, 0, 0, 2)
+ 	ZEND_ARG_INFO(0, resource)
+ 	ZEND_ARG_INFO(0, flags)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_ssh2_auth_none, 2)
+ 	ZEND_ARG_INFO(0, session)
+ 	ZEND_ARG_INFO(0, username)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_ssh2_auth_password, 3)
+ 	ZEND_ARG_INFO(0, session)
+ 	ZEND_ARG_INFO(0, username)
+ 	ZEND_ARG_INFO(0, password)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_ssh2_auth_pubkey_file, 0, 0, 4)
+ 	ZEND_ARG_INFO(0, session)
+ 	ZEND_ARG_INFO(0, username)
+ 	ZEND_ARG_INFO(0, pubkeyfile)
+ 	ZEND_ARG_INFO(0, privkeyfile)
+ 	ZEND_ARG_INFO(0, passphrase)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_ssh2_auth_hostbased_file, 0, 0, 5)
+ 	ZEND_ARG_INFO(0, session)
+ 	ZEND_ARG_INFO(0, username)
+ 	ZEND_ARG_INFO(0, hostname)
+ 	ZEND_ARG_INFO(0, pubkeyfile)
+ 	ZEND_ARG_INFO(0, privkeyfile)
+ 	ZEND_ARG_INFO(0, passphrase)
+ 	ZEND_ARG_INFO(0, local_username)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_ssh2_shell, 0, 0, 1)
+ 	ZEND_ARG_INFO(0, session)
+ 	ZEND_ARG_INFO(0, termtype)
+ 	ZEND_ARG_INFO(0, env)
+ 	ZEND_ARG_INFO(0, width)
+ 	ZEND_ARG_INFO(0, height)
+ 	ZEND_ARG_INFO(0, width_height_type)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_ssh2_exec, 0, 0, 2)
+ 	ZEND_ARG_INFO(0, session)
+ 	ZEND_ARG_INFO(0, command)
+ 	ZEND_ARG_INFO(0, pty)
+ 	ZEND_ARG_INFO(0, env)
+ 	ZEND_ARG_INFO(0, width)
+ 	ZEND_ARG_INFO(0, height)
+ 	ZEND_ARG_INFO(0, width_height_type)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_ssh2_tunnel, 3)
+ 	ZEND_ARG_INFO(0, session)
+ 	ZEND_ARG_INFO(0, host)
+ 	ZEND_ARG_INFO(0, port)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_ssh2_scp_recv, 3)
+ 	ZEND_ARG_INFO(0, session)
+ 	ZEND_ARG_INFO(0, remote_file)
+ 	ZEND_ARG_INFO(0, local_file)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_ssh2_scp_send, 0, 0, 3)
+ 	ZEND_ARG_INFO(0, session)
+ 	ZEND_ARG_INFO(0, remote_file)
+ 	ZEND_ARG_INFO(0, local_file)
+ 	ZEND_ARG_INFO(0, create_mode)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_ssh2_fetch_stream, 2)
+ 	ZEND_ARG_INFO(0, channel)
+ 	ZEND_ARG_INFO(0, stream_id)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_ssh2_sftp, 1)
+ 	ZEND_ARG_INFO(0, session)
+ZEND_END_ARG_INFO()
+	
+ZEND_BEGIN_ARG_INFO(arginfo_ssh2_sftp_rename, 3)
+ 	ZEND_ARG_INFO(0, sftp)
+ 	ZEND_ARG_INFO(0, from)
+ 	ZEND_ARG_INFO(0, to)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_ssh2_sftp_unlink, 2)
+ 	ZEND_ARG_INFO(0, sftp)
+ 	ZEND_ARG_INFO(0, filename)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_ssh2_sftp_mkdir, 0, 0, 2)
+ 	ZEND_ARG_INFO(0, sftp)
+ 	ZEND_ARG_INFO(0, dirname)
+ 	ZEND_ARG_INFO(0, mode)
+ 	ZEND_ARG_INFO(0, recursive)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_ssh2_sftp_rmdir, 2)
+ 	ZEND_ARG_INFO(0, sftp)
+ 	ZEND_ARG_INFO(0, dirname)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_ssh2_sftp_chmod, 3)
+ 	ZEND_ARG_INFO(0, sftp)
+ 	ZEND_ARG_INFO(0, filename)
+ 	ZEND_ARG_INFO(0, mode)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_ssh2_sftp_stat, 2)
+ 	ZEND_ARG_INFO(0, sftp)
+ 	ZEND_ARG_INFO(0, path)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_ssh2_sftp_lstat, 2)
+ 	ZEND_ARG_INFO(0, sftp)
+ 	ZEND_ARG_INFO(0, path)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_ssh2_sftp_symlink, 3)
+ 	ZEND_ARG_INFO(0, sftp)
+ 	ZEND_ARG_INFO(0, target)
+ 	ZEND_ARG_INFO(0, link)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_ssh2_sftp_readlink, 2)
+ 	ZEND_ARG_INFO(0, sftp)
+ 	ZEND_ARG_INFO(0, link)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_ssh2_sftp_realpath, 2)
+ 	ZEND_ARG_INFO(0, sftp)
+ 	ZEND_ARG_INFO(0, filename)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_ssh2_publickey_init, 1)
+ 	ZEND_ARG_INFO(0, session)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_ssh2_publickey_add, 0, 0, 3)
+ 	ZEND_ARG_INFO(0, pkey)
+ 	ZEND_ARG_INFO(0, algoname)
+ 	ZEND_ARG_INFO(0, blob)
+ 	ZEND_ARG_INFO(0, overwrite)
+ 	ZEND_ARG_INFO(0, attributes)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_ssh2_publickey_remove, 3)
+ 	ZEND_ARG_INFO(0, pkey)
+ 	ZEND_ARG_INFO(0, algoname)
+ 	ZEND_ARG_INFO(0, blob)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_ssh2_publickey_list, 1)
+ 	ZEND_ARG_INFO(0, pkey)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_ssh2_auth_agent, 2)
+ 	ZEND_ARG_INFO(0, session)
+ 	ZEND_ARG_INFO(0, username)
+ZEND_END_ARG_INFO()
+/* }}} */
+
 /* {{{ ssh2_functions[]
  */
 zend_function_entry ssh2_functions[] = {
-	PHP_FE(ssh2_connect,						NULL)
-	PHP_FE(ssh2_methods_negotiated,				NULL)
-	PHP_FE(ssh2_fingerprint,					NULL)
+	PHP_FE(ssh2_connect,						arginfo_ssh2_connect)
+	PHP_FE(ssh2_methods_negotiated,				arginfo_ssh2_methods_negotiated)
+	PHP_FE(ssh2_fingerprint,					arginfo_ssh2_fingerprint)
 
-	PHP_FE(ssh2_auth_none,						NULL)
-	PHP_FE(ssh2_auth_password,					NULL)
-	PHP_FE(ssh2_auth_pubkey_file,				NULL)
-	PHP_FE(ssh2_auth_hostbased_file,			NULL)
+	PHP_FE(ssh2_auth_none,						arginfo_ssh2_auth_none)
+	PHP_FE(ssh2_auth_password,					arginfo_ssh2_auth_password)
+	PHP_FE(ssh2_auth_pubkey_file,				arginfo_ssh2_auth_pubkey_file)
+	PHP_FE(ssh2_auth_hostbased_file,			arginfo_ssh2_auth_hostbased_file)
 
 	PHP_FE(ssh2_forward_listen,					NULL)
 	PHP_FE(ssh2_forward_accept,					NULL)
 
 	/* Stream Stuff */
-	PHP_FE(ssh2_shell,							NULL)
-	PHP_FE(ssh2_exec,							NULL)
-	PHP_FE(ssh2_tunnel,							NULL)
-	PHP_FE(ssh2_scp_recv,						NULL)
-	PHP_FE(ssh2_scp_send,						NULL)
-	PHP_FE(ssh2_fetch_stream,					NULL)
+	PHP_FE(ssh2_shell,							arginfo_ssh2_shell)
+	PHP_FE(ssh2_exec,							arginfo_ssh2_exec)
+	PHP_FE(ssh2_tunnel,							arginfo_ssh2_tunnel)
+	PHP_FE(ssh2_scp_recv,						arginfo_ssh2_scp_recv)
+	PHP_FE(ssh2_scp_send,						arginfo_ssh2_scp_send)
+	PHP_FE(ssh2_fetch_stream,					arginfo_ssh2_fetch_stream)
 	PHP_FE(ssh2_poll,							php_ssh2_first_arg_force_ref)
 
 	/* SFTP Stuff */
-	PHP_FE(ssh2_sftp,							NULL)
+	PHP_FE(ssh2_sftp,							arginfo_ssh2_sftp)
 
 	/* SFTP Wrapper Ops */
-	PHP_FE(ssh2_sftp_rename,					NULL)
-	PHP_FE(ssh2_sftp_unlink,					NULL)
-	PHP_FE(ssh2_sftp_mkdir,						NULL)
-	PHP_FE(ssh2_sftp_rmdir,						NULL)
-	PHP_FE(ssh2_sftp_chmod,						NULL)
-	PHP_FE(ssh2_sftp_stat,						NULL)
-	PHP_FE(ssh2_sftp_lstat,						NULL)
-	PHP_FE(ssh2_sftp_symlink,					NULL)
-	PHP_FE(ssh2_sftp_readlink,					NULL)
-	PHP_FE(ssh2_sftp_realpath,					NULL)
+	PHP_FE(ssh2_sftp_rename,					arginfo_ssh2_sftp_rename)
+	PHP_FE(ssh2_sftp_unlink,					arginfo_ssh2_sftp_unlink)
+	PHP_FE(ssh2_sftp_mkdir,						arginfo_ssh2_sftp_mkdir)
+	PHP_FE(ssh2_sftp_rmdir,						arginfo_ssh2_sftp_rmdir)
+	PHP_FE(ssh2_sftp_chmod,						arginfo_ssh2_sftp_chmod)
+	PHP_FE(ssh2_sftp_stat,						arginfo_ssh2_sftp_stat)
+	PHP_FE(ssh2_sftp_lstat,						arginfo_ssh2_sftp_lstat)
+	PHP_FE(ssh2_sftp_symlink,					arginfo_ssh2_sftp_symlink)
+	PHP_FE(ssh2_sftp_readlink,					arginfo_ssh2_sftp_readlink)
+	PHP_FE(ssh2_sftp_realpath,					arginfo_ssh2_sftp_realpath)
 
 	/* Publickey subsystem */
-	PHP_FE(ssh2_publickey_init,					NULL)
-	PHP_FE(ssh2_publickey_add,					NULL)
-	PHP_FE(ssh2_publickey_remove,				NULL)
-	PHP_FE(ssh2_publickey_list,					NULL)
+	PHP_FE(ssh2_publickey_init,					arginfo_ssh2_publickey_init)
+	PHP_FE(ssh2_publickey_add,					arginfo_ssh2_publickey_add)
+	PHP_FE(ssh2_publickey_remove,				arginfo_ssh2_publickey_remove)
+	PHP_FE(ssh2_publickey_list,					arginfo_ssh2_publickey_list)
 
-	PHP_FE(ssh2_auth_agent,						NULL)
+	PHP_FE(ssh2_auth_agent,						arginfo_ssh2_auth_agent)
 
 	{NULL, NULL, NULL}
 };
