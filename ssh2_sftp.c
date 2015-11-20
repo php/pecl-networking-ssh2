@@ -660,7 +660,7 @@ PHP_FUNCTION(ssh2_sftp_mkdir)
 	php_ssh2_sftp_data *data;
 	zval *zsftp;
 	zend_string *filename;
-	long mode = 0777;
+	zend_long mode = 0777;
 	zend_bool recursive = 0;
 	char *p;
 
@@ -719,7 +719,7 @@ PHP_FUNCTION(ssh2_sftp_chmod)
 	php_ssh2_sftp_data *data;
 	zval *zsftp;
 	zend_string *filename;
-	long mode;
+	zend_long mode;
 	LIBSSH2_SFTP_ATTRIBUTES attrs;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rSl", &zsftp, &filename, &mode) == FAILURE) {

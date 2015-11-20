@@ -686,10 +686,10 @@ PHP_FUNCTION(ssh2_shell)
 	zval *zsession;
 	zval *environment = NULL;
 	char *term = PHP_SSH2_DEFAULT_TERMINAL;
-	int term_len = sizeof(PHP_SSH2_DEFAULT_TERMINAL) - 1;
-	long width = PHP_SSH2_DEFAULT_TERM_WIDTH;
-	long height = PHP_SSH2_DEFAULT_TERM_HEIGHT;
-	long type = PHP_SSH2_DEFAULT_TERM_UNIT;
+	size_t term_len = sizeof(PHP_SSH2_DEFAULT_TERMINAL) - 1;
+	zend_long width = PHP_SSH2_DEFAULT_TERM_WIDTH;
+	zend_long height = PHP_SSH2_DEFAULT_TERM_HEIGHT;
+	zend_long type = PHP_SSH2_DEFAULT_TERM_UNIT;
 	int argc = ZEND_NUM_ARGS();
 
 	if (argc == 5) {
@@ -904,10 +904,10 @@ PHP_FUNCTION(ssh2_exec)
 	zval *environment = NULL;
 	zval *zpty = NULL;
 	char *command;
-	int command_len;
-	long width = PHP_SSH2_DEFAULT_TERM_WIDTH;
-	long height = PHP_SSH2_DEFAULT_TERM_HEIGHT;
-	long type = PHP_SSH2_DEFAULT_TERM_UNIT;
+	size_t command_len;
+	zend_long width = PHP_SSH2_DEFAULT_TERM_WIDTH;
+	zend_long height = PHP_SSH2_DEFAULT_TERM_HEIGHT;
+	zend_long type = PHP_SSH2_DEFAULT_TERM_UNIT;
 	char *term = NULL;
 	int term_len = 0;
 
@@ -1045,7 +1045,7 @@ PHP_FUNCTION(ssh2_scp_recv)
 	php_stream *local_file;
 	zval *zsession;
 	char *remote_filename, *local_filename;
-	int remote_filename_len, local_filename_len;
+	size_t remote_filename_len, local_filename_len;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss", &zsession,  &remote_filename, &remote_filename_len,
 																			&local_filename, &local_filename_len) == FAILURE) {
@@ -1100,8 +1100,8 @@ PHP_FUNCTION(ssh2_scp_send)
 	php_stream *local_file;
 	zval *zsession;
 	char *local_filename, *remote_filename;
-	int local_filename_len, remote_filename_len;
-	long create_mode = 0644;
+	size_t local_filename_len, remote_filename_len;
+	zend_long create_mode = 0644;
 	php_stream_statbuf ssb;
 	int argc = ZEND_NUM_ARGS();
 
@@ -1311,8 +1311,8 @@ PHP_FUNCTION(ssh2_tunnel)
 	php_stream *stream;
 	zval *zsession;
 	char *host;
-	int host_len;
-	long port;
+	size_t host_len;
+	zend_long port;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsl", &zsession, &host, &host_len, &port) == FAILURE) {
 		return;
@@ -1344,7 +1344,7 @@ PHP_FUNCTION(ssh2_fetch_stream)
 	php_ssh2_channel_data *data, *stream_data;
 	php_stream *parent, *stream;
 	zval *zparent;
-	long streamid;
+	zend_long streamid;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &zparent, &streamid) == FAILURE) {
 		return;

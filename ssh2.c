@@ -414,8 +414,8 @@ PHP_FUNCTION(ssh2_connect)
 	LIBSSH2_SESSION *session;
 	zval *methods = NULL, *callbacks = NULL;
 	char *host;
-	long port = PHP_SSH2_DEFAULT_PORT;
-	int host_len;
+	zend_long port = PHP_SSH2_DEFAULT_PORT;
+	size_t host_len;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|la!a!", &host, &host_len, &port, &methods, &callbacks) == FAILURE) {
 		return;
@@ -488,7 +488,7 @@ PHP_FUNCTION(ssh2_fingerprint)
 	LIBSSH2_SESSION *session;
 	zval *zsession;
 	const char *fingerprint;
-	long flags = 0;
+	zend_long flags = 0;
 	int i, fingerprint_len;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|l", &zsession, &flags) == FAILURE) {
@@ -523,7 +523,8 @@ PHP_FUNCTION(ssh2_fingerprint)
 		for(i = 0; i < fingerprint_len; i++) {
 			snprintf(hexchars + (2 * i), 3, "%02X", (unsigned char)fingerprint[i]);
 		}
-		RETURN_STRINGL(hexchars, 2 * fingerprint_len);
+		ZVAL_STRINGL(return_value, hexchars, 2 * fingerprint_len);
+		efree(hexchars);
 	}
 }
 /* }}} */
@@ -537,7 +538,7 @@ PHP_FUNCTION(ssh2_auth_none)
 	LIBSSH2_SESSION *session;
 	zval *zsession;
 	char *username, *methods, *s, *p;
-	int username_len;
+	size_t username_len;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zsession, &username, &username_len) == FAILURE) {
 		return;
@@ -632,7 +633,7 @@ PHP_FUNCTION(ssh2_auth_pubkey_file)
 	LIBSSH2_SESSION *session;
 	zval *zsession;
 	char *username, *pubkey, *privkey, *passphrase = NULL;
-	int username_len, pubkey_len, privkey_len, passphrase_len;
+	size_t username_len, pubkey_len, privkey_len, passphrase_len = 0;
 #ifndef PHP_WIN32
 	char *newpath;
 	struct passwd *pws;
@@ -691,7 +692,7 @@ PHP_FUNCTION(ssh2_auth_hostbased_file)
 	LIBSSH2_SESSION *session;
 	zval *zsession;
 	char *username, *hostname, *pubkey, *privkey, *passphrase = NULL, *local_username = NULL;
-	int username_len, hostname_len, pubkey_len, privkey_len, passphrase_len, local_username_len;
+	size_t username_len, hostname_len, pubkey_len, privkey_len, passphrase_len, local_username_len;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rssss|s!s!", &zsession,	&username, &username_len,
 																					&hostname, &hostname_len,
@@ -732,10 +733,10 @@ PHP_FUNCTION(ssh2_forward_listen)
 	LIBSSH2_SESSION *session;
 	LIBSSH2_LISTENER *listener;
 	php_ssh2_listener_data *data;
-	long port;
+	zend_long port;
 	char *host = NULL;
-	int host_len;
-	long max_connections = PHP_SSH2_LISTEN_MAX_QUEUED;
+	size_t host_len;
+	zend_long max_connections = PHP_SSH2_LISTEN_MAX_QUEUED;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl|sl", &zsession, &port, &host, &host_len, &max_connections) == FAILURE) {
 		return;
@@ -823,7 +824,7 @@ PHP_FUNCTION(ssh2_forward_accept)
 PHP_FUNCTION(ssh2_poll)
 {
 	zval *zdesc, *subarray, ***pollmap;
-	long timeout = PHP_SSH2_DEFAULT_POLL_TIMEOUT;
+	zend_long timeout = PHP_SSH2_DEFAULT_POLL_TIMEOUT;
 	LIBSSH2_POLLFD *pollfds;
 	int numfds, i = 0, fds_ready;
 	int le_stream = php_file_le_stream();
@@ -973,7 +974,7 @@ PHP_FUNCTION(ssh2_publickey_add)
 	zval *zpkey_data, *zattrs = NULL;
 	php_ssh2_pkey_subsys_data *data;
 	char *algo, *blob;
-	int algo_len, blob_len;
+	size_t algo_len, blob_len;
 	unsigned long num_attrs = 0;
 	libssh2_publickey_attribute *attrs = NULL;
 	zend_bool overwrite = 0;
@@ -1071,7 +1072,7 @@ PHP_FUNCTION(ssh2_publickey_remove)
 	zval *zpkey_data;
 	php_ssh2_pkey_subsys_data *data;
 	char *algo, *blob;
-	int algo_len, blob_len;
+	size_t algo_len, blob_len;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss", &zpkey_data, &algo, &algo_len, &blob, &blob_len) == FAILURE) {
 		return;
@@ -1148,7 +1149,7 @@ PHP_FUNCTION(ssh2_auth_agent)
 #ifdef PHP_SSH2_AGENT_AUTH
 	zval *zsession;
 	char *username;
-	int username_len;
+	size_t username_len;
 
 	LIBSSH2_SESSION *session;
 	char *userauthlist;
