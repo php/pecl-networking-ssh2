@@ -28,3 +28,9 @@
 /run-tests.php
 /*.lo
 /*.la
+/tests/*.out
+/tests/*.php
+/test/*.exp
+/test/*.diff
+/test/*.sh
+/test/*.log

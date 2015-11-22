@@ -30,7 +30,7 @@
    * Resource Housekeeping *
    ************************* */
 
-void php_ssh2_sftp_dtor(zend_rsrc_list_entry *rsrc TSRMLS_DC)
+void php_ssh2_sftp_dtor(zend_resource *rsrc TSRMLS_DC)
 {
 	php_ssh2_sftp_data *data = (php_ssh2_sftp_data*)rsrc->ptr;
 
@@ -40,7 +40,8 @@ void php_ssh2_sftp_dtor(zend_rsrc_list_entry *rsrc TSRMLS_DC)
 
 	libssh2_sftp_shutdown(data->sftp);
 
-	zend_list_delete(data->session_rsrcid);
+	// TODO Sean-Der
+	//zend_list_delete(data->session_rsrcid);
 
 	efree(data);
 }
@@ -81,7 +82,7 @@ inline int php_ssh2_sftp_attr2ssb(php_stream_statbuf *ssb, LIBSSH2_SFTP_ATTRIBUT
 	if (attrs->flags & LIBSSH2_SFTP_ATTR_SIZE) {
 		ssb->sb.st_size = attrs->filesize;
 	}
-	
+
 	if (attrs->flags & LIBSSH2_SFTP_ATTR_UIDGID) {
 		ssb->sb.st_uid = attrs->uid;
 		ssb->sb.st_gid = attrs->gid;
@@ -138,7 +139,8 @@ static int php_ssh2_sftp_stream_close(php_stream *stream, int close_handle TSRML
 	php_ssh2_sftp_handle_data *data = (php_ssh2_sftp_handle_data*)stream->abstract;
 
 	libssh2_sftp_close(data->handle);
-	zend_list_delete(data->sftp_rsrcid);
+	//TODO Sean-Der
+	//zend_list_delete(data->sftp_rsrcid);
 	efree(data);
 
 	return 0;
@@ -215,8 +217,9 @@ static php_stream_ops php_ssh2_sftp_stream_ops = {
 
 /* {{{ php_ssh2_sftp_stream_opener
  */
-static php_stream *php_ssh2_sftp_stream_opener(	php_stream_wrapper *wrapper, char *filename, char *mode,
-												int options, char **opened_path, php_stream_context *context STREAMS_DC TSRMLS_DC)
+
+static php_stream *php_ssh2_sftp_stream_opener(php_stream_wrapper *wrapper, const char *filename, const char *mode,
+	    int options, zend_string **opened_path, php_stream_context *context STREAMS_DC)
 {
 	php_ssh2_sftp_handle_data *data;
 	LIBSSH2_SESSION *session = NULL;
@@ -228,18 +231,19 @@ static php_stream *php_ssh2_sftp_stream_opener(	php_stream_wrapper *wrapper, cha
 	unsigned long flags;
 	long perms = 0644;
 
-	resource = php_ssh2_fopen_wraper_parse_path(filename, "sftp", context, &session, &resource_id, &sftp, &sftp_rsrcid TSRMLS_CC);
+	resource = php_ssh2_fopen_wraper_parse_path((char *)filename, "sftp", context, &session, &resource_id, &sftp, &sftp_rsrcid TSRMLS_CC);
 	if (!resource || !session || !sftp) {
 		return NULL;
 	}
 
-	flags = php_ssh2_parse_fopen_modes(mode);
+	flags = php_ssh2_parse_fopen_modes((char *)mode);
 
 	handle = libssh2_sftp_open(sftp, resource->path, flags, perms);
 	if (!handle) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to open %s on remote host", filename);
 		php_url_free(resource);
-		zend_list_delete(sftp_rsrcid);
+		//TODO Sean-Der
+		//zend_list_delete(sftp_rsrcid);
 		return NULL;
 	}
 
@@ -250,7 +254,8 @@ static php_stream *php_ssh2_sftp_stream_opener(	php_stream_wrapper *wrapper, cha
 	stream = php_stream_alloc(&php_ssh2_sftp_stream_ops, data, 0, mode);
 	if (!stream) {
 		libssh2_sftp_close(handle);
-		zend_list_delete(sftp_rsrcid);
+		// TODO Sean-Der
+		//zend_list_delete(sftp_rsrcid);
 		efree(data);
 	}
 	php_url_free(resource);
@@ -270,35 +275,22 @@ static size_t php_ssh2_sftp_dirstream_read(php_stream *stream, char *buf, size_t
 	php_ssh2_sftp_handle_data *data = (php_ssh2_sftp_handle_data*)stream->abstract;
 	php_stream_dirent *ent = (php_stream_dirent*)buf;
 	int bytesread = libssh2_sftp_readdir(data->handle, ent->d_name, sizeof(ent->d_name) - 1, NULL);
-	char *basename = NULL;
-	size_t basename_len = 0;
+	zend_string *basename;
 
 	if (bytesread <= 0) {
 		return 0;
 	}
 	ent->d_name[bytesread] = 0;
 
-#ifdef ZEND_ENGINE_2
-	php_basename(ent->d_name, bytesread, NULL, 0, &basename, &basename_len TSRMLS_CC);
-#else
-/* CURSE YOU BC BREAKS! */
 	basename = php_basename(ent->d_name, bytesread, NULL, 0);
-	if (basename) {
-		basename_len = strlen(basename);
-	}
-#endif
 	if (!basename) {
 		return 0;
 	}
 
-	if (!basename_len) {
-		efree(basename);
-		return 0;
-	}
-	bytesread = MIN(sizeof(ent->d_name) - 1, basename_len);
-	memcpy(ent->d_name, basename, bytesread);
+	bytesread = MIN(sizeof(ent->d_name) - 1, basename->len);
+	memcpy(ent->d_name, basename->val, bytesread);
 	ent->d_name[bytesread] = 0;
-	efree(basename);
+	zend_string_release(basename);
 
 	return sizeof(php_stream_dirent);
 }
@@ -311,7 +303,8 @@ static int php_ssh2_sftp_dirstream_close(php_stream *stream, int close_handle TS
 	php_ssh2_sftp_handle_data *data = (php_ssh2_sftp_handle_data*)stream->abstract;
 
 	libssh2_sftp_close(data->handle);
-	zend_list_delete(data->sftp_rsrcid);
+	//TODO Sean_der
+	//zend_list_delete(data->sftp_rsrcid);
 	efree(data);
 
 	return 0;
@@ -332,8 +325,8 @@ static php_stream_ops php_ssh2_sftp_dirstream_ops = {
 
 /* {{{ php_ssh2_sftp_dirstream_opener
  */
-static php_stream *php_ssh2_sftp_dirstream_opener(	php_stream_wrapper *wrapper, char *filename, char *mode,
-													int options, char **opened_path, php_stream_context *context STREAMS_DC TSRMLS_DC)
+static php_stream *php_ssh2_sftp_dirstream_opener(php_stream_wrapper *wrapper, const char *filename, const char *mode,
+	    int options, zend_string **opened_path, php_stream_context *context STREAMS_DC)
 {
 	php_ssh2_sftp_handle_data *data;
 	LIBSSH2_SESSION *session = NULL;
@@ -343,7 +336,7 @@ static php_stream *php_ssh2_sftp_dirstream_opener(	php_stream_wrapper *wrapper, 
 	int resource_id = 0, sftp_rsrcid = 0;
 	php_url *resource;
 
-	resource = php_ssh2_fopen_wraper_parse_path(filename, "sftp", context, &session, &resource_id, &sftp, &sftp_rsrcid TSRMLS_CC);
+	resource = php_ssh2_fopen_wraper_parse_path((char *)filename, "sftp", context, &session, &resource_id, &sftp, &sftp_rsrcid TSRMLS_CC);
 	if (!resource || !session || !sftp) {
 		return NULL;
 	}
@@ -352,7 +345,8 @@ static php_stream *php_ssh2_sftp_dirstream_opener(	php_stream_wrapper *wrapper, 
 	if (!handle) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to open %s on remote host", filename);
 		php_url_free(resource);
-		zend_list_delete(sftp_rsrcid);
+		//TODO Sean-Der
+		//zend_list_delete(sftp_rsrcid);
 		return NULL;
 	}
 
@@ -363,7 +357,8 @@ static php_stream *php_ssh2_sftp_dirstream_opener(	php_stream_wrapper *wrapper, 
 	stream = php_stream_alloc(&php_ssh2_sftp_dirstream_ops, data, 0, mode);
 	if (!stream) {
 		libssh2_sftp_close(handle);
-		zend_list_delete(sftp_rsrcid);
+		//TODO Sean-Der
+		//zend_list_delete(sftp_rsrcid);
 		efree(data);
 	}
 	php_url_free(resource);
@@ -398,7 +393,7 @@ static int php_ssh2_sftp_urlstat(php_stream_wrapper *wrapper, char *url, int fla
 		zend_list_delete(sftp_rsrcid);
 		return -1;
 	}
-	
+
 	php_url_free(resource);
 
 	/* parse_path addrefs the resource, but we're not holding on to it so we have to delref it before we leave */
@@ -592,7 +587,9 @@ PHP_FUNCTION(ssh2_sftp)
 		return;
 	}
 
-	ZEND_FETCH_RESOURCE(session, LIBSSH2_SESSION*, &zsession, -1, PHP_SSH2_SESSION_RES_NAME, le_ssh2_session);
+	if ((session = (LIBSSH2_SESSION *)zend_fetch_resource(Z_RES_P(zsession), PHP_SSH2_SESSION_RES_NAME, le_ssh2_session)) == NULL) {
+	    RETURN_FALSE;
+	}
 
 	sftp = libssh2_sftp_init(session);
 	if (!sftp) {
@@ -607,9 +604,9 @@ PHP_FUNCTION(ssh2_sftp)
 	data->session = session;
 	data->sftp = sftp;
 	data->session_rsrcid = Z_LVAL_P(zsession);
-	zend_list_addref(Z_LVAL_P(zsession));
+	Z_ADDREF_P(zsession);
 
-	ZEND_REGISTER_RESOURCE(return_value, data, le_ssh2_sftp);
+	RETURN_RES(zend_register_resource(data, le_ssh2_sftp));
 }
 /* }}} */
 
@@ -621,16 +618,17 @@ PHP_FUNCTION(ssh2_sftp_rename)
 {
 	php_ssh2_sftp_data *data;
 	zval *zsftp;
-	char *src, *dst;
-	int src_len, dst_len;
+	zend_string *src, *dst;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss", &zsftp, &src, &src_len, &dst, &dst_len) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rSS", &zsftp, &src, &dst) == FAILURE) {
 		return;
 	}
 
-	ZEND_FETCH_RESOURCE(data, php_ssh2_sftp_data*, &zsftp, -1, PHP_SSH2_SFTP_RES_NAME, le_ssh2_sftp);
+	if ((data = (php_ssh2_sftp_data *)zend_fetch_resource(Z_RES_P(zsftp), PHP_SSH2_SFTP_RES_NAME, le_ssh2_sftp)) == NULL) {
+	    RETURN_FALSE;
+	}
 
-	RETURN_BOOL(!libssh2_sftp_rename_ex(data->sftp, src, src_len, dst, dst_len,
+	RETURN_BOOL(!libssh2_sftp_rename_ex(data->sftp, src->val, src->len, dst->val, dst->len,
 				 LIBSSH2_SFTP_RENAME_OVERWRITE | LIBSSH2_SFTP_RENAME_ATOMIC | LIBSSH2_SFTP_RENAME_NATIVE));
 }
 /* }}} */
@@ -641,16 +639,17 @@ PHP_FUNCTION(ssh2_sftp_unlink)
 {
 	php_ssh2_sftp_data *data;
 	zval *zsftp;
-	char *filename;
-	int filename_len;
+	zend_string *filename;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zsftp, &filename, &filename_len) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rS", &zsftp, &filename) == FAILURE) {
 		return;
 	}
 
-	ZEND_FETCH_RESOURCE(data, php_ssh2_sftp_data*, &zsftp, -1, PHP_SSH2_SFTP_RES_NAME, le_ssh2_sftp);
+	if ((data = (php_ssh2_sftp_data *)zend_fetch_resource(Z_RES_P(zsftp), PHP_SSH2_SFTP_RES_NAME, le_ssh2_sftp)) == NULL) {
+	    RETURN_FALSE;
+	}
 
-	RETURN_BOOL(!libssh2_sftp_unlink_ex(data->sftp, filename, filename_len));
+	RETURN_BOOL(!libssh2_sftp_unlink_ex(data->sftp, filename->val, filename->len));
 }
 /* }}} */
 
@@ -660,35 +659,36 @@ PHP_FUNCTION(ssh2_sftp_mkdir)
 {
 	php_ssh2_sftp_data *data;
 	zval *zsftp;
-	char *filename;
-	int filename_len;
-	long mode = 0777;
+	zend_string *filename;
+	zend_long mode = 0777;
 	zend_bool recursive = 0;
 	char *p;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs|lb", &zsftp, &filename, &filename_len, &mode, &recursive) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rS|lb", &zsftp, &filename, &mode, &recursive) == FAILURE) {
 		return;
 	}
 
-	if (filename_len < 1) {
+	if (!filename) {
 		RETURN_FALSE;
 	}
 
-	ZEND_FETCH_RESOURCE(data, php_ssh2_sftp_data*, &zsftp, -1, PHP_SSH2_SFTP_RES_NAME, le_ssh2_sftp);
+	if ((data = (php_ssh2_sftp_data *)zend_fetch_resource(Z_RES_P(zsftp), PHP_SSH2_SFTP_RES_NAME, le_ssh2_sftp)) == NULL) {
+	    RETURN_FALSE;
+	}
 
 	if (recursive) {
 		/* Just attempt to make every directory, some will fail, but we only care about the last success/failure */
-		p = filename;
+		p = filename->val;
 		while ((p = strchr(p + 1, '/'))) {
-			if ((p - filename) + 1 == filename_len) {
+			if ((p - filename->val) + 1 == filename->len) {
 				break;
 			}
-			libssh2_sftp_mkdir_ex(data->sftp, filename, p - filename, mode);
+			libssh2_sftp_mkdir_ex(data->sftp, filename->val, p - filename->val, mode);
 		}
 	}
 
 
-	RETURN_BOOL(!libssh2_sftp_mkdir_ex(data->sftp, filename, filename_len, mode));
+	RETURN_BOOL(!libssh2_sftp_mkdir_ex(data->sftp, filename->val, filename->len, mode));
 }
 /* }}} */
 
@@ -698,16 +698,17 @@ PHP_FUNCTION(ssh2_sftp_rmdir)
 {
 	php_ssh2_sftp_data *data;
 	zval *zsftp;
-	char *filename;
-	int filename_len;
+	zend_string *filename;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zsftp, &filename, &filename_len) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rS", &zsftp, &filename) == FAILURE) {
 		return;
 	}
 
-	ZEND_FETCH_RESOURCE(data, php_ssh2_sftp_data*, &zsftp, -1, PHP_SSH2_SFTP_RES_NAME, le_ssh2_sftp);
+	if ((data = (php_ssh2_sftp_data *)zend_fetch_resource(Z_RES_P(zsftp), PHP_SSH2_SFTP_RES_NAME, le_ssh2_sftp)) == NULL) {
+	    RETURN_FALSE;
+	}
 
-	RETURN_BOOL(!libssh2_sftp_rmdir_ex(data->sftp, filename, filename_len));
+	RETURN_BOOL(!libssh2_sftp_rmdir_ex(data->sftp, filename->val, filename->len));
 }
 /* }}} */
 
@@ -717,25 +718,26 @@ PHP_FUNCTION(ssh2_sftp_chmod)
 {
 	php_ssh2_sftp_data *data;
 	zval *zsftp;
-	char *filename;
-	int filename_len;
-	long mode;
+	zend_string *filename;
+	zend_long mode;
 	LIBSSH2_SFTP_ATTRIBUTES attrs;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsl", &zsftp, &filename, &filename_len, &mode) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rSl", &zsftp, &filename, &mode) == FAILURE) {
 		return;
 	}
 
-	if (filename_len < 1) {
+	if (!filename < 1) {
 		RETURN_FALSE;
 	}
 
-	ZEND_FETCH_RESOURCE(data, php_ssh2_sftp_data*, &zsftp, -1, PHP_SSH2_SFTP_RES_NAME, le_ssh2_sftp);
+	if ((data = (php_ssh2_sftp_data *)zend_fetch_resource(Z_RES_P(zsftp), PHP_SSH2_SFTP_RES_NAME, le_ssh2_sftp)) == NULL) {
+	    RETURN_FALSE;
+	}
 
 	attrs.permissions = mode;
 	attrs.flags = LIBSSH2_SFTP_ATTR_PERMISSIONS;
 
-	RETURN_BOOL(!libssh2_sftp_stat_ex(data->sftp, filename, filename_len, LIBSSH2_SFTP_SETSTAT, &attrs));
+	RETURN_BOOL(!libssh2_sftp_stat_ex(data->sftp, filename->val, filename->len, LIBSSH2_SFTP_SETSTAT, &attrs));
 }
 /* }}} */
 
@@ -749,16 +751,17 @@ static void php_ssh2_sftp_stat_func(INTERNAL_FUNCTION_PARAMETERS, int stat_type)
 	php_ssh2_sftp_data *data;
 	LIBSSH2_SFTP_ATTRIBUTES attrs;
 	zval *zsftp;
-	char *path;
-	int path_len;
+	zend_string *path;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zsftp, &path, &path_len) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rS", &zsftp, &path) == FAILURE) {
 		return;
 	}
 
-	ZEND_FETCH_RESOURCE(data, php_ssh2_sftp_data*, &zsftp, -1, PHP_SSH2_SFTP_RES_NAME, le_ssh2_sftp);
+	if ((data = (php_ssh2_sftp_data *)zend_fetch_resource(Z_RES_P(zsftp), PHP_SSH2_SFTP_RES_NAME, le_ssh2_sftp)) == NULL) {
+	    RETURN_FALSE;
+	}
 
-	if (libssh2_sftp_stat_ex(data->sftp, path, path_len, stat_type, &attrs)) {
+	if (libssh2_sftp_stat_ex(data->sftp, path->val, path->len, stat_type, &attrs)) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failed to stat remote file");
 		RETURN_FALSE;
 	}
@@ -812,16 +815,17 @@ PHP_FUNCTION(ssh2_sftp_symlink)
 {
 	php_ssh2_sftp_data *data;
 	zval *zsftp;
-	char *targ, *link;
-	int targ_len, link_len;
+	zend_string *targ, *link;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss", &zsftp, &targ, &targ_len, &link, &link_len) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rSS", &zsftp, &targ, &link) == FAILURE) {
 		return;
 	}
 
-	ZEND_FETCH_RESOURCE(data, php_ssh2_sftp_data*, &zsftp, -1, PHP_SSH2_SFTP_RES_NAME, le_ssh2_sftp);
+	if ((data = (php_ssh2_sftp_data *)zend_fetch_resource(Z_RES_P(zsftp), PHP_SSH2_SFTP_RES_NAME, le_ssh2_sftp)) == NULL) {
+	    RETURN_FALSE;
+	}
 
-	RETURN_BOOL(!libssh2_sftp_symlink_ex(data->sftp, targ, targ_len, link, link_len, LIBSSH2_SFTP_SYMLINK));
+	RETURN_BOOL(!libssh2_sftp_symlink_ex(data->sftp, targ->val, targ->len, link->val, link->len, LIBSSH2_SFTP_SYMLINK));
 }
 /* }}} */
 
@@ -831,22 +835,24 @@ PHP_FUNCTION(ssh2_sftp_readlink)
 {
 	php_ssh2_sftp_data *data;
 	zval *zsftp;
-	char *link;
-	int targ_len = 0, link_len;
+	zend_string *link;
+	int targ_len = 0;
 	char targ[8192];
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zsftp, &link, &link_len) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rS", &zsftp, &link) == FAILURE) {
 		return;
 	}
 
-	ZEND_FETCH_RESOURCE(data, php_ssh2_sftp_data*, &zsftp, -1, PHP_SSH2_SFTP_RES_NAME, le_ssh2_sftp);
+	if ((data = (php_ssh2_sftp_data *)zend_fetch_resource(Z_RES_P(zsftp), PHP_SSH2_SFTP_RES_NAME, le_ssh2_sftp)) == NULL) {
+	    RETURN_FALSE;
+	}
 
-	if ((targ_len = libssh2_sftp_symlink_ex(data->sftp, link, link_len, targ, 8192, LIBSSH2_SFTP_READLINK)) < 0) {
+	if ((targ_len = libssh2_sftp_symlink_ex(data->sftp, link->val, link->len, targ, 8192, LIBSSH2_SFTP_READLINK)) < 0) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to read link '%s'", link);
 		RETURN_FALSE;
 	}
 
-	RETURN_STRINGL(targ, targ_len, 1);
+	RETURN_STRINGL(targ, targ_len);
 }
 /* }}} */
 
@@ -856,22 +862,24 @@ PHP_FUNCTION(ssh2_sftp_realpath)
 {
 	php_ssh2_sftp_data *data;
 	zval *zsftp;
-	char *link;
-	int targ_len = 0, link_len;
+	zend_string *link;
+	int targ_len = 0;
 	char targ[8192];
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zsftp, &link, &link_len) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rS", &zsftp, &link) == FAILURE) {
 		return;
 	}
 
-	ZEND_FETCH_RESOURCE(data, php_ssh2_sftp_data*, &zsftp, -1, PHP_SSH2_SFTP_RES_NAME, le_ssh2_sftp);
+	if ((data = (php_ssh2_sftp_data *)zend_fetch_resource(Z_RES_P(zsftp), PHP_SSH2_SFTP_RES_NAME, le_ssh2_sftp)) == NULL) {
+	    RETURN_FALSE;
+	}
 
-	if ((targ_len = libssh2_sftp_symlink_ex(data->sftp, link, link_len, targ, 8192, LIBSSH2_SFTP_REALPATH)) < 0) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to resolve realpath for '%s'", link);
+	if ((targ_len = libssh2_sftp_symlink_ex(data->sftp, link->val, link->len, targ, 8192, LIBSSH2_SFTP_REALPATH)) < 0) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to resolve realpath for '%s'", link->val);
 		RETURN_FALSE;
 	}
 
-	RETURN_STRINGL(targ, targ_len, 1);
+	RETURN_STRINGL(targ, targ_len);
 }
 /* }}} */
 
