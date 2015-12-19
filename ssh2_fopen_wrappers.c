@@ -789,7 +789,7 @@ static php_stream *php_ssh2_exec_command(LIBSSH2_SESSION *session, int resource_
 	channel_data = emalloc(sizeof(php_ssh2_channel_data));
 	channel_data->channel = channel;
 	channel_data->streamid = 0;
-	channel_data->is_blocking = 0;
+	channel_data->is_blocking = 1;
 	channel_data->timeout = 0;
 	channel_data->session_rsrc = resource_id;
 	channel_data->refcount = NULL;
