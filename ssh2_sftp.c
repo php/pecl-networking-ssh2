@@ -231,7 +231,7 @@ static php_stream *php_ssh2_sftp_stream_opener(php_stream_wrapper *wrapper, cons
 	unsigned long flags;
 	long perms = 0644;
 
-	resource = php_ssh2_fopen_wraper_parse_path((char *)filename, "sftp", context, &session, &resource_id, &sftp, &sftp_rsrcid TSRMLS_CC);
+	resource = php_ssh2_fopen_wraper_parse_path(filename, "sftp", context, &session, &resource_id, &sftp, &sftp_rsrcid TSRMLS_CC);
 	if (!resource || !session || !sftp) {
 		return NULL;
 	}
@@ -336,7 +336,7 @@ static php_stream *php_ssh2_sftp_dirstream_opener(php_stream_wrapper *wrapper, c
 	int resource_id = 0, sftp_rsrcid = 0;
 	php_url *resource;
 
-	resource = php_ssh2_fopen_wraper_parse_path((char *)filename, "sftp", context, &session, &resource_id, &sftp, &sftp_rsrcid TSRMLS_CC);
+	resource = php_ssh2_fopen_wraper_parse_path(filename, "sftp", context, &session, &resource_id, &sftp, &sftp_rsrcid TSRMLS_CC);
 	if (!resource || !session || !sftp) {
 		return NULL;
 	}
@@ -371,10 +371,9 @@ static php_stream *php_ssh2_sftp_dirstream_opener(php_stream_wrapper *wrapper, c
    * SFTP Wrapper *
    **************** */
 
-#ifdef ZEND_ENGINE_2
 /* {{{ php_ssh2_sftp_urlstat
  */
-static int php_ssh2_sftp_urlstat(php_stream_wrapper *wrapper, char *url, int flags, php_stream_statbuf *ssb, php_stream_context *context TSRMLS_DC)
+static int php_ssh2_sftp_urlstat(php_stream_wrapper *wrapper, const char *url, int flags, php_stream_statbuf *ssb, php_stream_context *context TSRMLS_DC)
 {
 	LIBSSH2_SFTP_ATTRIBUTES attrs;
 	LIBSSH2_SESSION *session = NULL;
@@ -390,14 +389,14 @@ static int php_ssh2_sftp_urlstat(php_stream_wrapper *wrapper, char *url, int fla
 	if (libssh2_sftp_stat_ex(sftp, resource->path, strlen(resource->path),
 		(flags & PHP_STREAM_URL_STAT_LINK) ? LIBSSH2_SFTP_LSTAT : LIBSSH2_SFTP_STAT, &attrs)) {
 		php_url_free(resource);
-		zend_list_delete(sftp_rsrcid);
+		//zend_list_delete(sftp_rsrcid);
 		return -1;
 	}
 
 	php_url_free(resource);
 
 	/* parse_path addrefs the resource, but we're not holding on to it so we have to delref it before we leave */
-	zend_list_delete(sftp_rsrcid);
+	//zend_list_delete(sftp_rsrcid);
 
 	return php_ssh2_sftp_attr2ssb(ssb, &attrs);
 }
@@ -405,7 +404,7 @@ static int php_ssh2_sftp_urlstat(php_stream_wrapper *wrapper, char *url, int fla
 
 /* {{{ php_ssh2_sftp_unlink
  */
-static int php_ssh2_sftp_unlink(php_stream_wrapper *wrapper, char *url, int options, php_stream_context *context TSRMLS_DC)
+static int php_ssh2_sftp_unlink(php_stream_wrapper *wrapper, const char *url, int options, php_stream_context *context TSRMLS_DC)
 {
 	LIBSSH2_SESSION *session = NULL;
 	LIBSSH2_SFTP *sftp = NULL;
@@ -424,7 +423,7 @@ static int php_ssh2_sftp_unlink(php_stream_wrapper *wrapper, char *url, int opti
 	result = libssh2_sftp_unlink(sftp, resource->path);
 	php_url_free(resource);
 
-	zend_list_delete(sftp_rsrcid);
+	//zend_list_delete(sftp_rsrcid);
 
 	/* libssh2 uses 0 for success and the streams API uses 0 for failure, so invert */
 	return (result == 0) ? -1 : 0;
@@ -433,7 +432,7 @@ static int php_ssh2_sftp_unlink(php_stream_wrapper *wrapper, char *url, int opti
 
 /* {{{ php_ssh2_sftp_rename
  */
-static int php_ssh2_sftp_rename(php_stream_wrapper *wrapper, char *url_from, char *url_to, int options, php_stream_context *context TSRMLS_DC)
+static int php_ssh2_sftp_rename(php_stream_wrapper *wrapper, const char *url_from, const char *url_to, int options, php_stream_context *context TSRMLS_DC)
 {
 	LIBSSH2_SESSION *session = NULL;
 	LIBSSH2_SFTP *sftp = NULL;
@@ -467,7 +466,7 @@ static int php_ssh2_sftp_rename(php_stream_wrapper *wrapper, char *url_from, cha
 	php_url_free(resource);
 	php_url_free(resource_to);
 
-	zend_list_delete(sftp_rsrcid);
+	//zend_list_delete(sftp_rsrcid);
 
 	/* libssh2 uses 0 for success and the streams API uses 0 for failure, so invert */
 	return (result == 0) ? -1 : 0;
@@ -476,7 +475,7 @@ static int php_ssh2_sftp_rename(php_stream_wrapper *wrapper, char *url_from, cha
 
 /* {{{ php_ssh2_sftp_mkdir
  */
-static int php_ssh2_sftp_mkdir(php_stream_wrapper *wrapper, char *url, int mode, int options, php_stream_context *context TSRMLS_DC)
+static int php_ssh2_sftp_mkdir(php_stream_wrapper *wrapper, const char *url, int mode, int options, php_stream_context *context TSRMLS_DC)
 {
 	LIBSSH2_SESSION *session = NULL;
 	LIBSSH2_SFTP *sftp = NULL;
@@ -503,7 +502,7 @@ static int php_ssh2_sftp_mkdir(php_stream_wrapper *wrapper, char *url, int mode,
 	result = libssh2_sftp_mkdir(sftp, resource->path, mode);
 	php_url_free(resource);
 
-	zend_list_delete(sftp_rsrcid);
+	//zend_list_delete(sftp_rsrcid);
 
 	/* libssh2 uses 0 for success and the streams API uses 0 for failure, so invert */
 	return (result == 0) ? -1 : 0;
@@ -512,7 +511,7 @@ static int php_ssh2_sftp_mkdir(php_stream_wrapper *wrapper, char *url, int mode,
 
 /* {{{ php_ssh2_sftp_rmdir
  */
-static int php_ssh2_sftp_rmdir(php_stream_wrapper *wrapper, char *url, int options, php_stream_context *context TSRMLS_DC)
+static int php_ssh2_sftp_rmdir(php_stream_wrapper *wrapper, const char *url, int options, php_stream_context *context TSRMLS_DC)
 {
 	LIBSSH2_SESSION *session = NULL;
 	LIBSSH2_SFTP *sftp = NULL;
@@ -531,31 +530,24 @@ static int php_ssh2_sftp_rmdir(php_stream_wrapper *wrapper, char *url, int optio
 	result = libssh2_sftp_rmdir(sftp, resource->path);
 	php_url_free(resource);
 
-	zend_list_delete(sftp_rsrcid);
+	//zend_list_delete(sftp_rsrcid);
 
 	/* libssh2 uses 0 for success and the streams API uses 0 for failure, so invert */
 	return (result == 0) ? -1 : 0;
 }
 /* }}} */
-#endif
 
 static php_stream_wrapper_ops php_ssh2_sftp_wrapper_ops = {
 	php_ssh2_sftp_stream_opener,
 	NULL, /* close */
 	NULL, /* stat */
-#ifdef ZEND_ENGINE_2
 	php_ssh2_sftp_urlstat,
-#else
-	NULL, /* url_stat isn't actually functional prior to PHP5 */
-#endif
 	php_ssh2_sftp_dirstream_opener,
 	PHP_SSH2_SFTP_WRAPPER_NAME,
-#ifdef ZEND_ENGINE_2
 	php_ssh2_sftp_unlink,
 	php_ssh2_sftp_rename,
 	php_ssh2_sftp_mkdir,
 	php_ssh2_sftp_rmdir,
-#endif
 };
 
 php_stream_wrapper php_ssh2_sftp_wrapper = {
@@ -726,7 +718,7 @@ PHP_FUNCTION(ssh2_sftp_chmod)
 		return;
 	}
 
-	if (!filename < 1) {
+	if (ZSTR_LEN(filename) < 1) {
 		RETURN_FALSE;
 	}
 

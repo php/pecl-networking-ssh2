@@ -203,7 +203,7 @@ php_stream_ops php_ssh2_channel_stream_ops = {
 /* {{{ php_ssh2_fopen_wraper_parse_path
  * Parse an ssh2.*:// path
  */
-php_url *php_ssh2_fopen_wraper_parse_path(	char *path, char *type, php_stream_context *context,
+php_url *php_ssh2_fopen_wraper_parse_path(const char *path, char *type, php_stream_context *context,
 											LIBSSH2_SESSION **psession, int *presource_id,
 											LIBSSH2_SFTP **psftp, int *psftp_rsrcid
 											TSRMLS_DC)
@@ -576,7 +576,7 @@ static php_stream *php_ssh2_fopen_wrapper_shell(php_stream_wrapper *wrapper, con
 	php_url *resource;
 	char *s;
 
-	resource = php_ssh2_fopen_wraper_parse_path((char *)path, "shell", context, &session, &resource_id, NULL, NULL TSRMLS_CC);
+	resource = php_ssh2_fopen_wraper_parse_path(path, "shell", context, &session, &resource_id, NULL, NULL TSRMLS_CC);
 	if (!resource || !session) {
 		return NULL;
 	}
@@ -816,7 +816,7 @@ static php_stream *php_ssh2_fopen_wrapper_exec(php_stream_wrapper *wrapper, cons
 	long height = PHP_SSH2_DEFAULT_TERM_HEIGHT;
 	long type = PHP_SSH2_DEFAULT_TERM_UNIT;
 
-	resource = php_ssh2_fopen_wraper_parse_path((char *)path, "exec", context, &session, &resource_id, NULL, NULL TSRMLS_CC);
+	resource = php_ssh2_fopen_wraper_parse_path(path, "exec", context, &session, &resource_id, NULL, NULL TSRMLS_CC);
 	if (!resource || !session) {
 		return NULL;
 	}
@@ -997,7 +997,7 @@ static php_stream *php_ssh2_fopen_wrapper_scp(php_stream_wrapper *wrapper, const
 		return NULL;
 	}
 
-	resource = php_ssh2_fopen_wraper_parse_path((char *) path, "scp", context, &session, &resource_id, NULL, NULL TSRMLS_CC);
+	resource = php_ssh2_fopen_wraper_parse_path(path, "scp", context, &session, &resource_id, NULL, NULL TSRMLS_CC);
 	if (!resource || !session) {
 		return NULL;
 	}
@@ -1240,7 +1240,7 @@ static php_stream *php_ssh2_fopen_wrapper_tunnel(php_stream_wrapper *wrapper, co
 	int port = 0;
 	int resource_id = 0;
 
-	resource = php_ssh2_fopen_wraper_parse_path((char *) path, "tunnel", context, &session, &resource_id, NULL, NULL TSRMLS_CC);
+	resource = php_ssh2_fopen_wraper_parse_path(path, "tunnel", context, &session, &resource_id, NULL, NULL TSRMLS_CC);
 	if (!resource || !session) {
 		return NULL;
 	}
