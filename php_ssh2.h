@@ -4,10 +4,10 @@
   +----------------------------------------------------------------------+
   | Copyright (c) 1997-2006 The PHP Group                                |
   +----------------------------------------------------------------------+
-  | This source file is subject to version 2.02 of the PHP license,      |
+  | This source file is subject to version 3.01 of the PHP license,      |
   | that is bundled with this package in the file LICENSE, and is        |
   | available at through the world-wide-web at                           |
-  | http://www.php.net/license/2_02.txt.                                 |
+  | http://www.php.net/license/3_01.txt.                                 |
   | If you did not receive a copy of the PHP license and are unable to   |
   | obtain it through the world-wide-web, please send a note to          |
   | license@php.net so we can mail you a copy immediately.               |
@@ -15,7 +15,7 @@
   | Author: Sara Golemon <pollita@php.net>                               |
   +----------------------------------------------------------------------+
 
-  $Id$ 
+  $Id$
 */
 
 #ifndef PHP_SSH2_H
@@ -67,11 +67,6 @@ typedef struct _php_ssh2_session_data {
 	zval *disconnect_cb;
 
 	int socket;
-
-#ifdef ZTS
-	/* Avoid unnecessary TSRMLS_FETCH() calls */
-	TSRMLS_D;
-#endif
 } php_ssh2_session_data;
 
 typedef struct _php_ssh2_sftp_data {
@@ -97,59 +92,19 @@ typedef struct _php_ssh2_pkey_subsys_data {
 	int session_rsrcid;
 } php_ssh2_pkey_subsys_data;
 
-#ifndef PHP_WIN32
-#define closesocket(s)	close(s)
-#endif
-
-#ifdef ZTS
-#define SSH2_TSRMLS_SET(datap)		((php_ssh2_session_data*)(datap))->tsrm_ls = TSRMLS_C
-#define SSH2_TSRMLS_FETCH(datap)	TSRMLS_D = ((php_ssh2_session_data*)(datap))->tsrm_ls
-#else
-#define SSH2_TSRMLS_SET(datap)
-#define SSH2_TSRMLS_FETCH(datap)
-#endif
-
-#if (PHP_MAJOR_VERSION == 5) && (PHP_MINOR_VERSION >= 3)
-#define ZEND_IS_CALLABLE_TSRMLS_CC		TSRMLS_CC
-#else
-#define ZEND_IS_CALLABLE_TSRMLS_CC
-#endif
-
-/* < 5.3 compatibility */
-#ifndef Z_REFCOUNT_P
-#define Z_REFCOUNT_P(pz)              (pz)->refcount
-#define Z_REFCOUNT_PP(ppz)            Z_REFCOUNT_P(*(ppz))
-#endif
-
-#ifndef Z_SET_REFCOUNT_P
-#define Z_SET_REFCOUNT_P(pz, rc)      (pz)->refcount = rc
-#define Z_SET_REFCOUNT_PP(ppz, rc)    Z_SET_REFCOUNT_P(*(ppz), rc)
-#endif
-
-#ifndef Z_ISREF_P
-#define Z_ISREF_P(pz)                 (pz)->is_ref
-#define Z_ISREF_PP(ppz)               Z_ISREF_P(*(ppz))
-#endif
-
-#ifndef Z_SET_ISREF_P
-#define Z_SET_ISREF_P(pz)             (pz)->is_ref = 1
-#define Z_SET_ISREF_PP(ppz)           Z_SET_ISREF_P(*(ppz))
-#endif
-
-#ifndef Z_UNSET_ISREF_P
-#define Z_UNSET_ISREF_P(pz)           (pz)->is_ref = 0
-#define Z_UNSET_ISREF_PP(ppz)         Z_UNSET_ISREF_P(*(ppz))
-#endif
-
 #define SSH2_FETCH_NONAUTHENTICATED_SESSION(session, zsession) \
-ZEND_FETCH_RESOURCE(session, LIBSSH2_SESSION*, &zsession, -1, PHP_SSH2_SESSION_RES_NAME, le_ssh2_session); \
+if ((session = (LIBSSH2_SESSION *)zend_fetch_resource(Z_RES_P(zsession), PHP_SSH2_SESSION_RES_NAME, le_ssh2_session)) == NULL) { \
+    RETURN_FALSE; \
+} \
 if (libssh2_userauth_authenticated(session)) { \
 	php_error_docref(NULL TSRMLS_CC, E_WARNING, "Connection already authenticated"); \
 	RETURN_FALSE; \
 }
 
 #define SSH2_FETCH_AUTHENTICATED_SESSION(session, zsession) \
-ZEND_FETCH_RESOURCE(session, LIBSSH2_SESSION*, &zsession, -1, PHP_SSH2_SESSION_RES_NAME, le_ssh2_session); \
+if ((session = (LIBSSH2_SESSION *)zend_fetch_resource(Z_RES_P(zsession), PHP_SSH2_SESSION_RES_NAME, le_ssh2_session)) == NULL) { \
+    RETURN_FALSE; \
+} \
 if (!libssh2_userauth_authenticated(session)) { \
 	php_error_docref(NULL TSRMLS_CC, E_WARNING, "Connection not authenticated"); \
 	RETURN_FALSE; \
@@ -194,7 +149,7 @@ PHP_FUNCTION(ssh2_sftp_readlink);
 PHP_FUNCTION(ssh2_sftp_realpath);
 
 LIBSSH2_SESSION *php_ssh2_session_connect(char *host, int port, zval *methods, zval *callbacks TSRMLS_DC);
-void php_ssh2_sftp_dtor(zend_rsrc_list_entry *rsrc TSRMLS_DC);
+void php_ssh2_sftp_dtor(zend_resource *rsrc TSRMLS_DC);
 php_url *php_ssh2_fopen_wraper_parse_path(	char *path, char *type, php_stream_context *context,
 											LIBSSH2_SESSION **psession, int *presource_id,
 											LIBSSH2_SFTP **psftp, int *psftp_rsrcid
