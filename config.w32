@@ -4,14 +4,31 @@
 ARG_WITH("ssh2", "SSH2 support", "no");
 
 if (PHP_SSH2 != "no") {
-		if ((CHECK_LIB("libssh2_a.lib;libssh2.lib", "ssh2", PHP_SSH2) &&
-				CHECK_HEADER_ADD_INCLUDE("libssh2.h", "CFLAGS_SSH2", PHP_PHP_BUILD + "\\include\\libssh2"))) {
-		AC_DEFINE('HAVE_SSH2LIB', 1);
-		AC_DEFINE('PHP_SSH2_AGENT_AUTH', 1);
+    var ssh2_all_ok = true;
 
-		EXTENSION("ssh2", "ssh2.c ssh2_fopen_wrappers.c ssh2_sftp.c");
+    if (!CHECK_LIB("libssh2_a.lib;libssh2.lib", "ssh2", PHP_SSH2)){
+        WARNING("ssh2 not enabled: libssh2 libraries not found");
+        ssh2_all_ok = false;
+    }
 
-	} else {
-		WARNING("ssh2 not enabled: libraries or headers not found");
-	}
+    if (!CHECK_HEADER_ADD_INCLUDE("libssh2.h", "CFLAGS_SSH2", PHP_PHP_BUILD + "\\include\\libssh2")) {
+        WARNING("ssh2 not enabled: libssh2 headers not found");
+        ssh2_all_ok = false;
+    }
+    if (!CHECK_LIB("libeay32.lib", "ssh2", PHP_PHP_BUILD + "\\lib")) {
+        WARNING("ssh2 support can't be enabled, openssl library not found")
+        ssh2_all_ok = false;
+    }
+    if (!CHECK_LIB("zlib_a.lib", "ssh2", PHP_PHP_BUILD + "\\lib")) {
+        WARNING("ssh2 support can't be enabled, zlib library not found")
+        ssh2_all_ok = false;
+    }
+
+    if (ssh2_all_ok){
+        EXTENSION("ssh2", "ssh2.c ssh2_fopen_wrappers.c ssh2_sftp.c");
+        AC_DEFINE('HAVE_SSH2LIB', 1);
+        AC_DEFINE('PHP_SSH2_AGENT_AUTH', 1);
+        ADD_EXTENSION_DEP('ssh2', 'zlib')
+        ADD_EXTENSION_DEP('ssh2', 'openssl')
+    }
 }
