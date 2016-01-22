@@ -48,7 +48,7 @@ int le_ssh2_sftp;
 int le_ssh2_pkey_subsys;
 
 ZEND_BEGIN_ARG_INFO(php_ssh2_first_arg_force_ref, 0)
-    ZEND_ARG_PASS_INFO(1)
+	ZEND_ARG_PASS_INFO(1)
 ZEND_END_ARG_INFO()
 
 /* *************
@@ -431,6 +431,34 @@ PHP_FUNCTION(ssh2_connect)
 }
 /* }}} */
 
+/* {{{ proto resource ssh2_disconnect(resource session)
+ * close a connection to a remote SSH server and return a true on success, false on error.
+ */
+PHP_FUNCTION(ssh2_disconnect)
+{
+	LIBSSH2_SESSION *session;
+	zval *zsession;
+	int success;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &zsession) == FAILURE) {
+		return;
+	}
+
+	if ((session = (LIBSSH2_SESSION *)zend_fetch_resource(Z_RES_P(zsession), PHP_SSH2_SESSION_RES_NAME, le_ssh2_session)) == NULL) {
+		RETURN_FALSE;
+	}
+
+	success = libssh2_session_disconnect(session, "ssh2_disconnect");
+	if(0 == success){
+		zend_list_close(Z_RES_P(zsession));
+		libssh2_session_free(session);
+		RETURN_TRUE;
+	}
+
+	RETURN_FALSE;
+}
+/* }}} */
+
 /* {{{ proto array ssh2_methods_negotiated(resource session)
  * Return list of negotiaed methods
  */
@@ -445,8 +473,8 @@ PHP_FUNCTION(ssh2_methods_negotiated)
 	}
 
 	if ((session = (LIBSSH2_SESSION *)zend_fetch_resource(Z_RES_P(zsession), PHP_SSH2_SESSION_RES_NAME, le_ssh2_session)) == NULL) {
-        RETURN_FALSE;
-    }
+		RETURN_FALSE;
+	}
 
 	kex = (char*)libssh2_session_methods(session, LIBSSH2_METHOD_KEX);
 	hostkey = (char*)libssh2_session_methods(session, LIBSSH2_METHOD_HOSTKEY);
@@ -497,8 +525,8 @@ PHP_FUNCTION(ssh2_fingerprint)
 	fingerprint_len = (flags & PHP_SSH2_FINGERPRINT_SHA1) ? SHA_DIGEST_LENGTH : MD5_DIGEST_LENGTH;
 
 	if ((session = (LIBSSH2_SESSION *)zend_fetch_resource(Z_RES_P(zsession), PHP_SSH2_SESSION_RES_NAME, le_ssh2_session)) == NULL) {
-        RETURN_FALSE;
-    }
+		RETURN_FALSE;
+	}
 
 	fingerprint = (char*)libssh2_hostkey_hash(session, (flags & PHP_SSH2_FINGERPRINT_SHA1) ? LIBSSH2_HOSTKEY_HASH_SHA1 : LIBSSH2_HOSTKEY_HASH_MD5);
 	if (!fingerprint) {
@@ -545,8 +573,8 @@ PHP_FUNCTION(ssh2_auth_none)
 	}
 
 	if ((session = (LIBSSH2_SESSION *)zend_fetch_resource(Z_RES_P(zsession), PHP_SSH2_SESSION_RES_NAME, le_ssh2_session)) == NULL) {
-        RETURN_FALSE;
-    }
+		RETURN_FALSE;
+	}
 
 	s = methods = libssh2_userauth_list(session, username, username_len);
 	if (!methods) {
@@ -778,8 +806,8 @@ PHP_FUNCTION(ssh2_forward_accept)
 	}
 
 	if ((data = (php_ssh2_listener_data *)zend_fetch_resource(Z_RES_P(zlistener), PHP_SSH2_LISTENER_RES_NAME, le_ssh2_listener)) == NULL) {
-        RETURN_FALSE;
-    }
+		RETURN_FALSE;
+	}
 
 	channel = libssh2_channel_forward_accept(data->listener);
 
@@ -984,8 +1012,8 @@ PHP_FUNCTION(ssh2_publickey_add)
 	}
 
 	if ((data = (php_ssh2_pkey_subsys_data *)zend_fetch_resource(Z_RES_P(zpkey_data), PHP_SSH2_PKEY_SUBSYS_RES_NAME, le_ssh2_pkey_subsys)) == NULL) {
-        RETURN_FALSE;
-    }
+		RETURN_FALSE;
+	}
 
 	if (zattrs) {
 		HashPosition pos;
@@ -1079,8 +1107,8 @@ PHP_FUNCTION(ssh2_publickey_remove)
 	}
 
 	if ((data = (php_ssh2_pkey_subsys_data *)zend_fetch_resource(Z_RES_P(zpkey_data), PHP_SSH2_PKEY_SUBSYS_RES_NAME, le_ssh2_pkey_subsys)) == NULL) {
-        RETURN_FALSE;
-    }
+		RETURN_FALSE;
+	}
 
 	if (libssh2_publickey_remove_ex(data->pkey, (unsigned char *) algo, algo_len, (unsigned char *) blob, blob_len)) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to remove %s key", algo);
@@ -1106,8 +1134,8 @@ PHP_FUNCTION(ssh2_publickey_list)
 	}
 
 	if ((data = (php_ssh2_pkey_subsys_data *)zend_fetch_resource(Z_RES_P(zpkey_data), PHP_SSH2_PKEY_SUBSYS_RES_NAME, le_ssh2_pkey_subsys)) == NULL) {
-        RETURN_FALSE;
-    }
+		RETURN_FALSE;
+	}
 
 	if (libssh2_publickey_list_fetch(data->pkey, &num_keys, &keys)) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to list keys on remote server");
@@ -1357,6 +1385,10 @@ ZEND_BEGIN_ARG_INFO(arginfo_ssh2_connect, 2)
  	ZEND_ARG_INFO(0, port)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO(arginfo_ssh2_disconnect, 1)
+ 	ZEND_ARG_INFO(0, resource)
+ZEND_END_ARG_INFO()
+
 ZEND_BEGIN_ARG_INFO(arginfo_ssh2_methods_negotiated, 1)
  	ZEND_ARG_INFO(0, resource)
 ZEND_END_ARG_INFO()
@@ -1529,6 +1561,8 @@ ZEND_END_ARG_INFO()
  */
 zend_function_entry ssh2_functions[] = {
 	PHP_FE(ssh2_connect,						arginfo_ssh2_connect)
+	PHP_FE(ssh2_disconnect,						arginfo_ssh2_disconnect)
+	PHP_FALIAS(ssh2_close,	ssh2_disconnect,	arginfo_ssh2_disconnect)
 	PHP_FE(ssh2_methods_negotiated,				arginfo_ssh2_methods_negotiated)
 	PHP_FE(ssh2_fingerprint,					arginfo_ssh2_fingerprint)
 
