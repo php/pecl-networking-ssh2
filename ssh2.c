@@ -451,7 +451,7 @@ PHP_FUNCTION(ssh2_disconnect)
 	success = libssh2_session_disconnect(session, "ssh2_disconnect");
 	if(0 == success){
 		zend_list_close(Z_RES_P(zsession));
-		libssh2_session_free(session);
+		//libssh2_session_free(session);
 		RETURN_TRUE;
 	}
 
