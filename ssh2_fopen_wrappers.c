@@ -1207,6 +1207,8 @@ static php_stream *php_ssh2_direct_tcpip(LIBSSH2_SESSION *session, int resource_
 	php_ssh2_channel_data *channel_data;
 	php_stream *stream;
 
+   	libssh2_session_set_blocking(session, 1);
+
 	channel = libssh2_channel_direct_tcpip(session, host, port);
 	if (!channel) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to request a channel from remote host");
