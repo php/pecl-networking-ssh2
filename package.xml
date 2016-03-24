@@ -37,13 +37,22 @@
     <api>0.12</api>
   </version>
   <stability>
-    <release>beta</release>
+    <release>alpha</release>
     <api>beta</api>
   </stability>
   <license uri="http://www.php.net/license">PHP License</license>
   <notes>
+    - Release for PHP7 (Sean DuBois)
     - Fixed Bug #63660 php_ssh2_fopen_wrapper_parse_path segfaults
 	- Fixed bug #64535 php_ssh2_sftp_dirstream_read segfault on error (Matt Pelmear)
+    - Fixed Bug #63855 compilation fails on windows (Erez H)
+    - Fixed Typo retreive -> retrieve (Lior Kaplan)
+    - Fixed License version (Lior Kaplan)
+    - Add reflection API support. (Frédéric Hardy)
+    - Add exit-status support for ssh2 file wrappers (Vladimir Zidar)
+    - Fix segfault when trying to authenticate in servers that do not support authentication (Felipe Weckx)
+    - Win32 Compilation issues
+    - Various blocking issues
   </notes>
   <contents>
     <dir name="/">
@@ -67,8 +76,8 @@
   <dependencies>
     <required>
       <php>
-        <min>4.0.0</min>
-        <max>6.0.0</max>
+        <min>7.0.0</min>
+        <max>8.0.0</max>
       </php>
       <pearinstaller>
         <min>1.4.0</min>
