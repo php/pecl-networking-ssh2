@@ -1,3 +1,9 @@
+WARNING
+=======
+
+**The extension in the master branch is not in a state you should deploy on a production server.**
+
+
 ssh2
 ====
 
