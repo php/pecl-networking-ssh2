@@ -442,7 +442,9 @@ PHP_FUNCTION(ssh2_disconnect)
 		RETURN_FALSE;
 	}
 
-	php_ssh2_session_dtor(zsession);
+	if (zend_list_close(Z_RES_P(zsession)) != SUCCESS) {
+		RETURN_FALSE;
+	}
 
 	RETURN_TRUE;
 }
