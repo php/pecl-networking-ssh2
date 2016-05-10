@@ -737,13 +737,14 @@ static php_stream *php_ssh2_exec_command(LIBSSH2_SESSION *session, int resource_
 	}
 
 	if (environment) {
-		zend_string *key;
+		zend_string *key = NULL;
 		int key_type;
-		ulong idx;
+		ulong idx = 0;
+		HashPosition pos;
 
-		for(zend_hash_internal_pointer_reset(HASH_OF(environment));
-			(key_type = zend_hash_get_current_key_ex(HASH_OF(environment), &key, &idx, NULL)) != HASH_KEY_NON_EXISTENT;
-			zend_hash_move_forward(HASH_OF(environment))) {
+		for(zend_hash_internal_pointer_reset_ex(HASH_OF(environment), &pos);
+			(key_type = zend_hash_get_current_key_ex(HASH_OF(environment), &key, &idx, &pos)) != HASH_KEY_NON_EXISTENT;
+			zend_hash_move_forward_ex(HASH_OF(environment), &pos)) {
 			if (key_type == HASH_KEY_IS_STRING) {
 				zval *value;
 
