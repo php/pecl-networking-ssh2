@@ -1,11 +1,15 @@
-<?xml version="1.0"?>
-<package xmlns:tasks="http://pear.php.net/dtd/tasks-1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://pear.php.net/dtd/package-2.0" packagerversion="1.4.7" version="2.0" xsi:schemaLocation="http://pear.php.net/dtd/tasks-1.0 http://pear.php.net/dtd/tasks-1.0.xsd http://pear.php.net/dtd/package-2.0 http://pear.php.net/dtd/package-2.0.xsd">
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://pear.php.net/dtd/package-2.0" xmlns:tasks="http://pear.php.net/dtd/tasks-1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" packagerversion="1.4.7" version="2.0" xsi:schemaLocation="http://pear.php.net/dtd/tasks-1.0 http://pear.php.net/dtd/tasks-1.0.xsd http://pear.php.net/dtd/package-2.0 http://pear.php.net/dtd/package-2.0.xsd">
     <name>ssh2</name>
     <channel>pecl.php.net</channel>
     <summary>Bindings for the libssh2 library</summary>
     <description>
         Provides bindings to the functions of libssh2 which implements the SSH2 protocol.
         libssh2 is available from http://libssh2.org/
+
+        ssh2 1.0 and above is PHP 7 only. To install a version that is PHP 5 compatible you can run 'pecl install ssh2-0.13'
+
+        Note that reaching version 1.0 does NOT indicate we've reached a stable release.
     </description>
     <lead>
         <name>Casper Langemeijer</name>
@@ -31,10 +35,10 @@
         <email>pollita@php.net</email>
         <active>no</active>
     </lead>
-    <date>2012-10-15</date>
+    <date>2016-06-12</date>
     <version>
-        <release>0.12patched</release>
-        <api>0.12</api>
+        <release>1.0</release>
+        <api>1.0</api>
     </version>
     <stability>
         <release>alpha</release>
@@ -42,17 +46,11 @@
     </stability>
     <license uri="http://www.php.net/license">PHP License</license>
     <notes>
-        - Release for PHP7 (Sean DuBois)
-        - Fixed Bug #63660 php_ssh2_fopen_wrapper_parse_path segfaults (Remi Collet)
-        - Fixed bug #64535 php_ssh2_sftp_dirstream_read segfault on error (Matt Pelmear)
-        - Fixed Bug #63855 compilation fails on windows (Erez H)
-        - Fixed Typo retreive -> retrieve (Lior Kaplan)
-        - Fixed License version (Lior Kaplan)
-        - Add reflection API support. (Frédéric Hardy)
-        - Add exit-status support for ssh2 file wrappers (Vladimir Zidar)
-        - Fix segfault when trying to authenticate in servers that do not support authentication (Felipe Weckx)
-        - Win32 Compilation issues
-        - Various blocking issues
+        - Release for PHP 7 (Sean DuBois)
+        - Made win32 builds depend on zlib and openssl extensions (Credomane Evonguard)
+        - Add blocking call to php_ssh2_direct_tcpip (Credomane Evonguard)
+        - Added explicit ssh2_disconnect function (Credomane Evonguard)
+        - Fixed bug #72150 - Fixing segfault when passing env variables (Krakjoe)
     </notes>
     <contents>
         <dir name="/">
@@ -89,6 +87,22 @@
         <configureoption name="with-ssh2" default="autodetect" prompt="libssh2 prefix?"/>
     </extsrcrelease>
     <changelog>
+        <release>
+            <date>2016-06-12</date>
+            <version>
+                <release>0.13</release>
+                <api>0.13</api>
+            </version>
+            <notes>
+                - Fixed bug #63660 php_ssh2_fopen_wrapper_parse_path segfaults
+                - Fixed bug #63855 compilation fails on windows (patch from Erez H)
+                - Fixed bug #64535 php_ssh2_sftp_dirstream_read segfault on error (Matt Pelmear)
+                - Add reflection API support (Frédéric Hardy)
+                - Add exit-status support for ssh2 file wrappers (Vladimir Zidar)
+                - Fixed bug #58893 Unable to request a channel from remote host (Vladimir Zidar)
+                - Fix segfault when trying to authenticate in servers that do not support authentication (none) (Felipe Weckx)
+            </notes>
+        </release>
         <release>
             <date>2012-10-15</date>
             <version>
