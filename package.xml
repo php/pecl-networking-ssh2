@@ -37,8 +37,8 @@
     </lead>
     <date>2016-06-12</date>
     <version>
-        <release>1.0</release>
-        <api>1.0</api>
+        <release>1.0+dev</release>
+        <api>1.0+dev</api>
     </version>
     <stability>
         <release>alpha</release>
@@ -46,11 +46,7 @@
     </stability>
     <license uri="http://www.php.net/license">PHP License</license>
     <notes>
-        - Release for PHP 7 (Sean DuBois)
-        - Made win32 builds depend on zlib and openssl extensions (Credomane Evonguard)
-        - Add blocking call to php_ssh2_direct_tcpip (Credomane Evonguard)
-        - Added explicit ssh2_disconnect function (Credomane Evonguard)
-        - Fixed bug #72150 - Fixing segfault when passing env variables (Krakjoe)
+        -
     </notes>
     <contents>
         <dir name="/">
@@ -87,6 +83,20 @@
         <configureoption name="with-ssh2" default="autodetect" prompt="libssh2 prefix?"/>
     </extsrcrelease>
     <changelog>
+        <release>
+            <date>2016-06-12</date>
+            <version>
+                <release>1.0</release>
+                <api>1.0</api>
+            </version>
+            <notes>
+                - Release for PHP 7 (Sean DuBois)
+                - Made win32 builds depend on zlib and openssl extensions (Credomane Evonguard)
+                - Add blocking call to php_ssh2_direct_tcpip (Credomane Evonguard)
+                - Added explicit ssh2_disconnect function (Credomane Evonguard)
+                - Fixed bug #72150 - Fixing segfault when passing env variables (Krakjoe)
+            </notes>
+        </release>
         <release>
             <date>2016-06-12</date>
             <version>
