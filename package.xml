@@ -33,8 +33,8 @@
   </lead>
   <date>2016-06-12</date>
   <version>
-    <release>0.13</release>
-    <api>0.13</api>
+    <release>0.13+dev</release>
+    <api>0.13+dev</api>
   </version>
   <stability>
     <release>stable</release>
@@ -42,13 +42,7 @@
   </stability>
   <license uri="http://www.php.net/license">PHP License</license>
   <notes>
-    - Fixed bug #63660 php_ssh2_fopen_wrapper_parse_path segfaults
-    - Fixed bug #63855 compilation fails on windows (patch from Erez H)
-    - Fixed bug #64535 php_ssh2_sftp_dirstream_read segfault on error (Matt Pelmear)
-    - Add reflection API support (Frédéric Hardy)
-    - Add exit-status support for ssh2 file wrappers (Vladimir Zidar)
-    - Fixed bug #58893 Unable to request a channel from remote host (Vladimir Zidar)
-    - Fix segfault when trying to authenticate in servers that do not support authentication (none) (Felipe Weckx)
+    - 
   </notes>
   <contents>
     <dir name="/">
