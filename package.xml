@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://pear.php.net/dtd/package-2.0" xmlns:tasks="http://pear.php.net/dtd/tasks-1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" packagerversion="1.4.7" version="2.0" xsi:schemaLocation="http://pear.php.net/dtd/tasks-1.0 http://pear.php.net/dtd/tasks-1.0.xsd http://pear.php.net/dtd/package-2.0 http://pear.php.net/dtd/package-2.0.xsd">
   <name>ssh2</name>
   <channel>pecl.php.net</channel>
@@ -31,19 +31,24 @@
     <email>pollita@php.net</email>
     <active>no</active>
   </lead>
-  <date>2012-10-15</date>
+  <date>2016-06-12</date>
   <version>
-    <release>0.12+dev</release>
-    <api>0.12</api>
+    <release>0.13</release>
+    <api>0.13</api>
   </version>
   <stability>
-    <release>beta</release>
-    <api>beta</api>
+    <release>stable</release>
+    <api>stable</api>
   </stability>
   <license uri="http://www.php.net/license">PHP License</license>
   <notes>
-    - Fixed Bug #63660 php_ssh2_fopen_wrapper_parse_path segfaults
-	- Fixed bug #64535 php_ssh2_sftp_dirstream_read segfault on error (Matt Pelmear)
+    - Fixed bug #63660 php_ssh2_fopen_wrapper_parse_path segfaults
+    - Fixed bug #63855 compilation fails on windows (patch from Erez H)
+    - Fixed bug #64535 php_ssh2_sftp_dirstream_read segfault on error (Matt Pelmear)
+    - Add reflection API support (Frédéric Hardy)
+    - Add exit-status support for ssh2 file wrappers (Vladimir Zidar)
+    - Fixed bug #58893 Unable to request a channel from remote host (Vladimir Zidar)
+    - Fix segfault when trying to authenticate in servers that do not support authentication (none) (Felipe Weckx)
   </notes>
   <contents>
     <dir name="/">
@@ -80,6 +85,22 @@
     <configureoption name="with-ssh2" default="autodetect" prompt="libssh2 prefix?"/>
   </extsrcrelease>
   <changelog>
+    <release>
+      <date>2016-06-12</date>
+      <version>
+        <release>0.13</release>
+        <api>0.13</api>
+      </version>
+      <notes>
+    - Fixed bug #63660 php_ssh2_fopen_wrapper_parse_path segfaults
+    - Fixed bug #63855 compilation fails on windows (patch from Erez H)
+    - Fixed bug #64535 php_ssh2_sftp_dirstream_read segfault on error (Matt Pelmear)
+    - Add reflection API support (Frédéric Hardy)
+    - Add exit-status support for ssh2 file wrappers (Vladimir Zidar)
+    - Fixed bug #58893 Unable to request a channel from remote host (Vladimir Zidar)
+    - Fix segfault when trying to authenticate in servers that do not support authentication (none) (Felipe Weckx)
+      </notes>
+    </release>    
     <release>
       <date>2012-10-15</date>
       <version>
