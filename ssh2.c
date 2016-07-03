@@ -1019,7 +1019,7 @@ PHP_FUNCTION(ssh2_publickey_add)
 			zend_hash_move_forward_ex(Z_ARRVAL_P(zattrs), &pos)) {
 			zend_string *key;
 			int type;
-			ulong idx;
+			zend_ulong idx;
 			zval copyval = *attr_val;
 
 			type = zend_hash_get_current_key_ex(Z_ARRVAL_P(zattrs), &key, &idx, &pos);

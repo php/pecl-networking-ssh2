@@ -501,7 +501,7 @@ static php_stream *php_ssh2_shell_open(LIBSSH2_SESSION *session, int resource_id
 	if (environment) {
 		zend_string *key;
 		int key_type;
-		ulong idx;
+		zend_ulong idx;
 
 		for(zend_hash_internal_pointer_reset(HASH_OF(environment));
 			(key_type = zend_hash_get_current_key_ex(HASH_OF(environment), &key, &idx, NULL)) != HASH_KEY_NON_EXISTENT;
@@ -569,9 +569,9 @@ static php_stream *php_ssh2_fopen_wrapper_shell(php_stream_wrapper *wrapper, con
 	php_stream *stream;
 	zval *tmpzval, *environment = NULL;
 	char *terminal = PHP_SSH2_DEFAULT_TERMINAL;
-	long width = PHP_SSH2_DEFAULT_TERM_WIDTH;
-	long height = PHP_SSH2_DEFAULT_TERM_HEIGHT;
-	long type = PHP_SSH2_DEFAULT_TERM_UNIT;
+	zend_long width = PHP_SSH2_DEFAULT_TERM_WIDTH;
+	zend_long height = PHP_SSH2_DEFAULT_TERM_HEIGHT;
+	zend_long type = PHP_SSH2_DEFAULT_TERM_UNIT;
 	int resource_id = 0, terminal_len = sizeof(PHP_SSH2_DEFAULT_TERMINAL) - 1;
 	php_url *resource;
 	char *s;
@@ -739,7 +739,7 @@ static php_stream *php_ssh2_exec_command(LIBSSH2_SESSION *session, int resource_
 	if (environment) {
 		zend_string *key = NULL;
 		int key_type;
-		ulong idx = 0;
+		zend_ulong idx = 0;
 		HashPosition pos;
 
 		for(zend_hash_internal_pointer_reset_ex(HASH_OF(environment), &pos);

@@ -149,7 +149,7 @@ static int php_ssh2_sftp_stream_close(php_stream *stream, int close_handle TSRML
 
 /* {{{ php_ssh2_sftp_stream_seek
  */
-static int php_ssh2_sftp_stream_seek(php_stream *stream, off_t offset, int whence, off_t *newoffset TSRMLS_DC)
+static int php_ssh2_sftp_stream_seek(php_stream *stream, zend_off_t offset, int whence, zend_off_t *newoffset TSRMLS_DC)
 {
 	php_ssh2_sftp_handle_data *data = (php_ssh2_sftp_handle_data*)stream->abstract;
 
@@ -168,7 +168,7 @@ static int php_ssh2_sftp_stream_seek(php_stream *stream, off_t offset, int whenc
 		}
 		case SEEK_CUR:
 		{
-			off_t current_offset = libssh2_sftp_tell(data->handle);
+			zend_off_t current_offset = libssh2_sftp_tell(data->handle);
 
 			if (current_offset < 0) {
 				return -1;
