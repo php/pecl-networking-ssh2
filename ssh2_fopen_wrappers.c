@@ -212,7 +212,7 @@ php_url *php_ssh2_fopen_wraper_parse_path(const char *path, char *type, php_stre
 	LIBSSH2_SESSION *session;
 	php_url *resource;
 	zval *methods = NULL, *callbacks = NULL, zsession, *tmpzval;
-	long resource_id;
+	zend_long resource_id;
 	char *s, *username = NULL, *password = NULL, *pubkey_file = NULL, *privkey_file = NULL;
 	int username_len = 0, password_len = 0;
 
