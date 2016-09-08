@@ -4,7 +4,7 @@ ssh2_sftp - SFTP tests
 <?php
   require('ssh2_skip.inc');
   ssh2t_needs_auth();
-  ssh2t_remote_writes();
+  ssh2t_writes_remote();
 --FILE--
 <?php require('ssh2_test.inc');
 
