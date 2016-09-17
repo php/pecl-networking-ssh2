@@ -25,18 +25,17 @@
 #include "php.h"
 #include "php_ssh2.h"
 
-void *zend_fetch_resource_by_id(int id) {
+void *php_ssh2_zval_from_resource_handle(int handle) {
 	zval *val;
 	zend_resource *zr;
 	ZEND_HASH_FOREACH_VAL(&EG(regular_list), val) {
 		zr = Z_RES_P(val);
-		if (zr->type == id) {
-			return zr->ptr;
+		if (zr->handle == handle) {
+			return val;
 		}
 	} ZEND_HASH_FOREACH_END();
 	return NULL;
 }
-
 
 /* **********************
    * channel_stream_ops *
@@ -47,10 +46,11 @@ static size_t php_ssh2_channel_stream_write(php_stream *stream, const char *buf,
 	php_ssh2_channel_data *abstract = (php_ssh2_channel_data*)stream->abstract;
 	size_t writestate;
 	LIBSSH2_SESSION *session;
+	zval *zresource;
 
 	libssh2_channel_set_blocking(abstract->channel, abstract->is_blocking);
-	session = (LIBSSH2_SESSION *)zend_fetch_resource_by_id(le_ssh2_session);
-
+	zresource = php_ssh2_zval_from_resource_handle(abstract->session_rsrc);
+	session = (LIBSSH2_SESSION *)zend_fetch_resource(Z_RES_P(zresource), PHP_SSH2_SESSION_RES_NAME, le_ssh2_session);
 
 #ifdef PHP_SSH2_SESSION_TIMEOUT
 	if (abstract->is_blocking) {
@@ -87,10 +87,12 @@ static size_t php_ssh2_channel_stream_read(php_stream *stream, char *buf, size_t
 	php_ssh2_channel_data *abstract = (php_ssh2_channel_data*)stream->abstract;
 	ssize_t readstate;
 	LIBSSH2_SESSION *session;
+	zval *zresource;
 
 	stream->eof = libssh2_channel_eof(abstract->channel);
 	libssh2_channel_set_blocking(abstract->channel, abstract->is_blocking);
-	session = (LIBSSH2_SESSION *)zend_fetch_resource_by_id(le_ssh2_session);
+	zresource = php_ssh2_zval_from_resource_handle(abstract->session_rsrc);
+	session = (LIBSSH2_SESSION *)zend_fetch_resource(Z_RES_P(zresource), PHP_SSH2_SESSION_RES_NAME, le_ssh2_session);
 
 #ifdef PHP_SSH2_SESSION_TIMEOUT
 	if (abstract->is_blocking) {
@@ -252,9 +254,12 @@ php_url *php_ssh2_fopen_wraper_parse_path(const char *path, char *type, php_stre
 	}
 	if (is_numeric_string(s, strlen(s), &resource_id, NULL, 0) == IS_LONG) {
 		php_ssh2_sftp_data *sftp_data;
+		zval *zresource;
+
+		zresource = php_ssh2_zval_from_resource_handle(resource_id);
 
 		if (psftp) {
-			sftp_data = (php_ssh2_sftp_data*)zend_fetch_resource_by_id(le_ssh2_sftp);
+			sftp_data = (php_ssh2_sftp_data *)zend_fetch_resource(Z_RES_P(zresource), PHP_SSH2_SFTP_RES_NAME, le_ssh2_sftp);
 			if (sftp_data) {
 				/* Want the sftp layer */
 				//TODO Sean-Der
@@ -266,7 +271,8 @@ php_url *php_ssh2_fopen_wraper_parse_path(const char *path, char *type, php_stre
 				return resource;
 			}
 		}
-		session = (LIBSSH2_SESSION *)zend_fetch_resource_by_id(le_ssh2_session);
+
+		session = (LIBSSH2_SESSION *)zend_fetch_resource(Z_RES_P(zresource), PHP_SSH2_SESSION_RES_NAME, le_ssh2_session);
 		if (session) {
 			if (psftp) {
 				/* We need an sftp layer too */
