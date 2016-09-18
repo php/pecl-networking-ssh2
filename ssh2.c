@@ -897,7 +897,7 @@ PHP_FUNCTION(ssh2_poll)
 			pollfds[i].type = LIBSSH2_POLLFD_LISTENER;
 			pollfds[i].fd.listener = ((php_ssh2_listener_data*)res)->listener;
 		} else if ((res_type == le_stream || res_type == le_pstream) &&
-				   ((php_stream*)res)->ops == &php_ssh2_channel_stream_ops) {
+								((php_stream*)res)->ops == &php_ssh2_channel_stream_ops) {
 			pollfds[i].type = LIBSSH2_POLLFD_CHANNEL;
 			pollfds[i].fd.channel = ((php_ssh2_channel_data*)(((php_stream*)res)->abstract))->channel;
 			/* TODO: Add the ability to select against other stream types */
