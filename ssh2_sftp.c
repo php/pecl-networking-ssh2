@@ -389,6 +389,7 @@ static int php_ssh2_sftp_urlstat(php_stream_wrapper *wrapper, const char *url, i
 	if (libssh2_sftp_stat_ex(sftp, resource->path, strlen(resource->path),
 		(flags & PHP_STREAM_URL_STAT_LINK) ? LIBSSH2_SFTP_LSTAT : LIBSSH2_SFTP_STAT, &attrs)) {
 		php_url_free(resource);
+		// TODO
 		//zend_list_delete(sftp_rsrcid);
 		return -1;
 	}
@@ -396,6 +397,7 @@ static int php_ssh2_sftp_urlstat(php_stream_wrapper *wrapper, const char *url, i
 	php_url_free(resource);
 
 	/* parse_path addrefs the resource, but we're not holding on to it so we have to delref it before we leave */
+	// TODO
 	//zend_list_delete(sftp_rsrcid);
 
 	return php_ssh2_sftp_attr2ssb(ssb, &attrs);
@@ -423,6 +425,7 @@ static int php_ssh2_sftp_unlink(php_stream_wrapper *wrapper, const char *url, in
 	result = libssh2_sftp_unlink(sftp, resource->path);
 	php_url_free(resource);
 
+	// TODO
 	//zend_list_delete(sftp_rsrcid);
 
 	/* libssh2 uses 0 for success and the streams API uses 0 for failure, so invert */
@@ -466,6 +469,7 @@ static int php_ssh2_sftp_rename(php_stream_wrapper *wrapper, const char *url_fro
 	php_url_free(resource);
 	php_url_free(resource_to);
 
+	// TODO
 	//zend_list_delete(sftp_rsrcid);
 
 	/* libssh2 uses 0 for success and the streams API uses 0 for failure, so invert */
@@ -502,6 +506,7 @@ static int php_ssh2_sftp_mkdir(php_stream_wrapper *wrapper, const char *url, int
 	result = libssh2_sftp_mkdir(sftp, resource->path, mode);
 	php_url_free(resource);
 
+	// TODO
 	//zend_list_delete(sftp_rsrcid);
 
 	/* libssh2 uses 0 for success and the streams API uses 0 for failure, so invert */
@@ -530,6 +535,7 @@ static int php_ssh2_sftp_rmdir(php_stream_wrapper *wrapper, const char *url, int
 	result = libssh2_sftp_rmdir(sftp, resource->path);
 	php_url_free(resource);
 
+	// TODO
 	//zend_list_delete(sftp_rsrcid);
 
 	/* libssh2 uses 0 for success and the streams API uses 0 for failure, so invert */

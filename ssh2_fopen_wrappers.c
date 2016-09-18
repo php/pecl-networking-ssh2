@@ -469,7 +469,7 @@ session_authed:
 		sftp_data->session_rsrcid = Z_LVAL(zsession);
 
 		//TODO Sean-Der
-		//ZEND_REGISTER_RESOURCE(sftp_data, le_ssh2_sftp);
+		//ZEND_REGISTER_RESOURCE(&zsftp, sftp_data, le_ssh2_sftp);
 		*psftp_rsrcid = Z_LVAL(zsftp);
 		*psftp = sftp;
 	}
@@ -1135,8 +1135,10 @@ PHP_FUNCTION(ssh2_scp_send)
 
 	remote_file = libssh2_scp_send_ex(session, remote_filename, create_mode, ssb.sb.st_size, ssb.sb.st_atime, ssb.sb.st_mtime);
 	if (!remote_file) {
+		//int last_error = 0;
 		char *error_msg = NULL;
 
+		//last_error = libssh2_session_last_error(session, &error_msg, NULL, 0);
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failure creating remote file: %s", error_msg);
 		php_stream_close(local_file);
 		RETURN_FALSE;
