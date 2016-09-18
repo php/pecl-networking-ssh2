@@ -25,7 +25,7 @@
 #include <libssh2_sftp.h>
 #include "ext/standard/url.h"
 
-#define PHP_SSH2_VERSION					"1.0+dev"
+#define PHP_SSH2_VERSION				"1.0+dev"
 #define PHP_SSH2_DEFAULT_PORT			22
 
 /* Exported Constants */
@@ -167,15 +167,6 @@ extern php_stream_wrapper php_ssh2_sftp_wrapper;
 extern int le_ssh2_session;
 extern int le_ssh2_sftp;
 
-/* {{{ ZIP_OPENBASEDIR_CHECKPATH(filename) */
-#if PHP_API_VERSION < 20100412
-# define SSH2_OPENBASEDIR_CHECKPATH(filename) \
-	(PG(safe_mode) && (!php_checkuid(filename, NULL, CHECKUID_CHECK_FILE_AND_DIR))) || php_check_open_basedir(filename TSRMLS_CC)
-#else
-#define SSH2_OPENBASEDIR_CHECKPATH(filename) \
-	php_check_open_basedir(filename TSRMLS_CC)
-#endif
-/* }}} */
 #endif	/* PHP_SSH2_H */
 
 

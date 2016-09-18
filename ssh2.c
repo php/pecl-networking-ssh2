@@ -665,7 +665,7 @@ PHP_FUNCTION(ssh2_auth_pubkey_file)
 		return;
 	}
 
-	if (SSH2_OPENBASEDIR_CHECKPATH(pubkey) || SSH2_OPENBASEDIR_CHECKPATH(privkey)) {
+	if (php_check_open_basedir(pubkey) || php_check_open_basedir(privkey)) {
 		RETURN_FALSE;
 	}
 
@@ -722,7 +722,7 @@ PHP_FUNCTION(ssh2_auth_hostbased_file)
 		return;
 	}
 
-	if (SSH2_OPENBASEDIR_CHECKPATH(pubkey) || SSH2_OPENBASEDIR_CHECKPATH(privkey)) {
+	if (php_check_open_basedir(pubkey) || php_check_open_basedir(privkey)) {
 		RETURN_FALSE;
 	}
 
@@ -1603,9 +1603,7 @@ zend_function_entry ssh2_functions[] = {
 /* {{{ ssh2_module_entry
  */
 zend_module_entry ssh2_module_entry = {
-#if ZEND_MODULE_API_NO >= 20010901
 	STANDARD_MODULE_HEADER,
-#endif
 	"ssh2",
 	ssh2_functions,
 	PHP_MINIT(ssh2),
@@ -1613,9 +1611,7 @@ zend_module_entry ssh2_module_entry = {
 	NULL, /* RINIT */
 	NULL, /* RSHUTDOWN */
 	PHP_MINFO(ssh2),
-#if ZEND_MODULE_API_NO >= 20010901
 	PHP_SSH2_VERSION,
-#endif
 	STANDARD_MODULE_PROPERTIES
 };
 /* }}} */
