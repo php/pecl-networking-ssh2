@@ -890,8 +890,7 @@ PHP_FUNCTION(ssh2_poll)
 		}
 		zend_string_release(hash_key_zstring);
 
-		//TODO Sean-Der
-		//zend_list_find(Z_LVAL_P(tmpzval), &res_type);
+		res_type = Z_RES_P(tmpzval)->type;
 		res = zend_fetch_resource_ex(tmpzval, "Poll Resource", res_type);
 		if (res_type == le_ssh2_listener) {
 			pollfds[i].type = LIBSSH2_POLLFD_LISTENER;
@@ -902,8 +901,7 @@ PHP_FUNCTION(ssh2_poll)
 			pollfds[i].fd.channel = ((php_ssh2_channel_data*)(((php_stream*)res)->abstract))->channel;
 			/* TODO: Add the ability to select against other stream types */
 		} else {
-			// TODO Sean-Der
-			//php_error_docref(NULL TSRMLS_CC, E_WARNING, "Invalid resource type in subarray: %s", zend_rsrc_list_get_rsrc_type(Z_LVAL_PP(tmpzval) TSRMLS_CC));
+			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Invalid resource type in subarray: %s", zend_rsrc_list_get_rsrc_type(Z_RES_P(tmpzval)));
 			numfds--;
 			continue;
 		}
