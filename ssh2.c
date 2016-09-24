@@ -1,22 +1,22 @@
 /*
-  +----------------------------------------------------------------------+
-  | PHP Version 4                                                        |
-  +----------------------------------------------------------------------+
-  | Copyright (c) 1997-2006 The PHP Group                                |
-  +----------------------------------------------------------------------+
-  | This source file is subject to version 3.01 of the PHP license,      |
-  | that is bundled with this package in the file LICENSE, and is        |
-  | available at through the world-wide-web at                           |
-  | http://www.php.net/license/3_01.txt.                                 |
-  | If you did not receive a copy of the PHP license and are unable to   |
-  | obtain it through the world-wide-web, please send a note to          |
-  | license@php.net so we can mail you a copy immediately.               |
-  +----------------------------------------------------------------------+
-  | Author: Sara Golemon <pollita@php.net>                               |
-  +----------------------------------------------------------------------+
-
-  $Id$
+   +----------------------------------------------------------------------+
+   | PHP Version 7                                                        |
+   +----------------------------------------------------------------------+
+   | Copyright (c) 1997-2016 The PHP Group                                |
+   +----------------------------------------------------------------------+
+   | This source file is subject to version 3.01 of the PHP license,      |
+   | that is bundled with this package in the file LICENSE, and is        |
+   | available through the world-wide-web at the following url:           |
+   | http://www.php.net/license/3_01.txt                                  |
+   | If you did not receive a copy of the PHP license and are unable to   |
+   | obtain it through the world-wide-web, please send a note to          |
+   | license@php.net so we can mail you a copy immediately.               |
+   +----------------------------------------------------------------------+
+   | Author: Sara Golemon <pollita@php.net>                               |
+   +----------------------------------------------------------------------+
 */
+
+/* $Id$ */
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -102,8 +102,8 @@ LIBSSH2_DEBUG_FUNC(php_ssh2_debug_cb)
 	ZVAL_STRINGL(&args[1], language, language_len);
 	ZVAL_LONG(&args[2], always_display);
 
-	if (FAILURE == call_user_function_ex(NULL, NULL, data->disconnect_cb, NULL, 3, args, 0, NULL TSRMLS_CC)) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failure calling disconnect callback");
+	if (FAILURE == call_user_function_ex(NULL, NULL, data->disconnect_cb, NULL, 3, args, 0, NULL)) {
+		php_error_docref(NULL, E_WARNING, "Failure calling disconnect callback");
 	}
 }
 /* }}} */
@@ -127,8 +127,8 @@ LIBSSH2_IGNORE_FUNC(php_ssh2_ignore_cb)
 
 	ZVAL_STRINGL(&args[0], message, message_len);
 
-	if (FAILURE == call_user_function_ex(NULL, NULL, data->ignore_cb, &zretval, 1, args, 0, NULL TSRMLS_CC)) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failure calling ignore callback");
+	if (FAILURE == call_user_function_ex(NULL, NULL, data->ignore_cb, &zretval, 1, args, 0, NULL)) {
+		php_error_docref(NULL, E_WARNING, "Failure calling ignore callback");
 	}
 	if (Z_TYPE_P(&zretval) != IS_UNDEF) {
 		zval_ptr_dtor(&zretval);
@@ -157,8 +157,8 @@ LIBSSH2_MACERROR_FUNC(php_ssh2_macerror_cb)
 
 	ZVAL_STRINGL(&args[0], packet, packet_len);
 
-	if (FAILURE == call_user_function_ex(NULL, NULL, data->macerror_cb, &zretval, 1, args, 0, NULL TSRMLS_CC)) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failure calling macerror callback");
+	if (FAILURE == call_user_function_ex(NULL, NULL, data->macerror_cb, &zretval, 1, args, 0, NULL)) {
+		php_error_docref(NULL, E_WARNING, "Failure calling macerror callback");
 	} else {
 		retval = zval_is_true(&zretval) ? 0 : -1;
 	}
@@ -190,8 +190,8 @@ LIBSSH2_DISCONNECT_FUNC(php_ssh2_disconnect_cb)
 	ZVAL_STRINGL(&args[1], message, message_len);
 	ZVAL_STRINGL(&args[2], language, language_len);
 
-	if (FAILURE == call_user_function_ex(NULL, NULL, data->disconnect_cb, NULL, 3, args, 0, NULL TSRMLS_CC)) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failure calling disconnect callback");
+	if (FAILURE == call_user_function_ex(NULL, NULL, data->disconnect_cb, NULL, 3, args, 0, NULL)) {
+		php_error_docref(NULL, E_WARNING, "Failure calling disconnect callback");
 	}
 }
 /* }}} */
@@ -205,7 +205,7 @@ LIBSSH2_DISCONNECT_FUNC(php_ssh2_disconnect_cb)
 /* {{{ php_ssh2_set_callback
  * Try to set a method if it's passed in with the hash table
  */
-static int php_ssh2_set_callback(LIBSSH2_SESSION *session, HashTable *ht, char *callback, int callback_len, int callback_type, php_ssh2_session_data *data TSRMLS_DC)
+static int php_ssh2_set_callback(LIBSSH2_SESSION *session, HashTable *ht, char *callback, int callback_len, int callback_type, php_ssh2_session_data *data)
 {
 	zval *handler, *copyval;
 	void *internal_handler;
@@ -292,7 +292,7 @@ static int php_ssh2_set_method(LIBSSH2_SESSION *session, HashTable *ht, char *me
 /* {{{ php_ssh2_session_connect
  * Connect to an SSH server with requested methods
  */
-LIBSSH2_SESSION *php_ssh2_session_connect(char *host, int port, zval *methods, zval *callbacks TSRMLS_DC)
+LIBSSH2_SESSION *php_ssh2_session_connect(char *host, int port, zval *methods, zval *callbacks)
 {
 	LIBSSH2_SESSION *session;
 	int socket;
@@ -306,7 +306,7 @@ LIBSSH2_SESSION *php_ssh2_session_connect(char *host, int port, zval *methods, z
 	socket = php_network_connect_socket_to_host(host, port, SOCK_STREAM, 0, &tv, NULL, NULL, NULL, 0, STREAM_SOCKOP_NONE);
 
 	if (socket <= 0) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to connect to %s on port %d", host, port);
+		php_error_docref(NULL, E_WARNING, "Unable to connect to %s on port %d", host, port);
 		return NULL;
 	}
 
@@ -315,7 +315,7 @@ LIBSSH2_SESSION *php_ssh2_session_connect(char *host, int port, zval *methods, z
 
 	session = libssh2_session_init_ex(php_ssh2_alloc_cb, php_ssh2_free_cb, php_ssh2_realloc_cb, data);
 	if (!session) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to initialize SSH2 session");
+		php_error_docref(NULL, E_WARNING, "Unable to initialize SSH2 session");
 		efree(data);
 		closesocket(socket);
 		return NULL;
@@ -327,25 +327,25 @@ LIBSSH2_SESSION *php_ssh2_session_connect(char *host, int port, zval *methods, z
 		zval *container;
 
 		if (php_ssh2_set_method(session, HASH_OF(methods), "kex", sizeof("kex") - 1, LIBSSH2_METHOD_KEX)) {
-			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failed overriding KEX method");
+			php_error_docref(NULL, E_WARNING, "Failed overriding KEX method");
 		}
 		if (php_ssh2_set_method(session, HASH_OF(methods), "hostkey", sizeof("hostkey") - 1, LIBSSH2_METHOD_HOSTKEY)) {
-			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failed overriding HOSTKEY method");
+			php_error_docref(NULL, E_WARNING, "Failed overriding HOSTKEY method");
 		}
 
 		hash_lookup_zstring = zend_string_init("client_to_server", sizeof("client_to_server") - 1, 0);
 		if ((container = zend_hash_find(HASH_OF(methods), hash_lookup_zstring)) != NULL && Z_TYPE_P(container) == IS_ARRAY) {
 			if (php_ssh2_set_method(session, HASH_OF(container), "crypt", sizeof("crypt") - 1, LIBSSH2_METHOD_CRYPT_CS)) {
-				php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failed overriding client to server CRYPT method");
+				php_error_docref(NULL, E_WARNING, "Failed overriding client to server CRYPT method");
 			}
 			if (php_ssh2_set_method(session, HASH_OF(container), "mac", sizeof("mac") - 1, LIBSSH2_METHOD_MAC_CS)) {
-				php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failed overriding client to server MAC method");
+				php_error_docref(NULL, E_WARNING, "Failed overriding client to server MAC method");
 			}
 			if (php_ssh2_set_method(session, HASH_OF(container), "comp", sizeof("comp") - 1, LIBSSH2_METHOD_COMP_CS)) {
-				php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failed overriding client to server COMP method");
+				php_error_docref(NULL, E_WARNING, "Failed overriding client to server COMP method");
 			}
 			if (php_ssh2_set_method(session, HASH_OF(container), "lang", sizeof("lang") - 1, LIBSSH2_METHOD_LANG_CS)) {
-				php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failed overriding client to server LANG method");
+				php_error_docref(NULL, E_WARNING, "Failed overriding client to server LANG method");
 			}
 		}
 		zend_string_release(hash_lookup_zstring);
@@ -353,16 +353,16 @@ LIBSSH2_SESSION *php_ssh2_session_connect(char *host, int port, zval *methods, z
 		hash_lookup_zstring = zend_string_init("server_to_client", sizeof("server_to_client") - 1, 0);
 		if ((container = zend_hash_find(HASH_OF(methods), hash_lookup_zstring)) != NULL && Z_TYPE_P(container) == IS_ARRAY) {
 			if (php_ssh2_set_method(session, HASH_OF(container), "crypt", sizeof("crypt") - 1, LIBSSH2_METHOD_CRYPT_SC)) {
-				php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failed overriding server to client CRYPT method");
+				php_error_docref(NULL, E_WARNING, "Failed overriding server to client CRYPT method");
 			}
 			if (php_ssh2_set_method(session, HASH_OF(container), "mac", sizeof("mac") - 1, LIBSSH2_METHOD_MAC_SC)) {
-				php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failed overriding server to client MAC method");
+				php_error_docref(NULL, E_WARNING, "Failed overriding server to client MAC method");
 			}
 			if (php_ssh2_set_method(session, HASH_OF(container), "comp", sizeof("comp") - 1, LIBSSH2_METHOD_COMP_SC)) {
-				php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failed overriding server to client COMP method");
+				php_error_docref(NULL, E_WARNING, "Failed overriding server to client COMP method");
 			}
 			if (php_ssh2_set_method(session, HASH_OF(container), "lang", sizeof("lang") - 1, LIBSSH2_METHOD_LANG_SC)) {
-				php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failed overriding server to client LANG method");
+				php_error_docref(NULL, E_WARNING, "Failed overriding server to client LANG method");
 			}
 		}
 		zend_string_release(hash_lookup_zstring);
@@ -373,20 +373,20 @@ LIBSSH2_SESSION *php_ssh2_session_connect(char *host, int port, zval *methods, z
 	if (callbacks) {
 		/* ignore debug disconnect macerror */
 
-		if (php_ssh2_set_callback(session, HASH_OF(callbacks), "ignore", sizeof("ignore") - 1, LIBSSH2_CALLBACK_IGNORE, data TSRMLS_CC)) {
-			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failed setting IGNORE callback");
+		if (php_ssh2_set_callback(session, HASH_OF(callbacks), "ignore", sizeof("ignore") - 1, LIBSSH2_CALLBACK_IGNORE, data)) {
+			php_error_docref(NULL, E_WARNING, "Failed setting IGNORE callback");
 		}
 
-		if (php_ssh2_set_callback(session, HASH_OF(callbacks), "debug", sizeof("debug") - 1, LIBSSH2_CALLBACK_DEBUG, data TSRMLS_CC)) {
-			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failed setting DEBUG callback");
+		if (php_ssh2_set_callback(session, HASH_OF(callbacks), "debug", sizeof("debug") - 1, LIBSSH2_CALLBACK_DEBUG, data)) {
+			php_error_docref(NULL, E_WARNING, "Failed setting DEBUG callback");
 		}
 
-		if (php_ssh2_set_callback(session, HASH_OF(callbacks), "macerror", sizeof("macerror") - 1, LIBSSH2_CALLBACK_MACERROR, data TSRMLS_CC)) {
-			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failed setting MACERROR callback");
+		if (php_ssh2_set_callback(session, HASH_OF(callbacks), "macerror", sizeof("macerror") - 1, LIBSSH2_CALLBACK_MACERROR, data)) {
+			php_error_docref(NULL, E_WARNING, "Failed setting MACERROR callback");
 		}
 
-		if (php_ssh2_set_callback(session, HASH_OF(callbacks), "disconnect", sizeof("disconnect") - 1, LIBSSH2_CALLBACK_DISCONNECT, data TSRMLS_CC)) {
-			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failed setting DISCONNECT callback");
+		if (php_ssh2_set_callback(session, HASH_OF(callbacks), "disconnect", sizeof("disconnect") - 1, LIBSSH2_CALLBACK_DISCONNECT, data)) {
+			php_error_docref(NULL, E_WARNING, "Failed setting DISCONNECT callback");
 		}
 	}
 
@@ -395,7 +395,7 @@ LIBSSH2_SESSION *php_ssh2_session_connect(char *host, int port, zval *methods, z
 		char *error_msg = NULL;
 
 		last_error = libssh2_session_last_error(session, &error_msg, NULL, 0);
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Error starting up SSH connection(%d): %s", last_error, error_msg);
+		php_error_docref(NULL, E_WARNING, "Error starting up SSH connection(%d): %s", last_error, error_msg);
 		closesocket(socket);
 		libssh2_session_free(session);
 		efree(data);
@@ -417,13 +417,13 @@ PHP_FUNCTION(ssh2_connect)
 	zend_long port = PHP_SSH2_DEFAULT_PORT;
 	size_t host_len;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|la!a!", &host, &host_len, &port, &methods, &callbacks) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "s|la!a!", &host, &host_len, &port, &methods, &callbacks) == FAILURE) {
 		return;
 	}
 
-	session = php_ssh2_session_connect(host, port, methods, callbacks TSRMLS_CC);
+	session = php_ssh2_session_connect(host, port, methods, callbacks);
 	if (!session) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to connect to %s", host);
+		php_error_docref(NULL, E_WARNING, "Unable to connect to %s", host);
 		RETURN_FALSE;
 	}
 
@@ -438,7 +438,7 @@ PHP_FUNCTION(ssh2_disconnect)
 {
 	zval *zsession;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &zsession) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "r", &zsession) == FAILURE) {
 		RETURN_FALSE;
 	}
 
@@ -459,7 +459,7 @@ PHP_FUNCTION(ssh2_methods_negotiated)
 	zval *zsession, endpoint;
 	char *kex, *hostkey, *crypt_cs, *crypt_sc, *mac_cs, *mac_sc, *comp_cs, *comp_sc, *lang_cs, *lang_sc;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &zsession) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "r", &zsession) == FAILURE) {
 		return;
 	}
 
@@ -510,7 +510,7 @@ PHP_FUNCTION(ssh2_fingerprint)
 	zend_long flags = 0;
 	int i, fingerprint_len;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|l", &zsession, &flags) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "r|l", &zsession, &flags) == FAILURE) {
 		return;
 	}
 	fingerprint_len = (flags & PHP_SSH2_FINGERPRINT_SHA1) ? SHA_DIGEST_LENGTH : MD5_DIGEST_LENGTH;
@@ -521,7 +521,7 @@ PHP_FUNCTION(ssh2_fingerprint)
 
 	fingerprint = (char*)libssh2_hostkey_hash(session, (flags & PHP_SSH2_FINGERPRINT_SHA1) ? LIBSSH2_HOSTKEY_HASH_SHA1 : LIBSSH2_HOSTKEY_HASH_MD5);
 	if (!fingerprint) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to retrieve fingerprint from specified session");
+		php_error_docref(NULL, E_WARNING, "Unable to retrieve fingerprint from specified session");
 		RETURN_FALSE;
 	}
 
@@ -530,7 +530,7 @@ PHP_FUNCTION(ssh2_fingerprint)
 			goto fingerprint_good;
 		}
 	}
-	php_error_docref(NULL TSRMLS_CC, E_WARNING, "No fingerprint available using specified hash");
+	php_error_docref(NULL, E_WARNING, "No fingerprint available using specified hash");
 	RETURN_NULL();
  fingerprint_good:
 	if (flags & PHP_SSH2_FINGERPRINT_RAW) {
@@ -559,7 +559,7 @@ PHP_FUNCTION(ssh2_auth_none)
 	char *username, *methods, *s, *p;
 	size_t username_len;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zsession, &username, &username_len) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "rs", &zsession, &username, &username_len) == FAILURE) {
 		return;
 	}
 
@@ -617,7 +617,7 @@ PHP_FUNCTION(ssh2_auth_password)
 	zend_string *username, *password;
 	char *userauthlist;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rSS", &zsession, &username, &password) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "rSS", &zsession, &username, &password) == FAILURE) {
 		return;
 	}
 
@@ -635,7 +635,7 @@ PHP_FUNCTION(ssh2_auth_password)
 
 		/* TODO: Support password change callback */
 		if (libssh2_userauth_password_ex(session, username->val, username->len, password->val, password->len, NULL)) {
-			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Authentication failed for %s using password", username->val);
+			php_error_docref(NULL, E_WARNING, "Authentication failed for %s using password", username->val);
 			RETURN_FALSE;
 		}
 	}
@@ -658,14 +658,14 @@ PHP_FUNCTION(ssh2_auth_pubkey_file)
 	struct passwd *pws;
 #endif
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsss|s", &zsession,	&username, &username_len,
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "rsss|s", &zsession,	&username, &username_len,
 																				&pubkey, &pubkey_len,
 																				&privkey, &privkey_len,
 																				&passphrase, &passphrase_len) == FAILURE) {
 		return;
 	}
 
-	if (SSH2_OPENBASEDIR_CHECKPATH(pubkey) || SSH2_OPENBASEDIR_CHECKPATH(privkey)) {
+	if (php_check_open_basedir(pubkey) || php_check_open_basedir(privkey)) {
 		RETURN_FALSE;
 	}
 
@@ -695,7 +695,7 @@ PHP_FUNCTION(ssh2_auth_pubkey_file)
 		char *buf;
 		int len;
 		libssh2_session_last_error(session, &buf, &len, 0);
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Authentication failed for %s using public key: %s", username, buf);
+		php_error_docref(NULL, E_WARNING, "Authentication failed for %s using public key: %s", username, buf);
 		RETURN_FALSE;
 	}
 
@@ -713,7 +713,7 @@ PHP_FUNCTION(ssh2_auth_hostbased_file)
 	char *username, *hostname, *pubkey, *privkey, *passphrase = NULL, *local_username = NULL;
 	size_t username_len, hostname_len, pubkey_len, privkey_len, passphrase_len, local_username_len;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rssss|s!s!", &zsession,	&username, &username_len,
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "rssss|s!s!", &zsession,	&username, &username_len,
 																					&hostname, &hostname_len,
 																					&pubkey, &pubkey_len,
 																					&privkey, &privkey_len,
@@ -722,7 +722,7 @@ PHP_FUNCTION(ssh2_auth_hostbased_file)
 		return;
 	}
 
-	if (SSH2_OPENBASEDIR_CHECKPATH(pubkey) || SSH2_OPENBASEDIR_CHECKPATH(privkey)) {
+	if (php_check_open_basedir(pubkey) || php_check_open_basedir(privkey)) {
 		RETURN_FALSE;
 	}
 
@@ -735,7 +735,7 @@ PHP_FUNCTION(ssh2_auth_hostbased_file)
 
 	/* TODO: Support passphrase callback */
 	if (libssh2_userauth_hostbased_fromfile_ex(session, username, username_len, pubkey, privkey, passphrase, hostname, hostname_len, local_username, local_username_len)) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Authentication failed for %s using hostbased public key", username);
+		php_error_docref(NULL, E_WARNING, "Authentication failed for %s using hostbased public key", username);
 		RETURN_FALSE;
 	}
 
@@ -757,7 +757,7 @@ PHP_FUNCTION(ssh2_forward_listen)
 	size_t host_len;
 	zend_long max_connections = PHP_SSH2_LISTEN_MAX_QUEUED;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl|sl", &zsession, &port, &host, &host_len, &max_connections) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "rl|sl", &zsession, &port, &host, &host_len, &max_connections) == FAILURE) {
 		return;
 	}
 
@@ -766,7 +766,7 @@ PHP_FUNCTION(ssh2_forward_listen)
 	listener = libssh2_channel_forward_listen_ex(session, host, port, NULL, max_connections);
 
 	if (!listener) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failure listening on remote port");
+		php_error_docref(NULL, E_WARNING, "Failure listening on remote port");
 		RETURN_FALSE;
 	}
 
@@ -792,7 +792,7 @@ PHP_FUNCTION(ssh2_forward_accept)
 	php_ssh2_channel_data *channel_data;
 	php_stream *stream;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &zlistener) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "r", &zlistener) == FAILURE) {
 		return;
 	}
 
@@ -815,7 +815,7 @@ PHP_FUNCTION(ssh2_forward_accept)
 
 	stream = php_stream_alloc(&php_ssh2_channel_stream_ops, channel_data, 0, "r+");
 	if (!stream) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failure allocating stream");
+		php_error_docref(NULL, E_WARNING, "Failure allocating stream");
 		efree(channel_data);
 		libssh2_channel_free(channel);
 		RETURN_FALSE;
@@ -850,7 +850,7 @@ PHP_FUNCTION(ssh2_poll)
 	int le_pstream = php_file_le_pstream();
 	zend_string *hash_key_zstring;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "a|l", &zdesc, &timeout) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "a|l", &zdesc, &timeout) == FAILURE) {
 		return;
 	}
 
@@ -866,14 +866,14 @@ PHP_FUNCTION(ssh2_poll)
 		void *res;
 
 		if (Z_TYPE_P(subarray) != IS_ARRAY) {
-			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Invalid element in poll array, not a sub array");
+			php_error_docref(NULL, E_WARNING, "Invalid element in poll array, not a sub array");
 			numfds--;
 			continue;
 		}
 
 		hash_key_zstring = zend_string_init("events", sizeof("events") - 1, 0);
 		if ((tmpzval = zend_hash_find(Z_ARRVAL_P(subarray), hash_key_zstring)) == NULL || Z_TYPE_P(tmpzval) != IS_LONG) {
-			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Invalid data in subarray, no events element, or not a bitmask");
+			php_error_docref(NULL, E_WARNING, "Invalid data in subarray, no events element, or not a bitmask");
 			numfds--;
 			zend_string_release(hash_key_zstring);
 			continue;
@@ -883,27 +883,25 @@ PHP_FUNCTION(ssh2_poll)
 		pollfds[i].events = Z_LVAL_P(tmpzval);
 		hash_key_zstring = zend_string_init("resource", sizeof("resource") - 1, 0);
 		if ((tmpzval = zend_hash_find(Z_ARRVAL_P(subarray), hash_key_zstring)) == NULL || Z_TYPE_P(tmpzval) != IS_RESOURCE) {
-			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Invalid data in subarray, no resource element, or not of type resource");
+			php_error_docref(NULL, E_WARNING, "Invalid data in subarray, no resource element, or not of type resource");
 			numfds--;
 			zend_string_release(hash_key_zstring);
 			continue;
 		}
 		zend_string_release(hash_key_zstring);
 
-		//TODO Sean-Der
-		//zend_list_find(Z_LVAL_P(tmpzval), &res_type);
+		res_type = Z_RES_P(tmpzval)->type;
 		res = zend_fetch_resource_ex(tmpzval, "Poll Resource", res_type);
 		if (res_type == le_ssh2_listener) {
 			pollfds[i].type = LIBSSH2_POLLFD_LISTENER;
 			pollfds[i].fd.listener = ((php_ssh2_listener_data*)res)->listener;
 		} else if ((res_type == le_stream || res_type == le_pstream) &&
-				   ((php_stream*)res)->ops == &php_ssh2_channel_stream_ops) {
+								((php_stream*)res)->ops == &php_ssh2_channel_stream_ops) {
 			pollfds[i].type = LIBSSH2_POLLFD_CHANNEL;
 			pollfds[i].fd.channel = ((php_ssh2_channel_data*)(((php_stream*)res)->abstract))->channel;
 			/* TODO: Add the ability to select against other stream types */
 		} else {
-			// TODO Sean-Der
-			//php_error_docref(NULL TSRMLS_CC, E_WARNING, "Invalid resource type in subarray: %s", zend_rsrc_list_get_rsrc_type(Z_LVAL_PP(tmpzval) TSRMLS_CC));
+			php_error_docref(NULL, E_WARNING, "Invalid resource type in subarray: %s", zend_rsrc_list_get_rsrc_type(Z_RES_P(tmpzval)));
 			numfds--;
 			continue;
 		}
@@ -958,7 +956,7 @@ PHP_FUNCTION(ssh2_publickey_init)
 	LIBSSH2_PUBLICKEY *pkey;
 	php_ssh2_pkey_subsys_data *data;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &zsession) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "r", &zsession) == FAILURE) {
 		return;
 	}
 
@@ -971,7 +969,7 @@ PHP_FUNCTION(ssh2_publickey_init)
 		char *error_msg = NULL;
 
 		last_error = libssh2_session_last_error(session, &error_msg, NULL, 0);
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to initialize publickey subsystem(%d) %s", last_error, error_msg);
+		php_error_docref(NULL, E_WARNING, "Unable to initialize publickey subsystem(%d) %s", last_error, error_msg);
 		RETURN_FALSE;
 	}
 
@@ -998,7 +996,7 @@ PHP_FUNCTION(ssh2_publickey_add)
 	libssh2_publickey_attribute *attrs = NULL;
 	zend_bool overwrite = 0;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss|ba", &zpkey_data, &algo, &algo_len, &blob, &blob_len, &overwrite, &zattrs) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "rss|ba", &zpkey_data, &algo, &algo_len, &blob, &blob_len, &overwrite, &zattrs) == FAILURE) {
 		return;
 	}
 
@@ -1029,14 +1027,14 @@ PHP_FUNCTION(ssh2_publickey_add)
 			}
 			if (type == HASH_KEY_IS_LONG) {
 				/* Malformed, ignore */
-				php_error_docref(NULL TSRMLS_CC, E_WARNING, "Malformed attirbute array, contains numeric index");
+				php_error_docref(NULL, E_WARNING, "Malformed attirbute array, contains numeric index");
 				num_attrs--;
 				continue;
 			}
 
 			if (!key || (key->len == 1 && key->val[0] == '*')) {
 				/* Empty key, ignore */
-				php_error_docref(NULL TSRMLS_CC, E_WARNING, "Empty attribute key");
+				php_error_docref(NULL, E_WARNING, "Empty attribute key");
 				num_attrs--;
 				continue;
 			}
@@ -1065,7 +1063,7 @@ PHP_FUNCTION(ssh2_publickey_add)
 	}
 
 	if (libssh2_publickey_add_ex(data->pkey, (unsigned char *) algo, algo_len, (unsigned char *) blob, blob_len, overwrite, num_attrs, attrs)) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to add %s key", algo);
+		php_error_docref(NULL, E_WARNING, "Unable to add %s key", algo);
 		RETVAL_FALSE;
 	} else {
 		RETVAL_TRUE;
@@ -1093,7 +1091,7 @@ PHP_FUNCTION(ssh2_publickey_remove)
 	char *algo, *blob;
 	size_t algo_len, blob_len;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss", &zpkey_data, &algo, &algo_len, &blob, &blob_len) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "rss", &zpkey_data, &algo, &algo_len, &blob, &blob_len) == FAILURE) {
 		return;
 	}
 
@@ -1102,7 +1100,7 @@ PHP_FUNCTION(ssh2_publickey_remove)
 	}
 
 	if (libssh2_publickey_remove_ex(data->pkey, (unsigned char *) algo, algo_len, (unsigned char *) blob, blob_len)) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to remove %s key", algo);
+		php_error_docref(NULL, E_WARNING, "Unable to remove %s key", algo);
 		RETURN_FALSE;
 	}
 
@@ -1120,7 +1118,7 @@ PHP_FUNCTION(ssh2_publickey_list)
 	libssh2_publickey_list *keys;
 	zend_string *hash_key_zstring;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &zpkey_data) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "r", &zpkey_data) == FAILURE) {
 		return;
 	}
 
@@ -1129,7 +1127,7 @@ PHP_FUNCTION(ssh2_publickey_list)
 	}
 
 	if (libssh2_publickey_list_fetch(data->pkey, &num_keys, &keys)) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to list keys on remote server");
+		php_error_docref(NULL, E_WARNING, "Unable to list keys on remote server");
 		RETURN_FALSE;
 	}
 
@@ -1176,7 +1174,7 @@ PHP_FUNCTION(ssh2_auth_agent)
 	int rc;
 	struct libssh2_agent_publickey *identity, *prev_identity = NULL;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zsession, &username, &username_len) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "rs", &zsession, &username, &username_len) == FAILURE) {
 		return;
 	}
 
@@ -1186,7 +1184,7 @@ PHP_FUNCTION(ssh2_auth_agent)
 	userauthlist = libssh2_userauth_list(session, username, username_len);
 
 	if (userauthlist != NULL && strstr(userauthlist, "publickey") == NULL) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "\"publickey\" authentication is not supported");
+		php_error_docref(NULL, E_WARNING, "\"publickey\" authentication is not supported");
 		RETURN_FALSE;
 	}
 
@@ -1194,18 +1192,18 @@ PHP_FUNCTION(ssh2_auth_agent)
 	agent = libssh2_agent_init(session);
 
 	if (!agent) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failure initializing ssh-agent support");
+		php_error_docref(NULL, E_WARNING, "Failure initializing ssh-agent support");
 		RETURN_FALSE;
 	}
 
 	if (libssh2_agent_connect(agent)) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failure connecting to ssh-agent");
+		php_error_docref(NULL, E_WARNING, "Failure connecting to ssh-agent");
 		libssh2_agent_free(agent);
 		RETURN_FALSE;
 	}
 
 	if (libssh2_agent_list_identities(agent)) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failure requesting identities to ssh-agent");
+		php_error_docref(NULL, E_WARNING, "Failure requesting identities to ssh-agent");
 		libssh2_agent_disconnect(agent);
 		libssh2_agent_free(agent);
 		RETURN_FALSE;
@@ -1215,14 +1213,14 @@ PHP_FUNCTION(ssh2_auth_agent)
 		rc = libssh2_agent_get_identity(agent, &identity, prev_identity);
 
 		if (rc == 1) {
-			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Couldn't continue authentication");
+			php_error_docref(NULL, E_WARNING, "Couldn't continue authentication");
 			libssh2_agent_disconnect(agent);
 			libssh2_agent_free(agent);
 			RETURN_FALSE;
 		}
 
 		if (rc < 0) {
-			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failure obtaining identity from ssh-agent support");
+			php_error_docref(NULL, E_WARNING, "Failure obtaining identity from ssh-agent support");
 			libssh2_agent_disconnect(agent);
 			libssh2_agent_free(agent);
 			RETURN_FALSE;
@@ -1236,7 +1234,7 @@ PHP_FUNCTION(ssh2_auth_agent)
 		prev_identity = identity;
 	}
 #else
-	php_error_docref(NULL TSRMLS_CC, E_WARNING, "Upgrade the libssh2 library (needs 1.2.3 or higher) and reinstall the ssh2 extension for ssh2 agent support");
+	php_error_docref(NULL, E_WARNING, "Upgrade the libssh2 library (needs 1.2.3 or higher) and reinstall the ssh2 extension for ssh2 agent support");
 	RETURN_FALSE;
 #endif /* PHP_SSH2_AGENT_AUTH */
 }
@@ -1246,7 +1244,7 @@ PHP_FUNCTION(ssh2_auth_agent)
    * Module Housekeeping *
    *********************** */
 
-static void php_ssh2_session_dtor(zend_resource *rsrc TSRMLS_DC)
+static void php_ssh2_session_dtor(zend_resource *rsrc)
 {
 	LIBSSH2_SESSION *session = (LIBSSH2_SESSION*)rsrc->ptr;
 	php_ssh2_session_data **data = (php_ssh2_session_data**)libssh2_session_abstract(session);
@@ -1276,7 +1274,7 @@ static void php_ssh2_session_dtor(zend_resource *rsrc TSRMLS_DC)
 	libssh2_session_free(session);
 }
 
-static void php_ssh2_listener_dtor(zend_resource *rsrc TSRMLS_DC)
+static void php_ssh2_listener_dtor(zend_resource *rsrc)
 {
 	php_ssh2_listener_data *data = (php_ssh2_listener_data*)rsrc->ptr;
 	LIBSSH2_LISTENER *listener = data->listener;
@@ -1287,7 +1285,7 @@ static void php_ssh2_listener_dtor(zend_resource *rsrc TSRMLS_DC)
 	efree(data);
 }
 
-static void php_ssh2_pkey_subsys_dtor(zend_resource *rsrc TSRMLS_DC)
+static void php_ssh2_pkey_subsys_dtor(zend_resource *rsrc)
 {
 	php_ssh2_pkey_subsys_data *data = (php_ssh2_pkey_subsys_data*)rsrc->ptr;
 	LIBSSH2_PUBLICKEY *pkey = data->pkey;
@@ -1336,11 +1334,11 @@ PHP_MINIT_FUNCTION(ssh2)
 	REGISTER_LONG_CONSTANT("SSH2_POLL_CHANNEL_CLOSED",	LIBSSH2_POLLFD_CHANNEL_CLOSED,	CONST_CS | CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("SSH2_POLL_LISTENER_CLOSED",	LIBSSH2_POLLFD_LISTENER_CLOSED,	CONST_CS | CONST_PERSISTENT);
 
-	return (php_register_url_stream_wrapper("ssh2.shell", &php_ssh2_stream_wrapper_shell TSRMLS_CC) == SUCCESS &&
-			php_register_url_stream_wrapper("ssh2.exec", &php_ssh2_stream_wrapper_exec TSRMLS_CC) == SUCCESS &&
-			php_register_url_stream_wrapper("ssh2.tunnel", &php_ssh2_stream_wrapper_tunnel TSRMLS_CC) == SUCCESS &&
-			php_register_url_stream_wrapper("ssh2.scp", &php_ssh2_stream_wrapper_scp TSRMLS_CC) == SUCCESS &&
-			php_register_url_stream_wrapper("ssh2.sftp", &php_ssh2_sftp_wrapper TSRMLS_CC) == SUCCESS) ? SUCCESS : FAILURE;
+	return (php_register_url_stream_wrapper("ssh2.shell", &php_ssh2_stream_wrapper_shell) == SUCCESS &&
+			php_register_url_stream_wrapper("ssh2.exec", &php_ssh2_stream_wrapper_exec) == SUCCESS &&
+			php_register_url_stream_wrapper("ssh2.tunnel", &php_ssh2_stream_wrapper_tunnel) == SUCCESS &&
+			php_register_url_stream_wrapper("ssh2.scp", &php_ssh2_stream_wrapper_scp) == SUCCESS &&
+			php_register_url_stream_wrapper("ssh2.sftp", &php_ssh2_sftp_wrapper) == SUCCESS) ? SUCCESS : FAILURE;
 }
 /* }}} */
 
@@ -1348,11 +1346,11 @@ PHP_MINIT_FUNCTION(ssh2)
  */
 PHP_MSHUTDOWN_FUNCTION(ssh2)
 {
-	return (php_unregister_url_stream_wrapper("ssh2.shell" TSRMLS_CC) == SUCCESS &&
-			php_unregister_url_stream_wrapper("ssh2.exec" TSRMLS_CC) == SUCCESS &&
-			php_unregister_url_stream_wrapper("ssh2.tunnel" TSRMLS_CC) == SUCCESS &&
-			php_unregister_url_stream_wrapper("ssh2.scp" TSRMLS_CC) == SUCCESS &&
-			php_unregister_url_stream_wrapper("ssh2.sftp" TSRMLS_CC) == SUCCESS) ? SUCCESS : FAILURE;
+	return (php_unregister_url_stream_wrapper("ssh2.shell") == SUCCESS &&
+			php_unregister_url_stream_wrapper("ssh2.exec") == SUCCESS &&
+			php_unregister_url_stream_wrapper("ssh2.tunnel") == SUCCESS &&
+			php_unregister_url_stream_wrapper("ssh2.scp") == SUCCESS &&
+			php_unregister_url_stream_wrapper("ssh2.sftp") == SUCCESS) ? SUCCESS : FAILURE;
 }
 /* }}} */
 
@@ -1603,9 +1601,7 @@ zend_function_entry ssh2_functions[] = {
 /* {{{ ssh2_module_entry
  */
 zend_module_entry ssh2_module_entry = {
-#if ZEND_MODULE_API_NO >= 20010901
 	STANDARD_MODULE_HEADER,
-#endif
 	"ssh2",
 	ssh2_functions,
 	PHP_MINIT(ssh2),
@@ -1613,9 +1609,7 @@ zend_module_entry ssh2_module_entry = {
 	NULL, /* RINIT */
 	NULL, /* RSHUTDOWN */
 	PHP_MINFO(ssh2),
-#if ZEND_MODULE_API_NO >= 20010901
 	PHP_SSH2_VERSION,
-#endif
 	STANDARD_MODULE_PROPERTIES
 };
 /* }}} */
