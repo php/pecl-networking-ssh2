@@ -442,8 +442,6 @@ php_url *php_ssh2_fopen_wraper_parse_path(const char *path, char *type, php_stre
 
 	/* Auth failure */
 	php_url_free(resource);
-	//TODO Sean-Der
-	//zend_list_delete(Z_LVAL(zsession));
 	return NULL;
 
 session_authed:
