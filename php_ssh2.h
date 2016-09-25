@@ -97,7 +97,7 @@ if ((session = (LIBSSH2_SESSION *)zend_fetch_resource(Z_RES_P(zsession), PHP_SSH
     RETURN_FALSE; \
 } \
 if (libssh2_userauth_authenticated(session)) { \
-	php_error_docref(NULL TSRMLS_CC, E_WARNING, "Connection already authenticated"); \
+	php_error_docref(NULL, E_WARNING, "Connection already authenticated"); \
 	RETURN_FALSE; \
 }
 
@@ -106,7 +106,7 @@ if ((session = (LIBSSH2_SESSION *)zend_fetch_resource(Z_RES_P(zsession), PHP_SSH
     RETURN_FALSE; \
 } \
 if (!libssh2_userauth_authenticated(session)) { \
-	php_error_docref(NULL TSRMLS_CC, E_WARNING, "Connection not authenticated"); \
+	php_error_docref(NULL, E_WARNING, "Connection not authenticated"); \
 	RETURN_FALSE; \
 }
 
@@ -148,12 +148,11 @@ PHP_FUNCTION(ssh2_sftp_symlink);
 PHP_FUNCTION(ssh2_sftp_readlink);
 PHP_FUNCTION(ssh2_sftp_realpath);
 
-LIBSSH2_SESSION *php_ssh2_session_connect(char *host, int port, zval *methods, zval *callbacks TSRMLS_DC);
-void php_ssh2_sftp_dtor(zend_resource *rsrc TSRMLS_DC);
+LIBSSH2_SESSION *php_ssh2_session_connect(char *host, int port, zval *methods, zval *callbacks);
+void php_ssh2_sftp_dtor(zend_resource *rsrc);
 php_url *php_ssh2_fopen_wraper_parse_path(const char *path, char *type, php_stream_context *context,
 											LIBSSH2_SESSION **psession, int *presource_id,
-											LIBSSH2_SFTP **psftp, int *psftp_rsrcid
-											TSRMLS_DC);
+											LIBSSH2_SFTP **psftp, int *psftp_rsrcid);
 
 extern php_stream_ops php_ssh2_channel_stream_ops;
 
