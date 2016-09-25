@@ -554,10 +554,6 @@ php_stream_wrapper php_ssh2_sftp_wrapper = {
 	&php_ssh2_sftp_wrapper_ops,
 	NULL,
 	1,
-#if PHP_MAJOR_VERSION <= 5 && PHP_MINOR_VERSION <= 4
-	0,
-	NULL,
-#endif
 };
 
 /* *****************
