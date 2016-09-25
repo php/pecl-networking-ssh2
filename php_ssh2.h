@@ -25,8 +25,8 @@
 #include <libssh2_sftp.h>
 #include "ext/standard/url.h"
 
-#define PHP_SSH2_VERSION        "1.0+dev"
-#define PHP_SSH2_DEFAULT_PORT   22
+#define PHP_SSH2_VERSION				"1.0+dev"
+#define PHP_SSH2_DEFAULT_PORT			22
 
 /* Exported Constants */
 #define PHP_SSH2_FINGERPRINT_MD5		0x0000
@@ -70,17 +70,17 @@ typedef struct _php_ssh2_session_data {
 } php_ssh2_session_data;
 
 typedef struct _php_ssh2_sftp_data {
-    LIBSSH2_SESSION *session;
-    LIBSSH2_SFTP *sftp;
+	LIBSSH2_SESSION *session;
+	LIBSSH2_SFTP *sftp;
 
-    int session_rsrcid;
+	int session_rsrcid;
 } php_ssh2_sftp_data;
 
 typedef struct _php_ssh2_listener_data {
-    LIBSSH2_SESSION *session;
-    LIBSSH2_LISTENER *listener;
+	LIBSSH2_SESSION *session;
+	LIBSSH2_LISTENER *listener;
 
-    int session_rsrcid;
+	int session_rsrcid;
 } php_ssh2_listener_data;
 
 #include "libssh2_publickey.h"
@@ -94,7 +94,7 @@ typedef struct _php_ssh2_pkey_subsys_data {
 
 #define SSH2_FETCH_NONAUTHENTICATED_SESSION(session, zsession) \
 if ((session = (LIBSSH2_SESSION *)zend_fetch_resource(Z_RES_P(zsession), PHP_SSH2_SESSION_RES_NAME, le_ssh2_session)) == NULL) { \
-    RETURN_FALSE; \
+	RETURN_FALSE; \
 } \
 if (libssh2_userauth_authenticated(session)) { \
 	php_error_docref(NULL TSRMLS_CC, E_WARNING, "Connection already authenticated"); \
@@ -103,7 +103,7 @@ if (libssh2_userauth_authenticated(session)) { \
 
 #define SSH2_FETCH_AUTHENTICATED_SESSION(session, zsession) \
 if ((session = (LIBSSH2_SESSION *)zend_fetch_resource(Z_RES_P(zsession), PHP_SSH2_SESSION_RES_NAME, le_ssh2_session)) == NULL) { \
-    RETURN_FALSE; \
+	RETURN_FALSE; \
 } \
 if (!libssh2_userauth_authenticated(session)) { \
 	php_error_docref(NULL TSRMLS_CC, E_WARNING, "Connection not authenticated"); \
