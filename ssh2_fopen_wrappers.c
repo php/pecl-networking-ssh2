@@ -676,7 +676,7 @@ static php_stream_wrapper_ops php_ssh2_shell_stream_wops = {
 	"ssh2.shell"
 };
 
-php_stream_wrapper php_ssh2_stream_wrapper_shell =    {
+php_stream_wrapper php_ssh2_stream_wrapper_shell = {
 	&php_ssh2_shell_stream_wops,
 	NULL,
 	0
@@ -1054,7 +1054,7 @@ PHP_FUNCTION(ssh2_scp_recv)
 	char *remote_filename, *local_filename;
 	size_t remote_filename_len, local_filename_len;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss", &zsession,  &remote_filename, &remote_filename_len,
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss", &zsession, &remote_filename, &remote_filename_len,
 																			&local_filename, &local_filename_len) == FAILURE) {
 		return;
 	}
@@ -1113,7 +1113,7 @@ PHP_FUNCTION(ssh2_scp_send)
 	int argc = ZEND_NUM_ARGS();
 
 	if (zend_parse_parameters(argc TSRMLS_CC, "rss|l", &zsession, &local_filename, &local_filename_len,
-													   &remote_filename, &remote_filename_len, &create_mode) == FAILURE) {
+														&remote_filename, &remote_filename_len, &create_mode) == FAILURE) {
 		return;
 	}
 
@@ -1216,7 +1216,7 @@ static php_stream *php_ssh2_direct_tcpip(LIBSSH2_SESSION *session, int resource_
 	php_ssh2_channel_data *channel_data;
 	php_stream *stream;
 
-   	libssh2_session_set_blocking(session, 1);
+	libssh2_session_set_blocking(session, 1);
 
 	channel = libssh2_channel_direct_tcpip(session, host, port);
 	if (!channel) {
@@ -1307,7 +1307,7 @@ static php_stream_wrapper_ops php_ssh2_tunnel_stream_wops = {
 	"ssh2.tunnel"
 };
 
-php_stream_wrapper php_ssh2_stream_wrapper_tunnel =    {
+php_stream_wrapper php_ssh2_stream_wrapper_tunnel = {
 	&php_ssh2_tunnel_stream_wops,
 	NULL,
 	0
