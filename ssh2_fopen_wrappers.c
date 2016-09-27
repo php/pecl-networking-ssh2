@@ -179,11 +179,9 @@ static int php_ssh2_channel_stream_set_option(php_stream *stream, int option, in
 			return ret;
 			break;
 
-#if PHP_MAJOR_VERSION >= 5
 		case PHP_STREAM_OPTION_CHECK_LIVENESS:
 			return stream->eof = libssh2_channel_eof(abstract->channel);
 			break;
-#endif
 	}
 
 	return -1;
@@ -427,7 +425,7 @@ php_url *php_ssh2_fopen_wraper_parse_path(const char *path, char *type, php_stre
 
 	/* Authenticate */
 	if (pubkey_file && privkey_file) {
-		if (SSH2_OPENBASEDIR_CHECKPATH(pubkey_file) || SSH2_OPENBASEDIR_CHECKPATH(privkey_file)) {
+		if (php_check_open_basedir(pubkey_file) || php_check_open_basedir(privkey_file)) {
 			php_url_free(resource);
 			return NULL;
 		}
