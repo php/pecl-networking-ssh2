@@ -166,6 +166,8 @@ extern php_stream_wrapper php_ssh2_sftp_wrapper;
 extern int le_ssh2_session;
 extern int le_ssh2_sftp;
 
+#endif	/* PHP_SSH2_H */
+
 /*
  * Local variables:
  * tab-width: 4

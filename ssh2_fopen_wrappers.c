@@ -1139,14 +1139,8 @@ PHP_FUNCTION(ssh2_scp_send)
 		int last_error = 0;
 		char *error_msg = NULL;
 
-<<<<<<< HEAD
 		last_error = libssh2_session_last_error(session, &error_msg, NULL, 0);
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failure creating remote file: %s", error_msg);
-||||||| merged common ancestors
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failure creating remote file: %s", error_msg);
-=======
 		php_error_docref(NULL, E_WARNING, "Failure creating remote file: %s", error_msg);
->>>>>>> origin/pr/20
 		php_stream_close(local_file);
 		RETURN_FALSE;
 	}
