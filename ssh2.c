@@ -901,8 +901,7 @@ PHP_FUNCTION(ssh2_poll)
 			pollfds[i].fd.channel = ((php_ssh2_channel_data*)(((php_stream*)res)->abstract))->channel;
 			/* TODO: Add the ability to select against other stream types */
 		} else {
-			// TODO Sean-Der
-			//php_error_docref(NULL, E_WARNING, "Invalid resource type in subarray: %s", zend_rsrc_list_get_rsrc_type(Z_LVAL_PP(tmpzval)));
+			php_error_docref(NULL, E_WARNING, "Invalid resource type in subarray: %s", zend_rsrc_list_get_rsrc_type(Z_RES_P(tmpzval)));
 			numfds--;
 			continue;
 		}
