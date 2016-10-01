@@ -1,22 +1,22 @@
 /*
-  +----------------------------------------------------------------------+
-  | PHP Version 4                                                        |
-  +----------------------------------------------------------------------+
-  | Copyright (c) 1997-2006 The PHP Group                                |
-  +----------------------------------------------------------------------+
-  | This source file is subject to version 3.01 of the PHP license,      |
-  | that is bundled with this package in the file LICENSE, and is        |
-  | available at through the world-wide-web at                           |
-  | http://www.php.net/license/3_01.txt.                                 |
-  | If you did not receive a copy of the PHP license and are unable to   |
-  | obtain it through the world-wide-web, please send a note to          |
-  | license@php.net so we can mail you a copy immediately.               |
-  +----------------------------------------------------------------------+
-  | Author: Sara Golemon <pollita@php.net>                               |
-  +----------------------------------------------------------------------+
-
-  $Id$
+   +----------------------------------------------------------------------+
+   | PHP Version 7                                                        |
+   +----------------------------------------------------------------------+
+   | Copyright (c) 1997-2016 The PHP Group                                |
+   +----------------------------------------------------------------------+
+   | This source file is subject to version 3.01 of the PHP license,      |
+   | that is bundled with this package in the file LICENSE, and is        |
+   | available through the world-wide-web at the following url:           |
+   | http://www.php.net/license/3_01.txt                                  |
+   | If you did not receive a copy of the PHP license and are unable to   |
+   | obtain it through the world-wide-web, please send a note to          |
+   | license@php.net so we can mail you a copy immediately.               |
+   +----------------------------------------------------------------------+
+   | Author: Sara Golemon <pollita@php.net>                               |
+   +----------------------------------------------------------------------+
 */
+
+/* $Id$ */
 
 #ifndef PHP_SSH2_H
 #define PHP_SSH2_H
@@ -25,8 +25,8 @@
 #include <libssh2_sftp.h>
 #include "ext/standard/url.h"
 
-#define PHP_SSH2_VERSION        "1.0+dev"
-#define PHP_SSH2_DEFAULT_PORT   22
+#define PHP_SSH2_VERSION				"1.0+dev"
+#define PHP_SSH2_DEFAULT_PORT			22
 
 /* Exported Constants */
 #define PHP_SSH2_FINGERPRINT_MD5		0x0000
@@ -70,17 +70,17 @@ typedef struct _php_ssh2_session_data {
 } php_ssh2_session_data;
 
 typedef struct _php_ssh2_sftp_data {
-    LIBSSH2_SESSION *session;
-    LIBSSH2_SFTP *sftp;
+	LIBSSH2_SESSION *session;
+	LIBSSH2_SFTP *sftp;
 
-    int session_rsrcid;
+	int session_rsrcid;
 } php_ssh2_sftp_data;
 
 typedef struct _php_ssh2_listener_data {
-    LIBSSH2_SESSION *session;
-    LIBSSH2_LISTENER *listener;
+	LIBSSH2_SESSION *session;
+	LIBSSH2_LISTENER *listener;
 
-    int session_rsrcid;
+	int session_rsrcid;
 } php_ssh2_listener_data;
 
 #include "libssh2_publickey.h"
@@ -94,19 +94,19 @@ typedef struct _php_ssh2_pkey_subsys_data {
 
 #define SSH2_FETCH_NONAUTHENTICATED_SESSION(session, zsession) \
 if ((session = (LIBSSH2_SESSION *)zend_fetch_resource(Z_RES_P(zsession), PHP_SSH2_SESSION_RES_NAME, le_ssh2_session)) == NULL) { \
-    RETURN_FALSE; \
+	RETURN_FALSE; \
 } \
 if (libssh2_userauth_authenticated(session)) { \
-	php_error_docref(NULL TSRMLS_CC, E_WARNING, "Connection already authenticated"); \
+	php_error_docref(NULL, E_WARNING, "Connection already authenticated"); \
 	RETURN_FALSE; \
 }
 
 #define SSH2_FETCH_AUTHENTICATED_SESSION(session, zsession) \
 if ((session = (LIBSSH2_SESSION *)zend_fetch_resource(Z_RES_P(zsession), PHP_SSH2_SESSION_RES_NAME, le_ssh2_session)) == NULL) { \
-    RETURN_FALSE; \
+	RETURN_FALSE; \
 } \
 if (!libssh2_userauth_authenticated(session)) { \
-	php_error_docref(NULL TSRMLS_CC, E_WARNING, "Connection not authenticated"); \
+	php_error_docref(NULL, E_WARNING, "Connection not authenticated"); \
 	RETURN_FALSE; \
 }
 
@@ -148,12 +148,11 @@ PHP_FUNCTION(ssh2_sftp_symlink);
 PHP_FUNCTION(ssh2_sftp_readlink);
 PHP_FUNCTION(ssh2_sftp_realpath);
 
-LIBSSH2_SESSION *php_ssh2_session_connect(char *host, int port, zval *methods, zval *callbacks TSRMLS_DC);
-void php_ssh2_sftp_dtor(zend_resource *rsrc TSRMLS_DC);
+LIBSSH2_SESSION *php_ssh2_session_connect(char *host, int port, zval *methods, zval *callbacks);
+void php_ssh2_sftp_dtor(zend_resource *rsrc);
 php_url *php_ssh2_fopen_wraper_parse_path(const char *path, char *type, php_stream_context *context,
 											LIBSSH2_SESSION **psession, int *presource_id,
-											LIBSSH2_SFTP **psftp, int *psftp_rsrcid
-											TSRMLS_DC);
+											LIBSSH2_SFTP **psftp, int *psftp_rsrcid);
 
 extern php_stream_ops php_ssh2_channel_stream_ops;
 
@@ -167,17 +166,7 @@ extern php_stream_wrapper php_ssh2_sftp_wrapper;
 extern int le_ssh2_session;
 extern int le_ssh2_sftp;
 
-/* {{{ ZIP_OPENBASEDIR_CHECKPATH(filename) */
-#if PHP_API_VERSION < 20100412
-# define SSH2_OPENBASEDIR_CHECKPATH(filename) \
-	(PG(safe_mode) && (!php_checkuid(filename, NULL, CHECKUID_CHECK_FILE_AND_DIR))) || php_check_open_basedir(filename TSRMLS_CC)
-#else
-#define SSH2_OPENBASEDIR_CHECKPATH(filename) \
-	php_check_open_basedir(filename TSRMLS_CC)
-#endif
-/* }}} */
 #endif	/* PHP_SSH2_H */
-
 
 /*
  * Local variables:
