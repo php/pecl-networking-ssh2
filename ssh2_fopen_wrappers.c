@@ -198,10 +198,20 @@ php_url *php_ssh2_fopen_wraper_parse_path(	char *path, char *type, php_stream_co
 	php_url *resource;
 	zval *methods = NULL, *callbacks = NULL, zsession, **tmpzval;
 	long resource_id;
-	char *s, *username = NULL, *password = NULL, *pubkey_file = NULL, *privkey_file = NULL;
+	char *h, *s, *username = NULL, *password = NULL, *pubkey_file = NULL, *privkey_file = NULL;
 	int username_len = 0, password_len = 0;
 
-	resource = php_url_parse(path);
+	h = strstr(path, "Resource id #");
+	if (h) {
+		/* Starting with 5.6.28, 7.0.13 need to be clean, else php_url_parse will fail */
+		char *tmp = estrdup(path);
+
+		strncpy(tmp + (h-path), h + sizeof("Resource id #")-1, strlen(tmp)-sizeof("Resource id #"));
+		resource = php_url_parse(tmp);
+		efree(tmp);
+	} else {
+		resource = php_url_parse(path);
+	}
 	if (!resource || !resource->path) {
 		return NULL;
 	}
@@ -232,9 +242,6 @@ php_url *php_ssh2_fopen_wraper_parse_path(	char *path, char *type, php_stream_co
 
 	/* Look for a resource ID to reuse a session */
 	s = resource->host;
-	if (strncmp(resource->host, "Resource id #", sizeof("Resource id #") - 1) == 0) {
-		s = resource->host + sizeof("Resource id #") - 1;
-	}
 	if (is_numeric_string(s, strlen(s), &resource_id, NULL, 0) == IS_LONG) {
 		php_ssh2_sftp_data *sftp_data;
 
