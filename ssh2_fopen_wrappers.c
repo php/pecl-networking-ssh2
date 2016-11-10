@@ -222,7 +222,8 @@ php_url *php_ssh2_fopen_wraper_parse_path(const char *path, char *type, php_stre
 	if (h) {
 		/* Starting with 5.6.28, 7.0.13 need to be clean, else php_url_parse will fail */
 		char *tmp = estrdup(path);
-		strncpy(tmp + (h-path), h + sizeof("Resource id #")-1, strlen(tmp));
+
+		strncpy(tmp + (h-path), h + sizeof("Resource id #")-1, strlen(tmp)-sizeof("Resource id #"));
 		resource = php_url_parse(tmp);
 		efree(tmp);
 	} else {
