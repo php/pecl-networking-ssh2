@@ -50,7 +50,7 @@ static size_t php_ssh2_channel_stream_write(php_stream *stream, const char *buf,
 	zval *zresource;
 
 	libssh2_channel_set_blocking(abstract->channel, abstract->is_blocking);
-	zresource = php_ssh2_zval_from_resource_handle(abstract->session_rsrc);
+	zresource = php_ssh2_zval_from_resource_handle(abstract->session_rsrcid);
 	session = (LIBSSH2_SESSION *)zend_fetch_resource(Z_RES_P(zresource), PHP_SSH2_SESSION_RES_NAME, le_ssh2_session);
 
 
@@ -94,7 +94,7 @@ static size_t php_ssh2_channel_stream_read(php_stream *stream, char *buf, size_t
 
 	stream->eof = libssh2_channel_eof(abstract->channel);
 	libssh2_channel_set_blocking(abstract->channel, abstract->is_blocking);
-	zresource = php_ssh2_zval_from_resource_handle(abstract->session_rsrc);
+	zresource = php_ssh2_zval_from_resource_handle(abstract->session_rsrcid);
 	session = (LIBSSH2_SESSION *)zend_fetch_resource(Z_RES_P(zresource), PHP_SSH2_SESSION_RES_NAME, le_ssh2_session);
 
 #ifdef PHP_SSH2_SESSION_TIMEOUT
@@ -138,7 +138,7 @@ static int php_ssh2_channel_stream_close(php_stream *stream, int close_handle)
 		libssh2_channel_eof(abstract->channel);
 		libssh2_channel_free(abstract->channel);
 		//TODO Sean-Der
-		//zend_list_delete(abstract->session_rsrc);
+		//zend_list_delete(abstract->session_rsrcid);
 	}
 	efree(abstract);
 
@@ -516,7 +516,7 @@ static php_stream *php_ssh2_shell_open(LIBSSH2_SESSION *session, int resource_id
 		zend_ulong idx;
 
 		for(zend_hash_internal_pointer_reset(HASH_OF(environment));
-			(key_type = zend_hash_get_current_key_ex(HASH_OF(environment), &key, &idx, NULL)) != HASH_KEY_NON_EXISTENT;
+			(key_type = zend_hash_get_current_key(HASH_OF(environment), &key, &idx)) != HASH_KEY_NON_EXISTENT;
 			zend_hash_move_forward(HASH_OF(environment))) {
 			if (key_type == HASH_KEY_IS_STRING) {
 				zval *value;
@@ -563,7 +563,7 @@ static php_stream *php_ssh2_shell_open(LIBSSH2_SESSION *session, int resource_id
 	channel_data->streamid = 0;
 	channel_data->is_blocking = 0;
 	channel_data->timeout = 0;
-	channel_data->session_rsrc = resource_id;
+	channel_data->session_rsrcid = resource_id;
 	channel_data->refcount = NULL;
 
 	stream = php_stream_alloc(&php_ssh2_channel_stream_ops, channel_data, 0, "r+");
@@ -715,7 +715,7 @@ PHP_FUNCTION(ssh2_shell)
 
 	SSH2_FETCH_AUTHENTICATED_SESSION(session, zsession);
 
-	stream = php_ssh2_shell_open(session, Z_LVAL_P(zsession), term, term_len, environment, width, height, type);
+	stream = php_ssh2_shell_open(session, Z_RES_P(zsession)->handle, term, term_len, environment, width, height, type);
 	if (!stream) {
 		RETURN_FALSE;
 	}
@@ -804,7 +804,7 @@ static php_stream *php_ssh2_exec_command(LIBSSH2_SESSION *session, int resource_
 	channel_data->streamid = 0;
 	channel_data->is_blocking = 0;
 	channel_data->timeout = 0;
-	channel_data->session_rsrc = resource_id;
+	channel_data->session_rsrcid = resource_id;
 	channel_data->refcount = NULL;
 
 	stream = php_stream_alloc(&php_ssh2_channel_stream_ops, channel_data, 0, "r+");
@@ -948,7 +948,7 @@ PHP_FUNCTION(ssh2_exec)
 
 	SSH2_FETCH_AUTHENTICATED_SESSION(session, zsession);
 
-	stream = php_ssh2_exec_command(session, Z_LVAL_P(zsession), command, term, term_len, environment, width, height, type);
+	stream = php_ssh2_exec_command(session, Z_RES_P(zsession)->handle, command, term, term_len, environment, width, height, type);
 	if (!stream) {
 		RETURN_FALSE;
 	}
@@ -987,7 +987,7 @@ static php_stream *php_ssh2_scp_xfer(LIBSSH2_SESSION *session, int resource_id, 
 	channel_data->streamid = 0;
 	channel_data->is_blocking = 0;
 	channel_data->timeout = 0;
-	channel_data->session_rsrc = resource_id;
+	channel_data->session_rsrcid = resource_id;
 	channel_data->refcount = NULL;
 
 	stream = php_stream_alloc(&php_ssh2_channel_stream_ops, channel_data, 0, "r");
@@ -1236,7 +1236,7 @@ static php_stream *php_ssh2_direct_tcpip(LIBSSH2_SESSION *session, int resource_
 	channel_data->streamid = 0;
 	channel_data->is_blocking = 0;
 	channel_data->timeout = 0;
-	channel_data->session_rsrc = resource_id;
+	channel_data->session_rsrcid = resource_id;
 	channel_data->refcount = NULL;
 
 	stream = php_stream_alloc(&php_ssh2_channel_stream_ops, channel_data, 0, "r+");
@@ -1337,7 +1337,7 @@ PHP_FUNCTION(ssh2_tunnel)
 
 	SSH2_FETCH_AUTHENTICATED_SESSION(session, zsession);
 
-	stream = php_ssh2_direct_tcpip(session, Z_LVAL_P(zsession), host, port);
+	stream = php_ssh2_direct_tcpip(session, Z_RES_P(zsession)->handle, host, port);
 	if (!stream) {
 		RETURN_FALSE;
 	}

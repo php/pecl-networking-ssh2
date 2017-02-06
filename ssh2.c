@@ -810,7 +810,7 @@ PHP_FUNCTION(ssh2_forward_accept)
 	channel_data->channel = channel;
 	channel_data->streamid = 0;
 	channel_data->is_blocking = 0;
-	channel_data->session_rsrc = data->session_rsrcid;
+	channel_data->session_rsrcid = data->session_rsrcid;
 	channel_data->refcount = NULL;
 
 	stream = php_stream_alloc(&php_ssh2_channel_stream_ops, channel_data, 0, "r+");
@@ -821,7 +821,7 @@ PHP_FUNCTION(ssh2_forward_accept)
 		RETURN_FALSE;
 	}
 	//TODO Sean-Der
-	//zend_list_addref(channel_data->session_rsrc);
+	//zend_list_addref(channel_data->session_rsrcid);
 
 	php_stream_to_zval(stream, return_value);
 }
@@ -975,7 +975,7 @@ PHP_FUNCTION(ssh2_publickey_init)
 
 	data = emalloc(sizeof(php_ssh2_pkey_subsys_data));
 	data->session = session;
-	data->session_rsrcid = Z_LVAL_P(zsession);
+	data->session_rsrcid = Z_RES_P(zsession)->handle;
 	//TODO Sean-Der
 	//zend_list_addref(data->session_rsrcid);
 	data->pkey = pkey;
