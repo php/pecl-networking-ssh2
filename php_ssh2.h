@@ -118,8 +118,8 @@ typedef struct _php_ssh2_channel_data {
 	char is_blocking;
 	long timeout;
 
-	/* Resource ID, zend_list_addref() when opening, zend_list_delete() when closing */
-	long session_rsrc;
+	/* Resource ID */
+	int session_rsrcid;
 
 	/* Allow one stream to be closed while the other is kept open */
 	unsigned char *refcount;
