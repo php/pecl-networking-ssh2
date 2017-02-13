@@ -344,7 +344,7 @@ php_url *php_ssh2_fopen_wraper_parse_path(const char *path, char *type, php_stre
 				Z_ADDREF_P(tmpzval);
 				*psftp_rsrcid = zend_register_resource(sftp_data, le_ssh2_sftp)->handle;
 				*psftp = sftp;
-				*presource_id = Z_LVAL_P(tmpzval);
+				*presource_id = Z_RES_P(tmpzval)->handle;
 				*psession = session;
 				return resource;
 			}
