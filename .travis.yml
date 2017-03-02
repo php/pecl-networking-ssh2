@@ -1,0 +1,22 @@
+sudo: required
+dist: trusty
+
+language: php
+php:
+    - 7.0
+
+addons:
+    apt:
+        packages:
+            - libssh2-1
+            - libssh2-1-dev
+
+env:
+    global:
+        - TEST_SSH2_HOSTNAME=localhost
+        - TEST_SSH2_USER=sshuser
+        - TEST_SSH2_PASS=sshpassword
+        - REPORT_EXIT_STATUS=1
+
+script:
+    - ./.travis/build.sh
