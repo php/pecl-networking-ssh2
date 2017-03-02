@@ -591,7 +591,7 @@ PHP_FUNCTION(ssh2_sftp)
 	data = emalloc(sizeof(php_ssh2_sftp_data));
 	data->session = session;
 	data->sftp = sftp;
-	data->session_rsrcid = Z_LVAL_P(zsession);
+	data->session_rsrcid = Z_RES_P(zsession)->handle;
 	Z_ADDREF_P(zsession);
 
 	RETURN_RES(zend_register_resource(data, le_ssh2_sftp));
