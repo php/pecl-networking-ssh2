@@ -1,8 +1,12 @@
 #!/bin/bash
 
-
 sudo adduser --disabled-password --gecos "" sshuser
 echo "sshuser:sshpassword" | sudo chpasswd
+sudo mkdir -p ~sshuser/.ssh
+sudo chown sshuser:sshuser ~sshuser/.ssh
+sudo sh -c "cat $(pwd)/tests/testkey_rsa.pub >> ~sshuser/.ssh/authorized_keys"
+sudo chown sshuser:sshuser ~sshuser/.ssh/authorized_keys
+sudo chmod 600 ~sshuser/.ssh/authorized_keys
 
 phpize
 ./configure
