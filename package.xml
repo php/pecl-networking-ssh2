@@ -35,9 +35,9 @@
         <email>pollita@php.net</email>
         <active>no</active>
     </lead>
-    <date>2017-06-14</date>
+    <date>2017-06-25</date>
     <version>
-        <release>1.1</release>
+        <release>1.1.1</release>
         <api>1.0</api>
     </version>
     <stability>
@@ -46,6 +46,7 @@
     </stability>
     <license uri="http://www.php.net/license">PHP License</license>
     <notes>
+        - Version 1.1.1 is same as 1.1 except this release contains this changelog
         - Fixed bug #72988 (Libor M.)
         - Fixed bug #73198 (Langemeijer)
         - Fixed php_url_parse issue (Remi Collet)
