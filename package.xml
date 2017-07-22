@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://pear.php.net/dtd/package-2.0" xmlns:tasks="http://pear.php.net/dtd/tasks-1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" packagerversion="1.4.7" version="2.0" xsi:schemaLocation="http://pear.php.net/dtd/tasks-1.0 http://pear.php.net/dtd/tasks-1.0.xsd http://pear.php.net/dtd/package-2.0 http://pear.php.net/dtd/package-2.0.xsd">
     <name>ssh2</name>
     <channel>pecl.php.net</channel>
@@ -65,13 +65,19 @@
             <file role="src" name="ssh2_fopen_wrappers.c"/>
             <file role="src" name="ssh2_sftp.c"/>
             <file role="doc" name="LICENSE"/>
+            <file role="doc" name="README.md"/>
             <dir name="tests">
                 <file role="test" name="ssh2_auth.phpt"/>
+                <file role="test" name="ssh2_auth_key.phpt"/>
                 <file role="test" name="ssh2_connect.phpt"/>
+                <file role="test" name="ssh2_exec.phpt"/>
                 <file role="test" name="ssh2_sftp_001.phpt"/>
                 <file role="test" name="ssh2_sftp_002.phpt"/>
+                <file role="test" name="ssh2_shell.phpt"/>
                 <file role="test" name="ssh2_skip.inc"/>
                 <file role="test" name="ssh2_test.inc"/>
+                <file role="test" name="testkey_rsa"/>
+                <file role="test" name="testkey_rsa.pub"/>
             </dir>
         </dir>
     </contents>
