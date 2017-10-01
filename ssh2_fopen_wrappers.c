@@ -904,7 +904,7 @@ php_stream_wrapper php_ssh2_stream_wrapper_exec = {
 	0
 };
 
-/* {{{ proto stream ssh2_exec(resource session, string command[, string pty[, array env[, int width[, int heightp[, int width_height_type]]]]])
+/* {{{ proto stream ssh2_exec(resource session, string command[, string pty[, array env[, int width[, int height[, int width_height_type]]]]])
  * Execute a command at the remote end and allocate a channel for it
  *
  * This function has a dirty little secret.... pty and env can be in either order.... shhhh... don't tell anyone

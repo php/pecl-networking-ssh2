@@ -703,7 +703,7 @@ PHP_FUNCTION(ssh2_auth_pubkey_file)
 }
 /* }}} */
 
-/* {{{ proto bool ssh2_auth_hostbased_file(resource session, string username, string local_hostname, string pubkeyfile, string privkeyfile[, string passphrase[, string local_username]])
+/* {{{ proto bool ssh2_auth_hostbased_file(resource session, string username, string hostname, string pubkeyfile, string privkeyfile[, string passphrase[, string local_username]])
  * Authenticate using a hostkey
  */
 PHP_FUNCTION(ssh2_auth_hostbased_file)
@@ -1369,21 +1369,23 @@ PHP_MINFO_FUNCTION(ssh2)
 
 /* {{{ ZEND_BEGIN_ARG_INFO
  */
-ZEND_BEGIN_ARG_INFO(arginfo_ssh2_connect, 2)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_ssh2_connect, 0, 0, 1)
  	ZEND_ARG_INFO(0, host)
  	ZEND_ARG_INFO(0, port)
+ 	ZEND_ARG_INFO(0, methods)
+ 	ZEND_ARG_INFO(0, callbacks)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO(arginfo_ssh2_disconnect, 1)
- 	ZEND_ARG_INFO(0, resource)
+ 	ZEND_ARG_INFO(0, session)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO(arginfo_ssh2_methods_negotiated, 1)
- 	ZEND_ARG_INFO(0, resource)
+ 	ZEND_ARG_INFO(0, session)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo_ssh2_fingerprint, 0, 0, 2)
- 	ZEND_ARG_INFO(0, resource)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_ssh2_fingerprint, 0, 0, 1)
+ 	ZEND_ARG_INFO(0, session)
  	ZEND_ARG_INFO(0, flags)
 ZEND_END_ARG_INFO()
 
@@ -1449,14 +1451,14 @@ ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_ssh2_scp_send, 0, 0, 3)
  	ZEND_ARG_INFO(0, session)
- 	ZEND_ARG_INFO(0, remote_file)
  	ZEND_ARG_INFO(0, local_file)
+ 	ZEND_ARG_INFO(0, remote_file)
  	ZEND_ARG_INFO(0, create_mode)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO(arginfo_ssh2_fetch_stream, 2)
  	ZEND_ARG_INFO(0, channel)
- 	ZEND_ARG_INFO(0, stream_id)
+ 	ZEND_ARG_INFO(0, streamid)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO(arginfo_ssh2_sftp, 1)
