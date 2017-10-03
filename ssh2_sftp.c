@@ -641,22 +641,22 @@ PHP_FUNCTION(ssh2_sftp_unlink)
 }
 /* }}} */
 
-/* {{{ proto bool ssh2_sftp_mkdir(resource sftp, string filename[, int mode[, int recursive]])
+/* {{{ proto bool ssh2_sftp_mkdir(resource sftp, string dirname[, int mode[, int recursive]])
  */
 PHP_FUNCTION(ssh2_sftp_mkdir)
 {
 	php_ssh2_sftp_data *data;
 	zval *zsftp;
-	zend_string *filename;
+	zend_string *dirname;
 	zend_long mode = 0777;
 	zend_bool recursive = 0;
 	char *p;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "rS|lb", &zsftp, &filename, &mode, &recursive) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "rS|lb", &zsftp, &dirname, &mode, &recursive) == FAILURE) {
 		return;
 	}
 
-	if (!filename) {
+	if (!dirname) {
 		RETURN_FALSE;
 	}
 
@@ -666,29 +666,29 @@ PHP_FUNCTION(ssh2_sftp_mkdir)
 
 	if (recursive) {
 		/* Just attempt to make every directory, some will fail, but we only care about the last success/failure */
-		p = filename->val;
+		p = dirname->val;
 		while ((p = strchr(p + 1, '/'))) {
-			if ((p - filename->val) + 1 == filename->len) {
+			if ((p - dirname->val) + 1 == dirname->len) {
 				break;
 			}
-			libssh2_sftp_mkdir_ex(data->sftp, filename->val, p - filename->val, mode);
+			libssh2_sftp_mkdir_ex(data->sftp, dirname->val, p - dirname->val, mode);
 		}
 	}
 
 
-	RETURN_BOOL(!libssh2_sftp_mkdir_ex(data->sftp, filename->val, filename->len, mode));
+	RETURN_BOOL(!libssh2_sftp_mkdir_ex(data->sftp, dirname->val, dirname->len, mode));
 }
 /* }}} */
 
-/* {{{ proto bool ssh2_sftp_rmdir(resource sftp, string filename)
+/* {{{ proto bool ssh2_sftp_rmdir(resource sftp, string dirname)
  */
 PHP_FUNCTION(ssh2_sftp_rmdir)
 {
 	php_ssh2_sftp_data *data;
 	zval *zsftp;
-	zend_string *filename;
+	zend_string *dirname;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "rS", &zsftp, &filename) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "rS", &zsftp, &dirname) == FAILURE) {
 		return;
 	}
 
@@ -696,7 +696,7 @@ PHP_FUNCTION(ssh2_sftp_rmdir)
 		RETURN_FALSE;
 	}
 
-	RETURN_BOOL(!libssh2_sftp_rmdir_ex(data->sftp, filename->val, filename->len));
+	RETURN_BOOL(!libssh2_sftp_rmdir_ex(data->sftp, dirname->val, dirname->len));
 }
 /* }}} */
 
