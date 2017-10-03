@@ -37,7 +37,7 @@
     </lead>
     <date>2017-07-23</date>
     <version>
-        <release>1.1.2</release>
+        <release>1.2-dev</release>
         <api>1.0</api>
     </version>
     <stability>
@@ -46,15 +46,7 @@
     </stability>
     <license uri="http://www.php.net/license">PHP License</license>
     <notes>
-        - Version 1.1.2 is same as 1.1 except this release contains this changelog
-        - Fixed bug #72988 (Libor M.)
-        - Fixed bug #73198 (Langemeijer)
-        - Fixed php_url_parse issue (Remi Collet)
-        - fix Invalid write of size 1 (Remi Collet)
-        - Fixed bug #73819 (Mitch Hagstrand)
-        - Fixed bug #73410 (Mitch Hagstrand)
-        - Travis CI (Mitch Hagstrand)
-        - Various other fixes on PHP 7 code and code cleanup (Mitch Hagstrand, Libor M., Anatol Belski)
+        - Fix multiple reflection/documentation disparities [PR #29] (Michael Moravec)
     </notes>
     <contents>
         <dir name="/">
