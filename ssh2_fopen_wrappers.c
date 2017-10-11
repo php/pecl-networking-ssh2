@@ -47,11 +47,9 @@ static size_t php_ssh2_channel_stream_write(php_stream *stream, const char *buf,
 	php_ssh2_channel_data *abstract = (php_ssh2_channel_data*)stream->abstract;
 	size_t writestate;
 	LIBSSH2_SESSION *session;
-	zval *zresource;
 
 	libssh2_channel_set_blocking(abstract->channel, abstract->is_blocking);
-	zresource = php_ssh2_zval_from_resource_handle(abstract->session_rsrcid);
-	session = (LIBSSH2_SESSION *)zend_fetch_resource(Z_RES_P(zresource), PHP_SSH2_SESSION_RES_NAME, le_ssh2_session);
+	session = (LIBSSH2_SESSION *)zend_fetch_resource(abstract->session_rsrc, PHP_SSH2_SESSION_RES_NAME, le_ssh2_session);
 
 
 
@@ -90,12 +88,10 @@ static size_t php_ssh2_channel_stream_read(php_stream *stream, char *buf, size_t
 	php_ssh2_channel_data *abstract = (php_ssh2_channel_data*)stream->abstract;
 	ssize_t readstate;
 	LIBSSH2_SESSION *session;
-	zval *zresource;
 
 	stream->eof = libssh2_channel_eof(abstract->channel);
 	libssh2_channel_set_blocking(abstract->channel, abstract->is_blocking);
-	zresource = php_ssh2_zval_from_resource_handle(abstract->session_rsrcid);
-	session = (LIBSSH2_SESSION *)zend_fetch_resource(Z_RES_P(zresource), PHP_SSH2_SESSION_RES_NAME, le_ssh2_session);
+	session = (LIBSSH2_SESSION *)zend_fetch_resource(abstract->session_rsrc, PHP_SSH2_SESSION_RES_NAME, le_ssh2_session);
 
 #ifdef PHP_SSH2_SESSION_TIMEOUT
 	if (abstract->is_blocking) {
@@ -137,8 +133,7 @@ static int php_ssh2_channel_stream_close(php_stream *stream, int close_handle)
 		}
 		libssh2_channel_eof(abstract->channel);
 		libssh2_channel_free(abstract->channel);
-		//TODO Sean-Der
-		//zend_list_delete(abstract->session_rsrcid);
+		zend_list_delete(abstract->session_rsrc);
 	}
 	efree(abstract);
 
@@ -207,8 +202,8 @@ php_stream_ops php_ssh2_channel_stream_ops = {
  * Parse an ssh2.*:// path
  */
 php_url *php_ssh2_fopen_wraper_parse_path(const char *path, char *type, php_stream_context *context,
-											LIBSSH2_SESSION **psession, int *presource_id,
-											LIBSSH2_SFTP **psftp, int *psftp_rsrcid)
+											LIBSSH2_SESSION **psession, zend_resource **presource,
+											LIBSSH2_SFTP **psftp, zend_resource **psftp_rsrc)
 {
 	php_ssh2_sftp_data *sftp_data = NULL;
 	LIBSSH2_SESSION *session;
@@ -269,11 +264,10 @@ php_url *php_ssh2_fopen_wraper_parse_path(const char *path, char *type, php_stre
 			sftp_data = (php_ssh2_sftp_data *)zend_fetch_resource(Z_RES_P(zresource), PHP_SSH2_SFTP_RES_NAME, le_ssh2_sftp);
 			if (sftp_data) {
 				/* Want the sftp layer */
-				//TODO Sean-Der
-				//zend_list_addref(resource_id);
-				*psftp_rsrcid = resource_id;
+				Z_ADDREF_P(zresource);
+				*psftp_rsrc = Z_RES_P(zresource);
 				*psftp = sftp_data->sftp;
-				*presource_id = sftp_data->session_rsrcid;
+				*presource = sftp_data->session_rsrc;
 				*psession = sftp_data->session;
 				return resource;
 			}
@@ -291,18 +285,16 @@ php_url *php_ssh2_fopen_wraper_parse_path(const char *path, char *type, php_stre
 				sftp_data = emalloc(sizeof(php_ssh2_sftp_data));
 				sftp_data->sftp = sftp;
 				sftp_data->session = session;
-				sftp_data->session_rsrcid = resource_id;
-				//TODO Sean-Der
-				//zend_list_addref(resource_id);
-				*psftp_rsrcid = zend_register_resource(sftp_data, le_ssh2_sftp)->handle;
+				sftp_data->session_rsrc = Z_RES_P(zresource);
+				Z_ADDREF_P(zresource);
+				*psftp_rsrc = zend_register_resource(sftp_data, le_ssh2_sftp);
 				*psftp = sftp;
-				*presource_id = resource_id;
+				*presource = Z_RES_P(zresource);
 				*psession = session;
 				return resource;
 			}
-			//TODO Sean-Der
-			//zend_list_addref(resource_id);
-			*presource_id = resource_id;
+			Z_ADDREF_P(zresource);
+			*presource = Z_RES_P(zresource);
 			*psession = session;
 			return resource;
 		}
@@ -316,9 +308,9 @@ php_url *php_ssh2_fopen_wraper_parse_path(const char *path, char *type, php_stre
 		sftp_data = (php_ssh2_sftp_data *)zend_fetch_resource(Z_RES_P(tmpzval), PHP_SSH2_SFTP_RES_NAME, le_ssh2_sftp);
 		if (sftp_data) {
 			Z_ADDREF_P(tmpzval);
-			*psftp_rsrcid = Z_LVAL_P(tmpzval);
+			*psftp_rsrc = Z_RES_P(tmpzval);
 			*psftp = sftp_data->sftp;
-			*presource_id = sftp_data->session_rsrcid;
+			*presource = sftp_data->session_rsrc;
 			*psession = sftp_data->session;
 			return resource;
 		}
@@ -340,17 +332,17 @@ php_url *php_ssh2_fopen_wraper_parse_path(const char *path, char *type, php_stre
 				sftp_data = emalloc(sizeof(php_ssh2_sftp_data));
 				sftp_data->sftp = sftp;
 				sftp_data->session = session;
-				sftp_data->session_rsrcid = Z_LVAL_P(tmpzval);
+				sftp_data->session_rsrc = Z_RES_P(tmpzval);
 				Z_ADDREF_P(tmpzval);
-				*psftp_rsrcid = zend_register_resource(sftp_data, le_ssh2_sftp)->handle;
+				*psftp_rsrc = zend_register_resource(sftp_data, le_ssh2_sftp);
 				*psftp = sftp;
-				*presource_id = Z_RES_P(tmpzval)->handle;
+				*presource = Z_RES_P(tmpzval);
 				*psession = session;
 				return resource;
 			}
 			Z_ADDREF_P(tmpzval);
 			*psession = session;
-			*presource_id = Z_LVAL_P(tmpzval);
+			*presource = Z_RES_P(tmpzval);
 			return resource;
 		}
 	}
@@ -451,8 +443,7 @@ php_url *php_ssh2_fopen_wraper_parse_path(const char *path, char *type, php_stre
 
 	/* Auth failure */
 	php_url_free(resource);
-	//TODO Sean-Der
-	//zend_list_delete(Z_LVAL(zsession));
+	zend_list_delete(Z_RES(zsession));
 	return NULL;
 
 session_authed:
@@ -466,23 +457,22 @@ session_authed:
 		sftp = libssh2_sftp_init(session);
 		if (!sftp) {
 			php_url_free(resource);
-			//TODO Sean-Der
-			//zend_list_delete(Z_LVAL(zsession));
+			zend_list_delete(Z_RES(zsession));
 			return NULL;
 		}
 
 		sftp_data = emalloc(sizeof(php_ssh2_sftp_data));
 		sftp_data->session = session;
 		sftp_data->sftp = sftp;
-		sftp_data->session_rsrcid = Z_LVAL(zsession);
+		sftp_data->session_rsrc = Z_RES(zsession);
 
 		//TODO Sean-Der
 		//ZEND_REGISTER_RESOURCE(sftp_data, le_ssh2_sftp);
-		*psftp_rsrcid = Z_LVAL(zsftp);
+		*psftp_rsrc = Z_RES(zsftp);
 		*psftp = sftp;
 	}
 
-	*presource_id = Z_LVAL(zsession);
+	*presource = Z_RES(zsession);
 	*psession = session;
 
 	return resource;
@@ -496,7 +486,7 @@ session_authed:
 /* {{{ php_ssh2_shell_open
  * Make a stream from a session
  */
-static php_stream *php_ssh2_shell_open(LIBSSH2_SESSION *session, int resource_id, char *term, int term_len, zval *environment, long width, long height, long type)
+static php_stream *php_ssh2_shell_open(LIBSSH2_SESSION *session, zend_resource *resource, char *term, int term_len, zval *environment, long width, long height, long type)
 {
 	LIBSSH2_CHANNEL *channel;
 	php_ssh2_channel_data *channel_data;
@@ -563,7 +553,7 @@ static php_stream *php_ssh2_shell_open(LIBSSH2_SESSION *session, int resource_id
 	channel_data->streamid = 0;
 	channel_data->is_blocking = 0;
 	channel_data->timeout = 0;
-	channel_data->session_rsrcid = resource_id;
+	channel_data->session_rsrc = resource;
 	channel_data->refcount = NULL;
 
 	stream = php_stream_alloc(&php_ssh2_channel_stream_ops, channel_data, 0, "r+");
@@ -584,11 +574,12 @@ static php_stream *php_ssh2_fopen_wrapper_shell(php_stream_wrapper *wrapper, con
 	zend_long width = PHP_SSH2_DEFAULT_TERM_WIDTH;
 	zend_long height = PHP_SSH2_DEFAULT_TERM_HEIGHT;
 	zend_long type = PHP_SSH2_DEFAULT_TERM_UNIT;
-	int resource_id = 0, terminal_len = sizeof(PHP_SSH2_DEFAULT_TERMINAL) - 1;
+	zend_resource *rsrc = NULL;
+	int terminal_len = sizeof(PHP_SSH2_DEFAULT_TERMINAL) - 1;
 	php_url *resource;
 	char *s;
 
-	resource = php_ssh2_fopen_wraper_parse_path(path, "shell", context, &session, &resource_id, NULL, NULL);
+	resource = php_ssh2_fopen_wraper_parse_path(path, "shell", context, &session, &rsrc, NULL, NULL);
 	if (!resource || !session) {
 		return NULL;
 	}
@@ -662,10 +653,9 @@ static php_stream *php_ssh2_fopen_wrapper_shell(php_stream_wrapper *wrapper, con
 	/* TODO: Accept resolution and environment vars as URL style parameters
 	 * ssh2.shell://hostorresource/terminal/99x99c?envvar=envval&envvar=envval....
 	 */
-	stream = php_ssh2_shell_open(session, resource_id, terminal, terminal_len, environment, width, height, type);
+	stream = php_ssh2_shell_open(session, rsrc, terminal, terminal_len, environment, width, height, type);
 	if (!stream) {
-		//TODO Sean-Der
-		//zend_list_delete(resource_id);
+		zend_list_delete(rsrc);
 	}
 	php_url_free(resource);
 
@@ -715,7 +705,7 @@ PHP_FUNCTION(ssh2_shell)
 
 	SSH2_FETCH_AUTHENTICATED_SESSION(session, zsession);
 
-	stream = php_ssh2_shell_open(session, Z_RES_P(zsession)->handle, term, term_len, environment, width, height, type);
+	stream = php_ssh2_shell_open(session, Z_RES_P(zsession), term, term_len, environment, width, height, type);
 	if (!stream) {
 		RETURN_FALSE;
 	}
@@ -734,7 +724,7 @@ PHP_FUNCTION(ssh2_shell)
 /* {{{ php_ssh2_exec_command
  * Make a stream from a session
  */
-static php_stream *php_ssh2_exec_command(LIBSSH2_SESSION *session, int resource_id, char *command, char *term, int term_len, zval *environment, long width, long height, long type)
+static php_stream *php_ssh2_exec_command(LIBSSH2_SESSION *session, zend_resource *rsrc, char *command, char *term, int term_len, zval *environment, long width, long height, long type)
 {
 	LIBSSH2_CHANNEL *channel;
 	php_ssh2_channel_data *channel_data;
@@ -804,7 +794,7 @@ static php_stream *php_ssh2_exec_command(LIBSSH2_SESSION *session, int resource_
 	channel_data->streamid = 0;
 	channel_data->is_blocking = 0;
 	channel_data->timeout = 0;
-	channel_data->session_rsrcid = resource_id;
+	channel_data->session_rsrc = rsrc;
 	channel_data->refcount = NULL;
 
 	stream = php_stream_alloc(&php_ssh2_channel_stream_ops, channel_data, 0, "r+");
@@ -821,7 +811,7 @@ static php_stream *php_ssh2_fopen_wrapper_exec(php_stream_wrapper *wrapper, cons
 	LIBSSH2_SESSION *session = NULL;
 	php_stream *stream;
 	zval *tmpzval, *environment = NULL;
-	int resource_id = 0;
+	zend_resource *rsrc = NULL;
 	php_url *resource;
 	char *terminal = NULL;
 	int terminal_len = 0;
@@ -829,14 +819,13 @@ static php_stream *php_ssh2_fopen_wrapper_exec(php_stream_wrapper *wrapper, cons
 	long height = PHP_SSH2_DEFAULT_TERM_HEIGHT;
 	long type = PHP_SSH2_DEFAULT_TERM_UNIT;
 
-	resource = php_ssh2_fopen_wraper_parse_path(path, "exec", context, &session, &resource_id, NULL, NULL);
+	resource = php_ssh2_fopen_wraper_parse_path(path, "exec", context, &session, &rsrc, NULL, NULL);
 	if (!resource || !session) {
 		return NULL;
 	}
 	if (!resource->path) {
 		php_url_free(resource);
-		//TODO Sean-Der
-		//zend_list_delete(resource_id);
+		zend_list_delete(rsrc);
 		return NULL;
 	}
 
@@ -878,10 +867,9 @@ static php_stream *php_ssh2_fopen_wrapper_exec(php_stream_wrapper *wrapper, cons
 		zval_ptr_dtor(copyval);
 	}
 
-	stream = php_ssh2_exec_command(session, resource_id, resource->path + 1, terminal, terminal_len, environment, width, height, type);
+	stream = php_ssh2_exec_command(session, rsrc, resource->path + 1, terminal, terminal_len, environment, width, height, type);
 	if (!stream) {
-		// TODO Sean-Der
-		//zend_list_delete(resource_id);
+		zend_list_delete(rsrc);
 	}
 	php_url_free(resource);
 
@@ -948,7 +936,7 @@ PHP_FUNCTION(ssh2_exec)
 
 	SSH2_FETCH_AUTHENTICATED_SESSION(session, zsession);
 
-	stream = php_ssh2_exec_command(session, Z_RES_P(zsession)->handle, command, term, term_len, environment, width, height, type);
+	stream = php_ssh2_exec_command(session, Z_RES_P(zsession), command, term, term_len, environment, width, height, type);
 	if (!stream) {
 		RETURN_FALSE;
 	}
@@ -967,7 +955,7 @@ PHP_FUNCTION(ssh2_exec)
 /* {{{ php_ssh2_scp_xfer
  * Make a stream from a session
  */
-static php_stream *php_ssh2_scp_xfer(LIBSSH2_SESSION *session, int resource_id, char *filename)
+static php_stream *php_ssh2_scp_xfer(LIBSSH2_SESSION *session, zend_resource *rsrc, char *filename)
 {
 	LIBSSH2_CHANNEL *channel;
 	php_ssh2_channel_data *channel_data;
@@ -987,7 +975,7 @@ static php_stream *php_ssh2_scp_xfer(LIBSSH2_SESSION *session, int resource_id, 
 	channel_data->streamid = 0;
 	channel_data->is_blocking = 0;
 	channel_data->timeout = 0;
-	channel_data->session_rsrcid = resource_id;
+	channel_data->session_rsrc = rsrc;
 	channel_data->refcount = NULL;
 
 	stream = php_stream_alloc(&php_ssh2_channel_stream_ops, channel_data, 0, "r");
@@ -1003,28 +991,26 @@ static php_stream *php_ssh2_fopen_wrapper_scp(php_stream_wrapper *wrapper, const
 {
 	LIBSSH2_SESSION *session = NULL;
 	php_stream *stream;
-	int resource_id = 0;
+	zend_resource *rsrc = NULL;
 	php_url *resource;
 
 	if (strchr(mode, '+') || strchr(mode, 'a') || strchr(mode, 'w')) {
 		return NULL;
 	}
 
-	resource = php_ssh2_fopen_wraper_parse_path(path, "scp", context, &session, &resource_id, NULL, NULL);
+	resource = php_ssh2_fopen_wraper_parse_path(path, "scp", context, &session, &rsrc, NULL, NULL);
 	if (!resource || !session) {
 		return NULL;
 	}
 	if (!resource->path) {
 		php_url_free(resource);
-		//TODO Sean-Der
-		//zend_list_delete(resource_id);
+		zend_list_delete(rsrc);
 		return NULL;
 	}
 
-	stream = php_ssh2_scp_xfer(session, resource_id, resource->path);
+	stream = php_ssh2_scp_xfer(session, rsrc, resource->path);
 	if (!stream) {
-		//TODO Sean-Der
-		//zend_list_delete(resource_id);
+		zend_list_delete(rsrc);
 	}
 	php_url_free(resource);
 
@@ -1216,7 +1202,7 @@ PHP_FUNCTION(ssh2_scp_send)
 /* {{{ php_ssh2_direct_tcpip
  * Make a stream from a session
  */
-static php_stream *php_ssh2_direct_tcpip(LIBSSH2_SESSION *session, int resource_id, char *host, int port)
+static php_stream *php_ssh2_direct_tcpip(LIBSSH2_SESSION *session, zend_resource *rsrc, char *host, int port)
 {
 	LIBSSH2_CHANNEL *channel;
 	php_ssh2_channel_data *channel_data;
@@ -1236,7 +1222,7 @@ static php_stream *php_ssh2_direct_tcpip(LIBSSH2_SESSION *session, int resource_
 	channel_data->streamid = 0;
 	channel_data->is_blocking = 0;
 	channel_data->timeout = 0;
-	channel_data->session_rsrcid = resource_id;
+	channel_data->session_rsrc = rsrc;
 	channel_data->refcount = NULL;
 
 	stream = php_stream_alloc(&php_ssh2_channel_stream_ops, channel_data, 0, "r+");
@@ -1255,9 +1241,9 @@ static php_stream *php_ssh2_fopen_wrapper_tunnel(php_stream_wrapper *wrapper, co
 	php_url *resource;
 	char *host = NULL;
 	int port = 0;
-	int resource_id = 0;
+	zend_resource *rsrc;
 
-	resource = php_ssh2_fopen_wraper_parse_path(path, "tunnel", context, &session, &resource_id, NULL, NULL);
+	resource = php_ssh2_fopen_wraper_parse_path(path, "tunnel", context, &session, &rsrc, NULL, NULL);
 	if (!resource || !session) {
 		return NULL;
 	}
@@ -1288,15 +1274,13 @@ static php_stream *php_ssh2_fopen_wrapper_tunnel(php_stream_wrapper *wrapper, co
 	if ((port <= 0) || (port > 65535) || !host || (strlen(host) == 0)) {
 		/* Invalid connection criteria */
 		php_url_free(resource);
-		//TODO Sean-Der
-		//zend_list_delete(resource_id);
+		zend_list_delete(rsrc);
 		return NULL;
 	}
 
-	stream = php_ssh2_direct_tcpip(session, resource_id, host, port);
+	stream = php_ssh2_direct_tcpip(session, rsrc, host, port);
 	if (!stream) {
-		// TODO Sean-Der
-		//zend_list_delete(resource_id);
+		zend_list_delete(rsrc);
 	}
 	php_url_free(resource);
 
@@ -1337,7 +1321,7 @@ PHP_FUNCTION(ssh2_tunnel)
 
 	SSH2_FETCH_AUTHENTICATED_SESSION(session, zsession);
 
-	stream = php_ssh2_direct_tcpip(session, Z_RES_P(zsession)->handle, host, port);
+	stream = php_ssh2_direct_tcpip(session, Z_RES_P(zsession), host, port);
 	if (!stream) {
 		RETURN_FALSE;
 	}
