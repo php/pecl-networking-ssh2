@@ -216,6 +216,7 @@ php_url *php_ssh2_fopen_wraper_parse_path(const char *path, char *type, php_stre
 	zval *methods = NULL, *callbacks = NULL, zsession, *tmpzval;
 	zend_long resource_id;
 	char *h, *s, *username = NULL, *password = NULL, *pubkey_file = NULL, *privkey_file = NULL;
+	zend_string *zs;
 	int username_len = 0, password_len = 0;
 
 	h = strstr(path, "Resource id #");
@@ -229,36 +230,40 @@ php_url *php_ssh2_fopen_wraper_parse_path(const char *path, char *type, php_stre
 	} else {
 		resource = php_url_parse(path);
 	}
-	if (!resource || !resource->path) {
+	if (!resource || !ZSTR_VAL(resource->path)) {
 		return NULL;
 	}
 
-	if (strncmp(resource->scheme, "ssh2.", sizeof("ssh2.") - 1)) {
+	if (strncmp(ZSTR_VAL(resource->scheme), "ssh2.", sizeof("ssh2.") - 1)) {
 		/* Not an ssh wrapper */
 		php_url_free(resource);
 		return NULL;
 	}
 
-	if (strcmp(resource->scheme + sizeof("ssh2.") - 1, type)) {
+	if (strcmp(ZSTR_VAL(resource->scheme) + sizeof("ssh2.") - 1, type)) {
 		/* Wrong ssh2. wrapper type */
 		php_url_free(resource);
 		return NULL;
 	}
 
-	if (!resource->host) {
+	if (!ZSTR_VAL(resource->host)) {
 		return NULL;
 	}
 
 	/*
 		Find resource->path in the path string, then copy the entire string from the original path.
 		This includes ?query#fragment in the path string
+		xxxx
 	*/
-	s = resource->path;
-	resource->path = estrdup(strstr(path, resource->path));
+       	zs = resource->path;
+	s = estrdup(strstr(path, ZSTR_VAL(resource->path)));
+       	resource->path = zend_string_init(s, sizeof(s)-1, 0);
 	efree(s);
+	/* resource->path = estrdup(strstr(path, resource->path ? ZSTR_VAL(resource->path) : NULL)); */
+	zend_string_release(zs);
 
 	/* Look for a resource ID to reuse a session */
-	s = resource->host;
+	s = ZSTR_VAL(resource->host);
 	if (is_numeric_string(s, strlen(s), &resource_id, NULL, 0) == IS_LONG) {
 		php_ssh2_sftp_data *sftp_data;
 		zval *zresource;
@@ -309,7 +314,7 @@ php_url *php_ssh2_fopen_wraper_parse_path(const char *path, char *type, php_stre
 	}
 
 	/* Fallback on finding it in the context */
-	if (resource->host[0] == 0 && context && psftp &&
+	if (ZSTR_VAL(resource->host)[0] == 0 && context && psftp &&
 		(tmpzval = php_stream_context_get_option(context, "ssh2", "sftp")) != NULL &&
 		Z_TYPE_P(tmpzval) == IS_RESOURCE) {
 		php_ssh2_sftp_data *sftp_data;
@@ -323,7 +328,7 @@ php_url *php_ssh2_fopen_wraper_parse_path(const char *path, char *type, php_stre
 			return resource;
 		}
 	}
-	if (resource->host[0] == 0 && context &&
+	if (ZSTR_VAL(resource->host)[0] == 0 && context &&
 		(tmpzval = php_stream_context_get_option(context, "ssh2", "session")) != NULL &&
 		Z_TYPE_P(tmpzval) == IS_RESOURCE) {
 		session = (LIBSSH2_SESSION *)zend_fetch_resource(Z_RES_P(tmpzval), PHP_SSH2_SESSION_RES_NAME, le_ssh2_session);
@@ -398,20 +403,20 @@ php_url *php_ssh2_fopen_wraper_parse_path(const char *path, char *type, php_stre
 		privkey_file = Z_STRVAL_P(tmpzval);
 	}
 
-	if (resource->user) {
-		int len = strlen(resource->user);
+	if (ZSTR_VAL(resource->user)) {
+		int len = ZSTR_LEN(resource->user);
 
 		if (len) {
-			username = resource->user;
+			username = ZSTR_VAL(resource->user);
 			username_len = len;
 		}
 	}
 
-	if (resource->pass) {
-		int len = strlen(resource->pass);
+	if (ZSTR_VAL(resource->pass)) {
+		int len = ZSTR_LEN(resource->pass);
 
 		if (len) {
-			password = resource->pass;
+			password = ZSTR_VAL(resource->pass);
 			password_len = len;
 		}
 	}
@@ -422,7 +427,7 @@ php_url *php_ssh2_fopen_wraper_parse_path(const char *path, char *type, php_stre
 		return NULL;
 	}
 
-	session = php_ssh2_session_connect(resource->host, resource->port, methods, callbacks);
+	session = php_ssh2_session_connect(ZSTR_VAL(resource->host), resource->port, methods, callbacks);
 	if (!session) {
 		/* Unable to connect! */
 		php_url_free(resource);
@@ -631,7 +636,7 @@ static php_stream *php_ssh2_fopen_wrapper_shell(php_stream_wrapper *wrapper, con
 		zval_ptr_dtor(&copyval);
 	}
 
-	s = resource->path ? resource->path : NULL;
+	s = ZSTR_VAL(resource->path);
 
 	if (s && s[0] == '/') {
 		/* Terminal type encoded into URL overrides context terminal type */
@@ -833,7 +838,7 @@ static php_stream *php_ssh2_fopen_wrapper_exec(php_stream_wrapper *wrapper, cons
 	if (!resource || !session) {
 		return NULL;
 	}
-	if (!resource->path) {
+	if (!ZSTR_VAL(resource->path)) {
 		php_url_free(resource);
 		//TODO Sean-Der
 		//zend_list_delete(resource_id);
@@ -878,7 +883,7 @@ static php_stream *php_ssh2_fopen_wrapper_exec(php_stream_wrapper *wrapper, cons
 		zval_ptr_dtor(copyval);
 	}
 
-	stream = php_ssh2_exec_command(session, resource_id, resource->path + 1, terminal, terminal_len, environment, width, height, type);
+	stream = php_ssh2_exec_command(session, resource_id, ZSTR_VAL(resource->path) + 1, terminal, terminal_len, environment, width, height, type);
 	if (!stream) {
 		// TODO Sean-Der
 		//zend_list_delete(resource_id);
@@ -1014,14 +1019,14 @@ static php_stream *php_ssh2_fopen_wrapper_scp(php_stream_wrapper *wrapper, const
 	if (!resource || !session) {
 		return NULL;
 	}
-	if (!resource->path) {
+	if (!ZSTR_VAL(resource->path)) {
 		php_url_free(resource);
 		//TODO Sean-Der
 		//zend_list_delete(resource_id);
 		return NULL;
 	}
 
-	stream = php_ssh2_scp_xfer(session, resource_id, resource->path);
+	stream = php_ssh2_scp_xfer(session, resource_id, ZSTR_VAL(resource->path));
 	if (!stream) {
 		//TODO Sean-Der
 		//zend_list_delete(resource_id);
@@ -1262,10 +1267,10 @@ static php_stream *php_ssh2_fopen_wrapper_tunnel(php_stream_wrapper *wrapper, co
 		return NULL;
 	}
 
-	if (resource->path && resource->path[0] == '/') {
+	if (ZSTR_VAL(resource->path) && ZSTR_VAL(resource->path)[0] == '/') {
 		char *colon;
 
-		host = resource->path + 1;
+		host = ZSTR_VAL(resource->path) + 1;
 		if (*host == '[') {
 			/* IPv6 Encapsulated Format */
 			host++;
