@@ -40,8 +40,7 @@ void php_ssh2_sftp_dtor(zend_resource *rsrc)
 
 	libssh2_sftp_shutdown(data->sftp);
 
-	// TODO Sean-Der
-	//zend_list_delete(data->session_rsrcid);
+	zend_list_delete(data->session_rsrc);
 
 	efree(data);
 }
@@ -50,7 +49,7 @@ void php_ssh2_sftp_dtor(zend_resource *rsrc)
    * SFTP File Ops *
    ***************** */
 
-inline unsigned long php_ssh2_parse_fopen_modes(char *openmode) {
+unsigned long php_ssh2_parse_fopen_modes(char *openmode) {
 	unsigned long flags = 0;
 
 	if (strchr(openmode, 'a')) {
@@ -101,7 +100,7 @@ inline int php_ssh2_sftp_attr2ssb(php_stream_statbuf *ssb, LIBSSH2_SFTP_ATTRIBUT
 typedef struct _php_ssh2_sftp_handle_data {
 	LIBSSH2_SFTP_HANDLE *handle;
 
-	long sftp_rsrcid;
+	zend_resource *sftp_rsrc;
 } php_ssh2_sftp_handle_data;
 
 /* {{{ php_ssh2_sftp_stream_write
@@ -139,8 +138,7 @@ static int php_ssh2_sftp_stream_close(php_stream *stream, int close_handle)
 	php_ssh2_sftp_handle_data *data = (php_ssh2_sftp_handle_data*)stream->abstract;
 
 	libssh2_sftp_close(data->handle);
-	//TODO Sean-Der
-	//zend_list_delete(data->sftp_rsrcid);
+	zend_list_delete(data->sftp_rsrc);
 	efree(data);
 
 	return 0;
@@ -226,36 +224,34 @@ static php_stream *php_ssh2_sftp_stream_opener(php_stream_wrapper *wrapper, cons
 	LIBSSH2_SFTP *sftp = NULL;
 	LIBSSH2_SFTP_HANDLE *handle;
 	php_stream *stream;
-	int resource_id = 0, sftp_rsrcid = 0;
+	zend_resource *rsrc = NULL, *sftp_rsrc = NULL;
 	php_url *resource;
 	unsigned long flags;
 	long perms = 0644;
 
-	resource = php_ssh2_fopen_wraper_parse_path(filename, "sftp", context, &session, &resource_id, &sftp, &sftp_rsrcid);
+	resource = php_ssh2_fopen_wraper_parse_path(filename, "sftp", context, &session, &rsrc, &sftp, &sftp_rsrc);
 	if (!resource || !session || !sftp) {
 		return NULL;
 	}
 
 	flags = php_ssh2_parse_fopen_modes((char *)mode);
 
-	handle = libssh2_sftp_open(sftp, resource->path, flags, perms);
+	handle = libssh2_sftp_open(sftp, ZSTR_VAL(resource->path), flags, perms);
 	if (!handle) {
 		php_error_docref(NULL, E_WARNING, "Unable to open %s on remote host", filename);
 		php_url_free(resource);
-		//TODO Sean-Der
-		//zend_list_delete(sftp_rsrcid);
+		zend_list_delete(sftp_rsrc);
 		return NULL;
 	}
 
 	data = emalloc(sizeof(php_ssh2_sftp_handle_data));
 	data->handle = handle;
-	data->sftp_rsrcid = sftp_rsrcid;
+	data->sftp_rsrc = sftp_rsrc;
 
 	stream = php_stream_alloc(&php_ssh2_sftp_stream_ops, data, 0, mode);
 	if (!stream) {
 		libssh2_sftp_close(handle);
-		// TODO Sean-Der
-		//zend_list_delete(sftp_rsrcid);
+		zend_list_delete(sftp_rsrc);
 		efree(data);
 	}
 	php_url_free(resource);
@@ -303,8 +299,7 @@ static int php_ssh2_sftp_dirstream_close(php_stream *stream, int close_handle)
 	php_ssh2_sftp_handle_data *data = (php_ssh2_sftp_handle_data*)stream->abstract;
 
 	libssh2_sftp_close(data->handle);
-	//TODO Sean_der
-	//zend_list_delete(data->sftp_rsrcid);
+	zend_list_delete(data->sftp_rsrc);
 	efree(data);
 
 	return 0;
@@ -333,32 +328,30 @@ static php_stream *php_ssh2_sftp_dirstream_opener(php_stream_wrapper *wrapper, c
 	LIBSSH2_SFTP *sftp = NULL;
 	LIBSSH2_SFTP_HANDLE *handle;
 	php_stream *stream;
-	int resource_id = 0, sftp_rsrcid = 0;
+	zend_resource *rsrc = NULL, *sftp_rsrc = NULL;
 	php_url *resource;
 
-	resource = php_ssh2_fopen_wraper_parse_path(filename, "sftp", context, &session, &resource_id, &sftp, &sftp_rsrcid);
+	resource = php_ssh2_fopen_wraper_parse_path(filename, "sftp", context, &session, &rsrc, &sftp, &sftp_rsrc);
 	if (!resource || !session || !sftp) {
 		return NULL;
 	}
 
-	handle = libssh2_sftp_opendir(sftp, resource->path);
+	handle = libssh2_sftp_opendir(sftp, ZSTR_VAL(resource->path));
 	if (!handle) {
 		php_error_docref(NULL, E_WARNING, "Unable to open %s on remote host", filename);
 		php_url_free(resource);
-		//TODO Sean-Der
-		//zend_list_delete(sftp_rsrcid);
+		zend_list_delete(sftp_rsrc);
 		return NULL;
 	}
 
 	data = emalloc(sizeof(php_ssh2_sftp_handle_data));
 	data->handle = handle;
-	data->sftp_rsrcid = sftp_rsrcid;
+	data->sftp_rsrc = sftp_rsrc;
 
 	stream = php_stream_alloc(&php_ssh2_sftp_dirstream_ops, data, 0, mode);
 	if (!stream) {
 		libssh2_sftp_close(handle);
-		//TODO Sean-Der
-		//zend_list_delete(sftp_rsrcid);
+		zend_list_delete(sftp_rsrc);
 		efree(data);
 	}
 	php_url_free(resource);
@@ -378,11 +371,11 @@ static int php_ssh2_sftp_urlstat(php_stream_wrapper *wrapper, const char *url, i
 	LIBSSH2_SFTP_ATTRIBUTES attrs;
 	LIBSSH2_SESSION *session = NULL;
 	LIBSSH2_SFTP *sftp = NULL;
-	int resource_id = 0, sftp_rsrcid = 0;
+	zend_resource *rsrc = NULL, *sftp_rsrc = NULL;
 	php_url *resource;
 
-	resource = php_ssh2_fopen_wraper_parse_path(url, "sftp", context, &session, &resource_id, &sftp, &sftp_rsrcid);
-	if (!resource || !session || !sftp || !resource->path) {
+	resource = php_ssh2_fopen_wraper_parse_path(url, "sftp", context, &session, &rsrc, &sftp, &sftp_rsrc);
+	if (!resource || !session || !sftp || !ZSTR_VAL(resource->path)) {
 		return -1;
 	}
 
@@ -408,19 +401,19 @@ static int php_ssh2_sftp_unlink(php_stream_wrapper *wrapper, const char *url, in
 {
 	LIBSSH2_SESSION *session = NULL;
 	LIBSSH2_SFTP *sftp = NULL;
-	int resource_id = 0, sftp_rsrcid = 0;
+	zend_resource *rsrc = NULL, *sftp_rsrc = NULL;
 	php_url *resource;
 	int result;
 
-	resource = php_ssh2_fopen_wraper_parse_path(url, "sftp", context, &session, &resource_id, &sftp, &sftp_rsrcid);
-	if (!resource || !session || !sftp || !resource->path) {
+	resource = php_ssh2_fopen_wraper_parse_path(url, "sftp", context, &session, &rsrc, &sftp, &sftp_rsrc);
+	if (!resource || !session || !sftp || !ZSTR_VAL(resource->path)) {
 		if (resource) {
 			php_url_free(resource);
 		}
 		return 0;
 	}
 
-	result = libssh2_sftp_unlink(sftp, resource->path);
+	result = libssh2_sftp_unlink(sftp, ZSTR_VAL(resource->path));
 	php_url_free(resource);
 
 	//zend_list_delete(sftp_rsrcid);
@@ -436,7 +429,7 @@ static int php_ssh2_sftp_rename(php_stream_wrapper *wrapper, const char *url_fro
 {
 	LIBSSH2_SESSION *session = NULL;
 	LIBSSH2_SFTP *sftp = NULL;
-	int resource_id = 0, sftp_rsrcid = 0;
+	zend_resource *rsrc = NULL, *sftp_rsrc = NULL;
 	php_url *resource, *resource_to;
 	int result;
 
@@ -446,15 +439,15 @@ static int php_ssh2_sftp_rename(php_stream_wrapper *wrapper, const char *url_fro
 	}
 
 	resource_to = php_url_parse(url_to);
-	if (!resource_to || !resource_to->path) {
+	if (!resource_to || !ZSTR_VAL(resource_to->path)) {
 		if (resource_to) {
 			php_url_free(resource_to);
 		}
 		return 0;
 	}
 
-	resource = php_ssh2_fopen_wraper_parse_path(url_from, "sftp", context, &session, &resource_id, &sftp, &sftp_rsrcid);
-	if (!resource || !session || !sftp || !resource->path) {
+	resource = php_ssh2_fopen_wraper_parse_path(url_from, "sftp", context, &session, &rsrc, &sftp, &sftp_rsrc);
+	if (!resource || !session || !sftp || !ZSTR_VAL(resource->path)) {
 		if (resource) {
 			php_url_free(resource);
 		}
@@ -462,7 +455,7 @@ static int php_ssh2_sftp_rename(php_stream_wrapper *wrapper, const char *url_fro
 		return 0;
 	}
 
-	result = libssh2_sftp_rename(sftp, resource->path, resource_to->path);
+	result = libssh2_sftp_rename(sftp, ZSTR_VAL(resource->path), ZSTR_VAL(resource_to->path));
 	php_url_free(resource);
 	php_url_free(resource_to);
 
@@ -479,12 +472,12 @@ static int php_ssh2_sftp_mkdir(php_stream_wrapper *wrapper, const char *url, int
 {
 	LIBSSH2_SESSION *session = NULL;
 	LIBSSH2_SFTP *sftp = NULL;
-	int resource_id = 0, sftp_rsrcid = 0;
+	zend_resource *rsrc = NULL, *sftp_rsrc = NULL;
 	php_url *resource;
 	int result;
 
-	resource = php_ssh2_fopen_wraper_parse_path(url, "sftp", context, &session, &resource_id, &sftp, &sftp_rsrcid);
-	if (!resource || !session || !sftp || !resource->path) {
+	resource = php_ssh2_fopen_wraper_parse_path(url, "sftp", context, &session, &rsrc, &sftp, &sftp_rsrc);
+	if (!resource || !session || !sftp || !ZSTR_VAL(resource->path)) {
 		if (resource) {
 			php_url_free(resource);
 		}
@@ -493,13 +486,13 @@ static int php_ssh2_sftp_mkdir(php_stream_wrapper *wrapper, const char *url, int
 
 	if (options & PHP_STREAM_MKDIR_RECURSIVE) {
 		/* Just attempt to make every directory, some will fail, but we only care about the last success/failure */
-		char *p = resource->path;
+		char *p = ZSTR_VAL(resource->path);
 		while ((p = strchr(p + 1, '/'))) {
-			libssh2_sftp_mkdir_ex(sftp, resource->path, p - resource->path, mode);
+			libssh2_sftp_mkdir_ex(sftp, ZSTR_VAL(resource->path), p - ZSTR_VAL(resource->path), mode);
 		}
 	}
 
-	result = libssh2_sftp_mkdir(sftp, resource->path, mode);
+	result = libssh2_sftp_mkdir(sftp, ZSTR_VAL(resource->path), mode);
 	php_url_free(resource);
 
 	//zend_list_delete(sftp_rsrcid);
@@ -515,12 +508,12 @@ static int php_ssh2_sftp_rmdir(php_stream_wrapper *wrapper, const char *url, int
 {
 	LIBSSH2_SESSION *session = NULL;
 	LIBSSH2_SFTP *sftp = NULL;
-	int resource_id = 0, sftp_rsrcid = 0;
+	zend_resource *rsrc = NULL, *sftp_rsrc = NULL;
 	php_url *resource;
 	int result;
 
-	resource = php_ssh2_fopen_wraper_parse_path(url, "sftp", context, &session, &resource_id, &sftp, &sftp_rsrcid);
-	if (!resource || !session || !sftp || !resource->path) {
+	resource = php_ssh2_fopen_wraper_parse_path(url, "sftp", context, &session, &rsrc, &sftp, &sftp_rsrc);
+	if (!resource || !session || !sftp || !ZSTR_VAL(resource->path)) {
 		if (resource) {
 			php_url_free(resource);
 		}
@@ -591,7 +584,7 @@ PHP_FUNCTION(ssh2_sftp)
 	data = emalloc(sizeof(php_ssh2_sftp_data));
 	data->session = session;
 	data->sftp = sftp;
-	data->session_rsrcid = Z_RES_P(zsession)->handle;
+	data->session_rsrc = Z_RES_P(zsession);
 	Z_ADDREF_P(zsession);
 
 	RETURN_RES(zend_register_resource(data, le_ssh2_sftp));
@@ -637,7 +630,7 @@ PHP_FUNCTION(ssh2_sftp_unlink)
 		RETURN_FALSE;
 	}
 
-	RETURN_BOOL(!libssh2_sftp_unlink_ex(data->sftp, filename->val, filename->len));
+	RETURN_BOOL(!libssh2_sftp_unlink_ex(data->sftp, ZSTR_VAL(filename), ZSTR_LEN(filename)));
 }
 /* }}} */
 
