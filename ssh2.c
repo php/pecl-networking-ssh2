@@ -819,8 +819,8 @@ PHP_FUNCTION(ssh2_forward_accept)
 		libssh2_channel_free(channel);
 		RETURN_FALSE;
 	}
-
-	GC_REFCOUNT(channel_data->session_rsrc)++;
+	// For PHP 7.3
+	GC_ADDREF(channel_data->session_rsrc);
 
 	php_stream_to_zval(stream, return_value);
 }
