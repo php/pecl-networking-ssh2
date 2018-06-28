@@ -110,6 +110,13 @@ if (!libssh2_userauth_authenticated(session)) { \
 	RETURN_FALSE; \
 }
 
+/* compatibility */
+#if PHP_VERSION_ID < 70300
+#define SSH2_URL_STR(a) (a)
+#else
+#define SSH2_URL_STR(a) ZSTR_VAL(a)
+#endif
+
 typedef struct _php_ssh2_channel_data {
 	LIBSSH2_CHANNEL *channel;
 
