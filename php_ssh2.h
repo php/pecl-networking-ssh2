@@ -73,14 +73,14 @@ typedef struct _php_ssh2_sftp_data {
 	LIBSSH2_SESSION *session;
 	LIBSSH2_SFTP *sftp;
 
-	int session_rsrcid;
+	zend_resource *session_rsrc;
 } php_ssh2_sftp_data;
 
 typedef struct _php_ssh2_listener_data {
 	LIBSSH2_SESSION *session;
 	LIBSSH2_LISTENER *listener;
 
-	int session_rsrcid;
+	zend_resource *session_rsrc;
 } php_ssh2_listener_data;
 
 #include "libssh2_publickey.h"
@@ -89,7 +89,7 @@ typedef struct _php_ssh2_pkey_subsys_data {
 	LIBSSH2_SESSION *session;
 	LIBSSH2_PUBLICKEY *pkey;
 
-	int session_rsrcid;
+	zend_resource *session_rsrc;
 } php_ssh2_pkey_subsys_data;
 
 #define SSH2_FETCH_NONAUTHENTICATED_SESSION(session, zsession) \
@@ -118,8 +118,8 @@ typedef struct _php_ssh2_channel_data {
 	char is_blocking;
 	long timeout;
 
-	/* Resource ID */
-	int session_rsrcid;
+	/* Resource */
+	zend_resource *session_rsrc;
 
 	/* Allow one stream to be closed while the other is kept open */
 	unsigned char *refcount;
@@ -151,8 +151,8 @@ PHP_FUNCTION(ssh2_sftp_realpath);
 LIBSSH2_SESSION *php_ssh2_session_connect(char *host, int port, zval *methods, zval *callbacks);
 void php_ssh2_sftp_dtor(zend_resource *rsrc);
 php_url *php_ssh2_fopen_wraper_parse_path(const char *path, char *type, php_stream_context *context,
-											LIBSSH2_SESSION **psession, int *presource_id,
-											LIBSSH2_SFTP **psftp, int *psftp_rsrcid);
+											LIBSSH2_SESSION **psession, zend_resource **presource,
+											LIBSSH2_SFTP **psftp, zend_resource **psftp_rsrc);
 
 extern php_stream_ops php_ssh2_channel_stream_ops;
 
