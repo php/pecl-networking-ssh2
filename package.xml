@@ -47,6 +47,7 @@
     <license uri="http://www.php.net/license">PHP License</license>
     <notes>
         - Fix multiple reflection/documentation disparities [PR #29] (Michael Moravec)
+        - Fix compatibility with PHP 7.3
     </notes>
     <contents>
         <dir name="/">
