@@ -238,7 +238,7 @@ static php_stream *php_ssh2_sftp_stream_opener(php_stream_wrapper *wrapper, cons
 
 	flags = php_ssh2_parse_fopen_modes((char *)mode);
 
-	handle = libssh2_sftp_open(sftp, resource->path, flags, perms);
+	handle = libssh2_sftp_open(sftp, SSH2_URL_STR(resource->path), flags, perms);
 	if (!handle) {
 		php_error_docref(NULL, E_WARNING, "Unable to open %s on remote host", filename);
 		php_url_free(resource);
@@ -341,7 +341,7 @@ static php_stream *php_ssh2_sftp_dirstream_opener(php_stream_wrapper *wrapper, c
 		return NULL;
 	}
 
-	handle = libssh2_sftp_opendir(sftp, resource->path);
+	handle = libssh2_sftp_opendir(sftp, SSH2_URL_STR(resource->path));
 	if (!handle) {
 		php_error_docref(NULL, E_WARNING, "Unable to open %s on remote host", filename);
 		php_url_free(resource);
@@ -386,7 +386,7 @@ static int php_ssh2_sftp_urlstat(php_stream_wrapper *wrapper, const char *url, i
 		return -1;
 	}
 
-	if (libssh2_sftp_stat_ex(sftp, resource->path, strlen(resource->path),
+	if (libssh2_sftp_stat_ex(sftp, SSH2_URL_STR(resource->path), SSH2_URL_LEN(resource->path),
 		(flags & PHP_STREAM_URL_STAT_LINK) ? LIBSSH2_SFTP_LSTAT : LIBSSH2_SFTP_STAT, &attrs)) {
 		php_url_free(resource);
 		//zend_list_delete(sftp_rsrcid);
@@ -420,7 +420,7 @@ static int php_ssh2_sftp_unlink(php_stream_wrapper *wrapper, const char *url, in
 		return 0;
 	}
 
-	result = libssh2_sftp_unlink(sftp, resource->path);
+	result = libssh2_sftp_unlink(sftp, SSH2_URL_STR(resource->path));
 	php_url_free(resource);
 
 	//zend_list_delete(sftp_rsrcid);
@@ -462,7 +462,7 @@ static int php_ssh2_sftp_rename(php_stream_wrapper *wrapper, const char *url_fro
 		return 0;
 	}
 
-	result = libssh2_sftp_rename(sftp, resource->path, resource_to->path);
+	result = libssh2_sftp_rename(sftp, SSH2_URL_STR(resource->path), SSH2_URL_STR(resource_to->path));
 	php_url_free(resource);
 	php_url_free(resource_to);
 
@@ -493,13 +493,13 @@ static int php_ssh2_sftp_mkdir(php_stream_wrapper *wrapper, const char *url, int
 
 	if (options & PHP_STREAM_MKDIR_RECURSIVE) {
 		/* Just attempt to make every directory, some will fail, but we only care about the last success/failure */
-		char *p = resource->path;
+		char *p = SSH2_URL_STR(resource->path);
 		while ((p = strchr(p + 1, '/'))) {
-			libssh2_sftp_mkdir_ex(sftp, resource->path, p - resource->path, mode);
+			libssh2_sftp_mkdir_ex(sftp, SSH2_URL_STR(resource->path), p - SSH2_URL_STR(resource->path), mode);
 		}
 	}
 
-	result = libssh2_sftp_mkdir(sftp, resource->path, mode);
+	result = libssh2_sftp_mkdir(sftp, SSH2_URL_STR(resource->path), mode);
 	php_url_free(resource);
 
 	//zend_list_delete(sftp_rsrcid);
@@ -527,7 +527,7 @@ static int php_ssh2_sftp_rmdir(php_stream_wrapper *wrapper, const char *url, int
 		return 0;
 	}
 
-	result = libssh2_sftp_rmdir(sftp, resource->path);
+	result = libssh2_sftp_rmdir(sftp, SSH2_URL_STR(resource->path));
 	php_url_free(resource);
 
 	//zend_list_delete(sftp_rsrcid);
@@ -836,7 +836,7 @@ PHP_FUNCTION(ssh2_sftp_readlink)
 	}
 
 	if ((targ_len = libssh2_sftp_symlink_ex(data->sftp, link->val, link->len, targ, 8192, LIBSSH2_SFTP_READLINK)) < 0) {
-		php_error_docref(NULL, E_WARNING, "Unable to read link '%s'", link);
+		php_error_docref(NULL, E_WARNING, "Unable to read link '%s'", ZSTR_VAL(link));
 		RETURN_FALSE;
 	}
 

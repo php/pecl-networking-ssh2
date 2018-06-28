@@ -166,6 +166,14 @@ extern php_stream_wrapper php_ssh2_sftp_wrapper;
 extern int le_ssh2_session;
 extern int le_ssh2_sftp;
 
+#if PHP_VERSION_ID < 70300
+#define SSH2_URL_STR(a) (a)
+#define SSH2_URL_LEN(a) strlen(a)
+#else
+#define SSH2_URL_STR(a) ZSTR_VAL(a)
+#define SSH2_URL_LEN(a) ZSTR_LEN(a)
+#endif
+
 #endif	/* PHP_SSH2_H */
 
 /*
