@@ -1,4 +1,3 @@
-dnl $Id$
 dnl config.m4 for extension ssh2
 
 PHP_ARG_WITH(ssh2, for ssh2 support,
