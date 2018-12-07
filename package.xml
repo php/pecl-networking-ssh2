@@ -48,6 +48,7 @@
     <notes>
         - Fix multiple reflection/documentation disparities [PR #29] (Michael Moravec)
         - Fix compatibility with PHP 7.3
+	- Fix config.w32 for compatibility with OpenSSL 1.1.x (Anatol)
     </notes>
     <contents>
         <dir name="/">
