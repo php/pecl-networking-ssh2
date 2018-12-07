@@ -14,10 +14,20 @@ if (PHP_SSH2 != "no") {
         WARNING("ssh2 not enabled: libssh2 headers not found");
         ssh2_all_ok = false;
     }
-    if (!CHECK_LIB("libeay32.lib", "ssh2", PHP_PHP_BUILD + "\\lib")) {
-        WARNING("ssh2 support can't be enabled, openssl library not found")
-        ssh2_all_ok = false;
+
+    if (typeof SETUP_OPENSSL === "function") {
+	    var ret = SETUP_OPENSSL("ssh2", PHP_PHP_BUILD + "\\lib");
+	    if (ret < 1) {
+                WARNING("ssh2 support can't be enabled, openssl library not found")
+                ssh2_all_ok = false;
+	    }
+    } else {
+        if (!CHECK_LIB("libeay32.lib", "ssh2", PHP_PHP_BUILD + "\\lib")) {
+            WARNING("ssh2 support can't be enabled, openssl library not found")
+            ssh2_all_ok = false;
+        }
     }
+
     if (!CHECK_LIB("zlib_a.lib", "ssh2", PHP_PHP_BUILD + "\\lib")) {
         WARNING("ssh2 support can't be enabled, zlib library not found")
         ssh2_all_ok = false;
