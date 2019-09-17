@@ -23,7 +23,7 @@
 #include <libssh2_sftp.h>
 #include "ext/standard/url.h"
 
-#define PHP_SSH2_VERSION				"1.1.2"
+#define PHP_SSH2_VERSION				"1.2"
 #define PHP_SSH2_DEFAULT_PORT			22
 
 /* Exported Constants */
