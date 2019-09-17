@@ -73,7 +73,7 @@ unsigned long php_ssh2_parse_fopen_modes(char *openmode) {
 	return flags;
 }
 
-inline int php_ssh2_sftp_attr2ssb(php_stream_statbuf *ssb, LIBSSH2_SFTP_ATTRIBUTES *attrs)
+static inline int php_ssh2_sftp_attr2ssb(php_stream_statbuf *ssb, LIBSSH2_SFTP_ATTRIBUTES *attrs)
 {
 	memset(ssb, 0, sizeof(php_stream_statbuf));
 	if (attrs->flags & LIBSSH2_SFTP_ATTR_SIZE) {
