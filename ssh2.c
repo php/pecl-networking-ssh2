@@ -100,8 +100,13 @@ LIBSSH2_DEBUG_FUNC(php_ssh2_debug_cb)
 	ZVAL_STRINGL(&args[1], language, language_len);
 	ZVAL_LONG(&args[2], always_display);
 
-	if (FAILURE == call_user_function_ex(NULL, NULL, data->disconnect_cb, NULL, 3, args, 0, NULL)) {
-		php_error_docref(NULL, E_WARNING, "Failure calling disconnect callback");
+	zval retval;
+	if (FAILURE == call_user_function_ex(NULL, NULL, data->debug_cb, &retval, 3, args, 0, NULL)) {
+		php_error_docref(NULL, E_WARNING, "Failure calling debug callback");
+	}
+
+	if (!Z_ISUNDEF(retval)) {
+		zval_ptr_dtor(&retval);
 	}
 }
 /* }}} */
@@ -188,8 +193,13 @@ LIBSSH2_DISCONNECT_FUNC(php_ssh2_disconnect_cb)
 	ZVAL_STRINGL(&args[1], message, message_len);
 	ZVAL_STRINGL(&args[2], language, language_len);
 
-	if (FAILURE == call_user_function_ex(NULL, NULL, data->disconnect_cb, NULL, 3, args, 0, NULL)) {
+	zval retval;
+	if (FAILURE == call_user_function_ex(NULL, NULL, data->disconnect_cb, &retval, 3, args, 0, NULL)) {
 		php_error_docref(NULL, E_WARNING, "Failure calling disconnect callback");
+	}
+
+	if (!Z_ISUNDEF(retval)) {
+		zval_ptr_dtor(&retval);
 	}
 }
 /* }}} */
@@ -216,12 +226,12 @@ static int php_ssh2_set_callback(LIBSSH2_SESSION *session, HashTable *ht, char *
 	}
 	zend_string_release(callback_zstring);
 
-	if (!zend_is_callable(handler, 0, NULL)) {
+	if (!zend_is_callable(handler, IS_CALLABLE_CHECK_NO_ACCESS, NULL)) {
 		return -1;
 	}
 
-	copyval = handler;
-	zval_copy_ctor(copyval);
+	copyval = emalloc(sizeof(zval));
+	ZVAL_COPY(copyval, handler);
 
 	switch (callback_type) {
 		case LIBSSH2_CALLBACK_IGNORE:
@@ -435,14 +445,17 @@ PHP_FUNCTION(ssh2_connect)
 PHP_FUNCTION(ssh2_disconnect)
 {
 	zval *zsession;
+	LIBSSH2_SESSION *session;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "r", &zsession) == FAILURE) {
 		RETURN_FALSE;
 	}
-
-	if (zend_list_close(Z_RES_P(zsession)) != SUCCESS) {
+	
+	if ((session = (LIBSSH2_SESSION *)zend_fetch_resource(Z_RES_P(zsession), PHP_SSH2_SESSION_RES_NAME, le_ssh2_session)) == NULL) {
 		RETURN_FALSE;
 	}
+
+	libssh2_session_disconnect(session, "PECL/ssh2 (http://pecl.php.net/packages/ssh2)");
 
 	RETURN_TRUE;
 }
