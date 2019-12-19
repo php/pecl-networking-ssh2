@@ -843,7 +843,7 @@ PHP_FUNCTION(ssh2_forward_accept)
  */
 PHP_FUNCTION(ssh2_poll)
 {
-	zval *zdesc, *subarray, ***pollmap;
+	zval *zdesc, *subarray, **pollmap;
 	zend_long timeout = PHP_SSH2_DEFAULT_POLL_TIMEOUT;
 	LIBSSH2_POLLFD *pollfds;
 	int numfds, i = 0, fds_ready;
@@ -883,7 +883,8 @@ PHP_FUNCTION(ssh2_poll)
 
 		pollfds[i].events = Z_LVAL_P(tmpzval);
 		hash_key_zstring = zend_string_init("resource", sizeof("resource") - 1, 0);
-		if ((tmpzval = zend_hash_find(Z_ARRVAL_P(subarray), hash_key_zstring)) == NULL || Z_TYPE_P(tmpzval) != IS_RESOURCE) {
+		if ((tmpzval = zend_hash_find(Z_ARRVAL_P(subarray), hash_key_zstring)) == NULL || Z_TYPE_P(tmpzval) != IS_REFERENCE
+			|| (tmpzval = Z_REFVAL_P(tmpzval)) == NULL || Z_TYPE_P(tmpzval) != IS_RESOURCE) {
 			php_error_docref(NULL, E_WARNING, "Invalid data in subarray, no resource element, or not of type resource");
 			numfds--;
 			zend_string_release(hash_key_zstring);
@@ -906,29 +907,23 @@ PHP_FUNCTION(ssh2_poll)
 			numfds--;
 			continue;
 		}
-		pollmap[i] = &subarray;
+		pollmap[i] = subarray;
 		i++;
 	}
 
 	fds_ready = libssh2_poll(pollfds, numfds, timeout * 1000);
 
 	for(i = 0; i < numfds; i++) {
-		zval *subarray = *pollmap[i];
+		zval *subarray = pollmap[i];
 
-		if (!Z_ISREF_P(subarray) && Z_REFCOUNT_P(subarray) > 1) {
+		if (Z_REFCOUNT_P(subarray) > 1) {
 			/* Make a new copy of the subarray zval* */
-			// TODO Sean-Der
-			//MAKE_STD_ZVAL(subarray);
-			*subarray = **pollmap[i];
+			zval new_subarray;
+			ZVAL_DUP(&new_subarray, subarray);
 
-			/* Point the pData to the new zval* and duplicate its resources */
-			*pollmap[i] = subarray;
-			zval_copy_ctor(subarray);
-
-			/* Fixup its refcount */
-			// TODO Sean-Der
-			//Z_UNSET_ISREF_P(subarray);
-			//Z_SET_REFCOUNT_P(subarray, 1);
+			/* Decrement refcount prior to swapping in new allocation */
+			Z_DELREF_P(subarray);
+			*pollmap[i] = new_subarray;
 		}
 		hash_key_zstring = zend_string_init("revents", sizeof("revents") - 1, 0);
 		zend_hash_del(Z_ARRVAL_P(subarray), hash_key_zstring);
