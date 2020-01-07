@@ -145,6 +145,28 @@ static int php_ssh2_channel_stream_flush(php_stream *stream)
 	return libssh2_channel_flush_ex(abstract->channel, abstract->streamid);
 }
 
+static int php_ssh2_channel_stream_cast(php_stream *stream, int castas, void **ret)
+{
+	php_ssh2_channel_data *abstract = (php_ssh2_channel_data*)stream->abstract;
+	LIBSSH2_SESSION *session;
+	php_ssh2_session_data **session_data;
+
+	session = (LIBSSH2_SESSION *)zend_fetch_resource(abstract->session_rsrc, PHP_SSH2_SESSION_RES_NAME, le_ssh2_session);
+	session_data = (php_ssh2_session_data **)libssh2_session_abstract(session);
+
+	switch (castas)	{
+		case PHP_STREAM_AS_FD:
+		case PHP_STREAM_AS_FD_FOR_SELECT:
+		case PHP_STREAM_AS_SOCKETD:
+			if (ret) {
+				*(int *)ret = (*session_data)->socket;
+			}
+			return SUCCESS;
+		default:
+			return FAILURE;
+	}
+}
+
 static int php_ssh2_channel_stream_set_option(php_stream *stream, int option, int value, void *ptrparam)
 {
 	php_ssh2_channel_data *abstract = (php_ssh2_channel_data*)stream->abstract;
@@ -187,7 +209,7 @@ php_stream_ops php_ssh2_channel_stream_ops = {
 	php_ssh2_channel_stream_flush,
 	PHP_SSH2_CHANNEL_STREAM_NAME,
 	NULL, /* seek */
-	NULL, /* cast */
+	php_ssh2_channel_stream_cast,
 	NULL, /* stat */
 	php_ssh2_channel_stream_set_option,
 };
