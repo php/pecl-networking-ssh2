@@ -45,10 +45,6 @@ int le_ssh2_listener;
 int le_ssh2_sftp;
 int le_ssh2_pkey_subsys;
 
-ZEND_BEGIN_ARG_INFO(php_ssh2_first_arg_force_ref, 0)
-	ZEND_ARG_PASS_INFO(1)
-ZEND_END_ARG_INFO()
-
 /* *************
    * Callbacks *
    ************* */
@@ -1416,6 +1412,19 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_ssh2_auth_hostbased_file, 0, 0, 5)
  	ZEND_ARG_INFO(0, local_username)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_ssh2_forward_listen, 0, 0, 2)
+ 	ZEND_ARG_INFO(0, session)
+ 	ZEND_ARG_INFO(0, port)
+ 	ZEND_ARG_INFO(0, host)
+ 	ZEND_ARG_INFO(0, max_connections)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_ssh2_forward_accept, 0, 0, 1)
+ 	ZEND_ARG_INFO(0, listener)
+ 	ZEND_ARG_INFO(1, host)
+ 	ZEND_ARG_INFO(0, port)
+ZEND_END_ARG_INFO()
+
 ZEND_BEGIN_ARG_INFO_EX(arginfo_ssh2_shell, 0, 0, 1)
  	ZEND_ARG_INFO(0, session)
  	ZEND_ARG_INFO(0, termtype)
@@ -1457,6 +1466,11 @@ ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_INFO(arginfo_ssh2_fetch_stream, 2)
  	ZEND_ARG_INFO(0, channel)
  	ZEND_ARG_INFO(0, streamid)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_ssh2_poll, 0, 0, 1)
+ 	ZEND_ARG_INFO(1, polldes)
+ 	ZEND_ARG_INFO(0, timeout)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO(arginfo_ssh2_sftp, 1)
@@ -1559,8 +1573,8 @@ zend_function_entry ssh2_functions[] = {
 	PHP_FE(ssh2_auth_pubkey_file,				arginfo_ssh2_auth_pubkey_file)
 	PHP_FE(ssh2_auth_hostbased_file,			arginfo_ssh2_auth_hostbased_file)
 
-	PHP_FE(ssh2_forward_listen,					NULL)
-	PHP_FE(ssh2_forward_accept,					NULL)
+	PHP_FE(ssh2_forward_listen,					arginfo_ssh2_forward_listen)
+	PHP_FE(ssh2_forward_accept,					arginfo_ssh2_forward_accept)
 
 	/* Stream Stuff */
 	PHP_FE(ssh2_shell,							arginfo_ssh2_shell)
@@ -1569,7 +1583,7 @@ zend_function_entry ssh2_functions[] = {
 	PHP_FE(ssh2_scp_recv,						arginfo_ssh2_scp_recv)
 	PHP_FE(ssh2_scp_send,						arginfo_ssh2_scp_send)
 	PHP_FE(ssh2_fetch_stream,					arginfo_ssh2_fetch_stream)
-	PHP_FE(ssh2_poll,							php_ssh2_first_arg_force_ref)
+	PHP_FE(ssh2_poll,							arginfo_ssh2_poll)
 
 	/* SFTP Stuff */
 	PHP_FE(ssh2_sftp,							arginfo_ssh2_sftp)
