@@ -100,7 +100,7 @@ LIBSSH2_DEBUG_FUNC(php_ssh2_debug_cb)
 	ZVAL_STRINGL(&args[1], language, language_len);
 	ZVAL_LONG(&args[2], always_display);
 
-	if (FAILURE == call_user_function_ex(NULL, NULL, data->disconnect_cb, NULL, 3, args, 0, NULL)) {
+	if (FAILURE == call_user_function(NULL, NULL, data->disconnect_cb, NULL, 3, args)) {
 		php_error_docref(NULL, E_WARNING, "Failure calling disconnect callback");
 	}
 }
@@ -125,7 +125,7 @@ LIBSSH2_IGNORE_FUNC(php_ssh2_ignore_cb)
 
 	ZVAL_STRINGL(&args[0], message, message_len);
 
-	if (FAILURE == call_user_function_ex(NULL, NULL, data->ignore_cb, &zretval, 1, args, 0, NULL)) {
+	if (FAILURE == call_user_function(NULL, NULL, data->ignore_cb, &zretval, 1, args)) {
 		php_error_docref(NULL, E_WARNING, "Failure calling ignore callback");
 	}
 	if (Z_TYPE_P(&zretval) != IS_UNDEF) {
@@ -155,7 +155,7 @@ LIBSSH2_MACERROR_FUNC(php_ssh2_macerror_cb)
 
 	ZVAL_STRINGL(&args[0], packet, packet_len);
 
-	if (FAILURE == call_user_function_ex(NULL, NULL, data->macerror_cb, &zretval, 1, args, 0, NULL)) {
+	if (FAILURE == call_user_function(NULL, NULL, data->macerror_cb, &zretval, 1, args)) {
 		php_error_docref(NULL, E_WARNING, "Failure calling macerror callback");
 	} else {
 		retval = zval_is_true(&zretval) ? 0 : -1;
@@ -188,7 +188,7 @@ LIBSSH2_DISCONNECT_FUNC(php_ssh2_disconnect_cb)
 	ZVAL_STRINGL(&args[1], message, message_len);
 	ZVAL_STRINGL(&args[2], language, language_len);
 
-	if (FAILURE == call_user_function_ex(NULL, NULL, data->disconnect_cb, NULL, 3, args, 0, NULL)) {
+	if (FAILURE == call_user_function(NULL, NULL, data->disconnect_cb, NULL, 3, args)) {
 		php_error_docref(NULL, E_WARNING, "Failure calling disconnect callback");
 	}
 }
