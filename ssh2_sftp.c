@@ -228,7 +228,7 @@ static php_stream *php_ssh2_sftp_stream_opener(php_stream_wrapper *wrapper, cons
 	long perms = 0644;
 
 	resource = php_ssh2_fopen_wraper_parse_path(filename, "sftp", context, &session, &rsrc, &sftp, &sftp_rsrc);
-	if (!resource || !session || !sftp) {
+	if (!resource || !session || !sftp || !sftp_rsrc) {
 		return NULL;
 	}
 

@@ -270,7 +270,10 @@ php_url *php_ssh2_fopen_wraper_parse_path(const char *path, char *type, php_stre
 		php_ssh2_sftp_data *sftp_data;
 		zval *zresource;
 
-		zresource = php_ssh2_zval_from_resource_handle(resource_id);
+		if ((zresource = php_ssh2_zval_from_resource_handle(resource_id)) == NULL) {
+			php_url_free(resource);
+			return NULL;
+		}
 
 		if (psftp) {
 			sftp_data = (php_ssh2_sftp_data *)zend_fetch_resource(Z_RES_P(zresource), PHP_SSH2_SFTP_RES_NAME, le_ssh2_sftp);
@@ -455,7 +458,9 @@ php_url *php_ssh2_fopen_wraper_parse_path(const char *path, char *type, php_stre
 
 	/* Auth failure */
 	php_url_free(resource);
-	zend_list_delete(Z_RES(zsession));
+	if (Z_RES(zsession)) {
+		zend_list_delete(Z_RES(zsession));
+	}
 	return NULL;
 
 session_authed:
