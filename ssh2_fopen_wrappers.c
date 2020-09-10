@@ -40,10 +40,14 @@ void *php_ssh2_zval_from_resource_handle(int handle) {
    * channel_stream_ops *
    ********************** */
 
+#if PHP_VERSION_ID < 70400
 static size_t php_ssh2_channel_stream_write(php_stream *stream, const char *buf, size_t count)
+#else
+static ssize_t php_ssh2_channel_stream_write(php_stream *stream, const char *buf, size_t count)
+#endif
 {
 	php_ssh2_channel_data *abstract = (php_ssh2_channel_data*)stream->abstract;
-	size_t writestate;
+	ssize_t writestate;
 	LIBSSH2_SESSION *session;
 
 	libssh2_channel_set_blocking(abstract->channel, abstract->is_blocking);
@@ -64,24 +68,31 @@ static size_t php_ssh2_channel_stream_write(php_stream *stream, const char *buf,
 		libssh2_session_set_timeout(session, 0);
 	}
 #endif
-	if (writestate == LIBSSH2_ERROR_EAGAIN) {
-		writestate = 0;
-	}
 
-	if (writestate < 0) {
+	if (writestate == LIBSSH2_ERROR_EAGAIN) {
+#if PHP_VERSION_ID < 70400
+		writestate = 0;
+#endif
+	} else if (writestate < 0) {
 		char *error_msg = NULL;
 		if (libssh2_session_last_error(session, &error_msg, NULL, 0) == writestate) {
 			php_error_docref(NULL, E_WARNING, "Failure '%s' (%ld)", error_msg, writestate);
 		}
 
 		stream->eof = 1;
+#if PHP_VERSION_ID < 70400
 		writestate = 0;
+#endif
 	}
 
 	return writestate;
 }
 
+#if PHP_VERSION_ID < 70400
 static size_t php_ssh2_channel_stream_read(php_stream *stream, char *buf, size_t count)
+#else
+static ssize_t php_ssh2_channel_stream_read(php_stream *stream, char *buf, size_t count)
+#endif
 {
 	php_ssh2_channel_data *abstract = (php_ssh2_channel_data*)stream->abstract;
 	ssize_t readstate;
@@ -104,11 +115,12 @@ static size_t php_ssh2_channel_stream_read(php_stream *stream, char *buf, size_t
 		libssh2_session_set_timeout(session, 0);
 	}
 #endif
-	if (readstate == LIBSSH2_ERROR_EAGAIN) {
-		readstate = 0;
-	}
 
-	if (readstate < 0) {
+	if (readstate == LIBSSH2_ERROR_EAGAIN) {
+#if PHP_VERSION_ID < 70400
+		readstate = 0;
+#endif
+	} else if (readstate < 0) {
 		char *error_msg = NULL;
 		if (libssh2_session_last_error(session, &error_msg, NULL, 0) == readstate) {
 			php_error_docref(NULL, E_WARNING, "Failure '%s' (%ld)", error_msg, readstate);

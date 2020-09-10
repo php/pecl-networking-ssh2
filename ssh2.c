@@ -436,9 +436,7 @@ PHP_FUNCTION(ssh2_disconnect)
 		RETURN_FALSE;
 	}
 
-	if (zend_list_close(Z_RES_P(zsession)) != SUCCESS) {
-		RETURN_FALSE;
-	}
+	zend_list_close(Z_RES_P(zsession));
 
 	RETURN_TRUE;
 }
