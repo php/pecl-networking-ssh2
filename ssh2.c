@@ -1459,6 +1459,10 @@ ZEND_BEGIN_ARG_INFO(arginfo_ssh2_fetch_stream, 2)
  	ZEND_ARG_INFO(0, streamid)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_ssh2_send_eof, 0, 0, 1)
+	ZEND_ARG_INFO(0, channel)
+ZEND_END_ARG_INFO()
+
 ZEND_BEGIN_ARG_INFO(arginfo_ssh2_sftp, 1)
  	ZEND_ARG_INFO(0, session)
 ZEND_END_ARG_INFO()
@@ -1569,6 +1573,7 @@ zend_function_entry ssh2_functions[] = {
 	PHP_FE(ssh2_scp_recv,						arginfo_ssh2_scp_recv)
 	PHP_FE(ssh2_scp_send,						arginfo_ssh2_scp_send)
 	PHP_FE(ssh2_fetch_stream,					arginfo_ssh2_fetch_stream)
+	PHP_FE(ssh2_send_eof,						arginfo_ssh2_send_eof)
 	PHP_FE(ssh2_poll,							php_ssh2_first_arg_force_ref)
 
 	/* SFTP Stuff */
