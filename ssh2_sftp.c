@@ -103,20 +103,32 @@ typedef struct _php_ssh2_sftp_handle_data {
 
 /* {{{ php_ssh2_sftp_stream_write
  */
+#if PHP_VERSION_ID < 70400
 static size_t php_ssh2_sftp_stream_write(php_stream *stream, const char *buf, size_t count)
+#else
+static ssize_t php_ssh2_sftp_stream_write(php_stream *stream, const char *buf, size_t count)
+#endif
 {
 	php_ssh2_sftp_handle_data *data = (php_ssh2_sftp_handle_data*)stream->abstract;
 	ssize_t bytes_written;
 
 	bytes_written = libssh2_sftp_write(data->handle, buf, count);
 
+#if PHP_VERSION_ID < 70400
 	return (size_t)(bytes_written<0 ? 0 : bytes_written);
+#else
+	return bytes_written;
+#endif
 }
 /* }}} */
 
 /* {{{ php_ssh2_sftp_stream_read
  */
+#if PHP_VERSION_ID < 70400
 static size_t php_ssh2_sftp_stream_read(php_stream *stream, char *buf, size_t count)
+#else
+static ssize_t php_ssh2_sftp_stream_read(php_stream *stream, char *buf, size_t count)
+#endif
 {
 	php_ssh2_sftp_handle_data *data = (php_ssh2_sftp_handle_data*)stream->abstract;
 	ssize_t bytes_read;
@@ -125,7 +137,11 @@ static size_t php_ssh2_sftp_stream_read(php_stream *stream, char *buf, size_t co
 
 	stream->eof = (bytes_read <= 0 && bytes_read != LIBSSH2_ERROR_EAGAIN);
 
+#if PHP_VERSION_ID < 70400
 	return (size_t)(bytes_read<0 ? 0 : bytes_read);
+#else
+	return bytes_read;
+#endif
 }
 /* }}} */
 
@@ -264,7 +280,11 @@ static php_stream *php_ssh2_sftp_stream_opener(php_stream_wrapper *wrapper, cons
 
 /* {{{ php_ssh2_sftp_dirstream_read
  */
+#if PHP_VERSION_ID < 70400
 static size_t php_ssh2_sftp_dirstream_read(php_stream *stream, char *buf, size_t count)
+#else
+static ssize_t php_ssh2_sftp_dirstream_read(php_stream *stream, char *buf, size_t count)
+#endif
 {
 	php_ssh2_sftp_handle_data *data = (php_ssh2_sftp_handle_data*)stream->abstract;
 	php_stream_dirent *ent = (php_stream_dirent*)buf;
