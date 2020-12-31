@@ -72,6 +72,7 @@
                 <file role="test" name="ssh2_exec.phpt"/>
                 <file role="test" name="ssh2_sftp_001.phpt"/>
                 <file role="test" name="ssh2_sftp_002.phpt"/>
+                <file role="test" name="ssh2_send_eof.phpt"/>
                 <file role="test" name="ssh2_shell.phpt"/>
                 <file role="test" name="ssh2_skip.inc"/>
                 <file role="test" name="ssh2_test.inc"/>
