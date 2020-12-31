@@ -643,21 +643,17 @@ PHP_FUNCTION(ssh2_auth_pubkey_file)
 {
 	LIBSSH2_SESSION *session;
 	zval *zsession;
-	char *username, *pubkey, *privkey, *passphrase = NULL;
-	size_t username_len, pubkey_len, privkey_len, passphrase_len = 0;
+	zend_string *username, *pubkey, *privkey, *passphrase;
 #ifndef PHP_WIN32
-	char *newpath;
+	zend_string *newpath;
 	struct passwd *pws;
 #endif
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "rsss|s", &zsession,	&username, &username_len,
-																				&pubkey, &pubkey_len,
-																				&privkey, &privkey_len,
-																				&passphrase, &passphrase_len) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "rSSS|S", &zsession,	&username, &pubkey, &privkey, &passphrase) == FAILURE) {
 		return;
 	}
 
-	if (php_check_open_basedir(pubkey) || php_check_open_basedir(privkey)) {
+	if (php_check_open_basedir(ZSTR_VAL(pubkey)) || php_check_open_basedir(ZSTR_VAL(privkey))) {
 		RETURN_FALSE;
 	}
 
@@ -666,28 +662,28 @@ PHP_FUNCTION(ssh2_auth_pubkey_file)
 	/* Explode '~/paths' stopgap fix because libssh2 does not accept tilde for homedir
 	  This should be ifdef'ed when a fix is available to support older libssh2 versions*/
 	pws = getpwuid(geteuid());
-	if (pubkey_len >= 2 && *pubkey == '~' && *(pubkey+1) == '/') {
-		newpath = emalloc(strlen(pws->pw_dir) + strlen(pubkey));
-		strcpy(newpath, pws->pw_dir);
-		strcat(newpath, pubkey+1);
-		efree(pubkey);
+	if (ZSTR_LEN(pubkey) >= 2 && *(ZSTR_VAL(pubkey)) == '~' && *(ZSTR_VAL(pubkey)+1) == '/') {
+		newpath = zend_string_alloc(strlen(pws->pw_dir) + ZSTR_LEN(pubkey), 0);
+		strcpy(ZSTR_VAL(newpath), pws->pw_dir);
+		strcat(ZSTR_VAL(newpath), ZSTR_VAL(pubkey)+1);
+		zend_string_release(pubkey);
 		pubkey = newpath;
 	}
-	if (privkey_len >= 2 && *privkey == '~' && *(privkey+1) == '/') {
-		newpath = emalloc(strlen(pws->pw_dir) + strlen(privkey));
-		strcpy(newpath, pws->pw_dir);
-		strcat(newpath, privkey+1);
-		efree(privkey);
+	if (ZSTR_LEN(privkey) >= 2 && *(ZSTR_VAL(privkey)) == '~' && *(ZSTR_VAL(privkey)+1) == '/') {
+		newpath = zend_string_alloc(strlen(pws->pw_dir) + ZSTR_LEN(privkey), 0);
+		strcpy(ZSTR_VAL(newpath), pws->pw_dir);
+		strcat(ZSTR_VAL(newpath), ZSTR_VAL(privkey)+1);
+		zend_string_release(privkey);
 		privkey = newpath;
 	}
 #endif
 
 	/* TODO: Support passphrase callback */
-	if (libssh2_userauth_publickey_fromfile_ex(session, username, username_len, pubkey, privkey, passphrase)) {
+	if (libssh2_userauth_publickey_fromfile_ex(session, ZSTR_VAL(username), ZSTR_LEN(username), ZSTR_VAL(pubkey), ZSTR_VAL(privkey), ZSTR_VAL(passphrase))) {
 		char *buf;
 		int len;
 		libssh2_session_last_error(session, &buf, &len, 0);
-		php_error_docref(NULL, E_WARNING, "Authentication failed for %s using public key: %s", username, buf);
+		php_error_docref(NULL, E_WARNING, "Authentication failed for %s using public key: %s", ZSTR_VAL(username), buf);
 		RETURN_FALSE;
 	}
 
