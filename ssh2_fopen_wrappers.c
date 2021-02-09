@@ -310,7 +310,8 @@ php_url *php_ssh2_fopen_wraper_parse_path(const char *path, char *type, php_stre
 		}
 
 		if (psftp) {
-			sftp_data = (php_ssh2_sftp_data *)zend_fetch_resource(Z_RES_P(zresource), PHP_SSH2_SFTP_RES_NAME, le_ssh2_sftp);
+			/* suppress potential warning by passing NULL as resource_type_name */
+			sftp_data = (php_ssh2_sftp_data *)zend_fetch_resource(Z_RES_P(zresource), NULL, le_ssh2_sftp);
 			if (sftp_data) {
 				/* Want the sftp layer */
 				Z_ADDREF_P(zresource);
