@@ -36,7 +36,9 @@ void php_ssh2_sftp_dtor(zend_resource *rsrc)
 		return;
 	}
 
-	libssh2_sftp_shutdown(data->sftp);
+	if (data->session_rsrc->ptr != NULL) {
+		libssh2_sftp_shutdown(data->sftp);
+	}
 
 	zend_list_delete(data->session_rsrc);
 
@@ -870,6 +872,10 @@ PHP_FUNCTION(ssh2_sftp_realpath)
 	}
 
 	if ((data = (php_ssh2_sftp_data *)zend_fetch_resource(Z_RES_P(zsftp), PHP_SSH2_SFTP_RES_NAME, le_ssh2_sftp)) == NULL) {
+		RETURN_FALSE;
+	}
+
+	if (data->session_rsrc->ptr == NULL) {
 		RETURN_FALSE;
 	}
 
