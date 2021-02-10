@@ -498,8 +498,7 @@ php_url *php_ssh2_fopen_wraper_parse_path(const char *path, char *type, php_stre
 	return NULL;
 
 session_authed:
-	//TODO Sean-Der
-	//ZEND_REGISTER_RESOURCE(&zsession, session, le_ssh2_session);
+	ZVAL_RES(&zsession, zend_register_resource(session, le_ssh2_session));
 
 	if (psftp) {
 		LIBSSH2_SFTP *sftp;
