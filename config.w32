@@ -37,6 +37,7 @@ if (PHP_SSH2 != "no") {
         EXTENSION("ssh2", "ssh2.c ssh2_fopen_wrappers.c ssh2_sftp.c");
         AC_DEFINE('HAVE_SSH2LIB', 1);
         AC_DEFINE('PHP_SSH2_AGENT_AUTH', 1);
+        AC_DEFINE('PHP_SSH2_SESSION_TIMEOUT', 1);
         ADD_EXTENSION_DEP('ssh2', 'zlib')
         ADD_EXTENSION_DEP('ssh2', 'openssl')
     }
