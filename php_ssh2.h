@@ -22,6 +22,7 @@
 #include <libssh2.h>
 #include <libssh2_sftp.h>
 #include "ext/standard/url.h"
+#include "main/php_network.h"
 
 #define PHP_SSH2_VERSION				"1.2"
 #define PHP_SSH2_DEFAULT_PORT			22
@@ -64,7 +65,7 @@ typedef struct _php_ssh2_session_data {
 	zval *macerror_cb;
 	zval *disconnect_cb;
 
-	int socket;
+	php_socket_t socket;
 } php_ssh2_session_data;
 
 typedef struct _php_ssh2_sftp_data {

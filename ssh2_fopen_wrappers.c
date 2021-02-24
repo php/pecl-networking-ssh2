@@ -171,7 +171,7 @@ static int php_ssh2_channel_stream_cast(php_stream *stream, int castas, void **r
 		case PHP_STREAM_AS_FD_FOR_SELECT:
 		case PHP_STREAM_AS_SOCKETD:
 			if (ret) {
-				*(int *)ret = (*session_data)->socket;
+				*(php_socket_t *)ret = (*session_data)->socket;
 			}
 			return SUCCESS;
 		default:
