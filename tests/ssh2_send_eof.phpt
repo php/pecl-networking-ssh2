@@ -8,7 +8,7 @@ ssh2_send_eof() - Tests closing standard input
 $ssh = ssh2_connect(TEST_SSH2_HOSTNAME, TEST_SSH2_PORT);
 var_dump(ssh2t_auth($ssh));
 
-$cmd=ssh2_exec($ssh, 'cat' . PHP_EOL);
+$cmd=ssh2_exec($ssh, "cat\n");
 
 var_dump($cmd);
 

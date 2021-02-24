@@ -10,7 +10,7 @@ var_dump(ssh2t_auth($ssh));
 $shell = ssh2_shell($ssh);
 var_dump($shell);
 
-fwrite($shell, 'echo "howdy"' . PHP_EOL);
+fwrite($shell, "echo \"howdy\"\n");
 sleep(1);
 
 $read = [$shell];
