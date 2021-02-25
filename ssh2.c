@@ -226,8 +226,8 @@ static int php_ssh2_set_callback(LIBSSH2_SESSION *session, HashTable *ht, char *
 		return -1;
 	}
 
-	copyval = handler;
-	zval_copy_ctor(copyval);
+	copyval = emalloc(sizeof(zval));
+	ZVAL_COPY(copyval, handler);
 
 	switch (callback_type) {
 		case LIBSSH2_CALLBACK_IGNORE:
