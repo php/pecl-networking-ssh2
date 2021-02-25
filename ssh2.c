@@ -96,8 +96,13 @@ LIBSSH2_DEBUG_FUNC(php_ssh2_debug_cb)
 	ZVAL_STRINGL(&args[1], language, language_len);
 	ZVAL_LONG(&args[2], always_display);
 
-	if (FAILURE == call_user_function(NULL, NULL, data->debug_cb, NULL, 3, args)) {
+	zval retval;
+	if (FAILURE == call_user_function(NULL, NULL, data->debug_cb, &retval, 3, args)) {
 		php_error_docref(NULL, E_WARNING, "Failure calling debug callback");
+	}
+
+	if (!Z_ISUNDEF(retval)) {
+		zval_ptr_dtor(&retval);
 	}
 }
 /* }}} */
@@ -184,8 +189,13 @@ LIBSSH2_DISCONNECT_FUNC(php_ssh2_disconnect_cb)
 	ZVAL_STRINGL(&args[1], message, message_len);
 	ZVAL_STRINGL(&args[2], language, language_len);
 
-	if (FAILURE == call_user_function(NULL, NULL, data->disconnect_cb, NULL, 3, args)) {
+	zval retval;
+	if (FAILURE == call_user_function(NULL, NULL, data->disconnect_cb, &retval, 3, args)) {
 		php_error_docref(NULL, E_WARNING, "Failure calling disconnect callback");
+	}
+
+	if (!Z_ISUNDEF(retval)) {
+		zval_ptr_dtor(&retval);
 	}
 }
 /* }}} */
