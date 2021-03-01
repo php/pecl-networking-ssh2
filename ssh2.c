@@ -222,7 +222,7 @@ static int php_ssh2_set_callback(LIBSSH2_SESSION *session, HashTable *ht, char *
 	}
 	zend_string_release(callback_zstring);
 
-	if (!zend_is_callable(handler, IS_CALLABLE_CHECK_NO_ACCESS, NULL)) {
+	if (!zend_is_callable(handler, IS_CALLABLE_CHECK_SILENT, NULL)) {
 		return -1;
 	}
 
