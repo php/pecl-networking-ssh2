@@ -1472,9 +1472,7 @@ PHP_FUNCTION(ssh2_send_eof)
 
 	ssh2_ret = libssh2_channel_send_eof(data->channel);
 	if (ssh2_ret < 0) {
-		char msg[256];
-		snprintf(msg, 256, "Couldn't send EOF to channel (Return code %d)", ssh2_ret);
-		php_error_docref(NULL, E_WARNING, msg);
+		php_error_docref(NULL, E_WARNING, "Couldn't send EOF to channel (Return code %d)", ssh2_ret);
 		RETURN_FALSE;
 	}
 
