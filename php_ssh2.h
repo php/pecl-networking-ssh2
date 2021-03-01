@@ -24,7 +24,7 @@
 #include "ext/standard/url.h"
 #include "main/php_network.h"
 
-#define PHP_SSH2_VERSION				"1.2"
+#define PHP_SSH2_VERSION				"1.3"
 #define PHP_SSH2_DEFAULT_PORT			22
 
 /* Exported Constants */

@@ -6,10 +6,6 @@
     <description>
         Provides bindings to the functions of libssh2 which implements the SSH2 protocol.
         libssh2 is available from http://libssh2.org/
-
-        ssh2 1.0 and above is PHP 7 only. To install a version that is PHP 5 compatible you can run 'pecl install ssh2-0.13'
-
-        Note that reaching version 1.0 does NOT indicate we've reached a stable release.
     </description>
     <lead>
         <name>Casper Langemeijer</name>
@@ -35,9 +31,9 @@
         <email>pollita@php.net</email>
         <active>no</active>
     </lead>
-    <date>2019-09-17</date>
+    <date>2021-03-01</date>
     <version>
-        <release>1.2</release>
+        <release>1.3</release>
         <api>1.0</api>
     </version>
     <stability>
@@ -46,14 +42,13 @@
     </stability>
     <license uri="http://www.php.net/license">PHP License</license>
     <notes>
-        - Fix multiple reflection/documentation disparities [PR #29] (Michael Moravec)
-        - Fix PHP7 port. Restored commented reference counting. [Dmitry Stogov]
-        - Updates for php_url structure changes [Daniel Ciochiu]
-        - Make the PR generic for all PHP7 versions [Jan Ehrhardt]
-        - Fix compatibility with PHP 7.3 [Jan Ehrhardt]
-        - Fix config.w32 for compatibility with OpenSSL 1.1.x [Anatol]
-        - Make static inline for php_ssh2_sftp_attr2ssb [Andy Postnikov]
-        - Enable 7.1-7.3 on Travis CI [Andy Postnikov]
+        - Add ssh2_send_eof() [PR #45] (Calvin Buckley)
+        - PHP stream cast function for SSH channel objects for stream_select() support. [PR #38] (Robert Wolf)
+        - Fix for PHP 7.4 and 8 [PR #44] (Andy Postnikov and Remi Collet)
+        - Fixed debug and disconnected callback [PR #37] (Piotr Rogowski)
+        - Various stability and memory issue fixes [PR #39, #41] (Robert Wolf)
+        - Segfault fix for bug #79757 [PR #43] (Konrad K)
+        - Various stability and bug fixes #79631, #63480, #80294, #75523, #80729 [PR #46, #47, #48, #49, #50 and #51] (Christoph M. Becker)
     </notes>
     <contents>
         <dir name="/">
@@ -66,15 +61,18 @@
             <file role="doc" name="LICENSE"/>
             <file role="doc" name="README.md"/>
             <dir name="tests">
+                <file role="test" name="bug63480.phpt"/>
+                <file role="test" name="bug79631.phpt"/>
                 <file role="test" name="ssh2_auth.phpt"/>
                 <file role="test" name="ssh2_auth_key.phpt"/>
                 <file role="test" name="ssh2_connect.phpt"/>
                 <file role="test" name="ssh2_exec.phpt"/>
+                <file role="test" name="ssh2_send_eof.phpt"/>
                 <file role="test" name="ssh2_sftp_001.phpt"/>
                 <file role="test" name="ssh2_sftp_002.phpt"/>
-                <file role="test" name="ssh2_send_eof.phpt"/>
                 <file role="test" name="ssh2_shell.phpt"/>
                 <file role="test" name="ssh2_skip.inc"/>
+                <file role="test" name="ssh2_stream_select.phpt"/>
                 <file role="test" name="ssh2_test.inc"/>
                 <file role="test" name="testkey_rsa"/>
                 <file role="test" name="testkey_rsa.pub"/>
@@ -96,6 +94,23 @@
         <configureoption name="with-ssh2" default="autodetect" prompt="libssh2 prefix?"/>
     </extsrcrelease>
     <changelog>
+        <release>
+            <date>2019-09-17</date>
+            <version>
+                <release>1.2</release>
+                <api>1.0</api>
+            </version>
+            <notes>
+                - Fix multiple reflection/documentation disparities [PR #29] (Michael Moravec)
+                - Fix PHP7 port. Restored commented reference counting. [Dmitry Stogov]
+                - Updates for php_url structure changes [Daniel Ciochiu]
+                - Make the PR generic for all PHP7 versions [Jan Ehrhardt]
+                - Fix compatibility with PHP 7.3 [Jan Ehrhardt]
+                - Fix config.w32 for compatibility with OpenSSL 1.1.x [Anatol]
+                - Make static inline for php_ssh2_sftp_attr2ssb [Andy Postnikov]
+                - Enable 7.1-7.3 on Travis CI [Andy Postnikov]
+            </notes>
+        </release>
         <release>
             <date>2017-06-14</date>
             <version>
