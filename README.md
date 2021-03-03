@@ -1,9 +1,3 @@
-WARNING
-=======
-
-**The extension in the master branch is not in a state you should deploy on a production server.**
-
-
 ssh2
 ====
 
@@ -12,8 +6,6 @@ Bindings for the libssh2 library.
 Provides bindings to the functions of [libssh2](http:/libssh2.org/) which implements the SSH2 protocol.
 
 [The ssh2 extension at the PECL Repository website](http://pecl.php.net/package/ssh2)
-
-**The current master code will only compile with PHP7. To compile for PHP5 see the php5 branch.**
 
 Documentation
 =============
