@@ -133,6 +133,7 @@ PHP_FUNCTION(ssh2_scp_recv);
 PHP_FUNCTION(ssh2_scp_send);
 PHP_FUNCTION(ssh2_fetch_stream);
 PHP_FUNCTION(ssh2_send_eof);
+PHP_FUNCTION(ssh2_shell_resize);
 
 /* In ssh2_sftp.c */
 PHP_FUNCTION(ssh2_sftp);

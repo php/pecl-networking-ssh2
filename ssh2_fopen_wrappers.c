@@ -768,6 +768,36 @@ PHP_FUNCTION(ssh2_shell)
 }
 /* }}} */
 
+PHP_FUNCTION(ssh2_shell_resize)
+{
+	zend_long width;
+    zend_long height;
+    zend_long width_px = 0;
+    zend_long height_px = 0;
+    zval *zparent;
+    php_stream *parent;
+    php_ssh2_channel_data *data;
+
+    int argc = ZEND_NUM_ARGS();
+
+    if (zend_parse_parameters(argc, "rll|ll", &zparent, &width, &height, &width_px, &height_px) == FAILURE) {
+        return;
+    }
+
+    php_stream_from_zval(parent, zparent);
+
+    if (parent->ops != &php_ssh2_channel_stream_ops) {
+        php_error_docref(NULL, E_WARNING, "Provided stream is not of type " PHP_SSH2_CHANNEL_STREAM_NAME);
+        RETURN_FALSE;
+    }
+
+    data = (php_ssh2_channel_data*)parent->abstract;
+
+    libssh2_channel_request_pty_size_ex(data->channel, width, height, width_px, height_px);
+
+    RETURN_TRUE;
+}
+
 /* ****************
    * Exec Wrapper *
    **************** */
