@@ -701,6 +701,34 @@ PHP_FUNCTION(ssh2_auth_pubkey_file)
 }
 /* }}} */
 
+
+/* {{{ proto bool ssh2_auth_pubkey(resource session, string username, string pubkey, string privkey[, string passphrase])
+ * Authenticate using a public key
+ */
+PHP_FUNCTION(ssh2_auth_pubkey)
+{
+	LIBSSH2_SESSION *session;
+	zval *zsession;
+	zend_string *username, *pubkey, *privkey, *passphrase;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "rSSS|S", &zsession,	&username, &pubkey, &privkey, &passphrase) == FAILURE) {
+		return;
+	}
+
+	SSH2_FETCH_NONAUTHENTICATED_SESSION(session, zsession);
+
+	if (libssh2_userauth_publickey_frommemory(session, ZSTR_VAL(username), ZSTR_LEN(username), ZSTR_VAL(pubkey), ZSTR_LEN(pubkey), ZSTR_VAL(privkey), ZSTR_LEN(privkey), ZSTR_VAL(passphrase))) {
+		char *buf;
+		int len;
+		libssh2_session_last_error(session, &buf, &len, 0);
+		php_error_docref(NULL, E_WARNING, "Authentication failed for %s using public key: %s", ZSTR_VAL(username), buf);
+		RETURN_FALSE;
+	}
+
+	RETURN_TRUE;
+}
+/* }}} */
+
 /* {{{ proto bool ssh2_auth_hostbased_file(resource session, string username, string hostname, string pubkeyfile, string privkeyfile[, string passphrase[, string local_username]])
  * Authenticate using a hostkey
  */
@@ -1401,6 +1429,14 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_ssh2_auth_pubkey_file, 0, 0, 4)
  	ZEND_ARG_INFO(0, passphrase)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_ssh2_auth_pubkey, 0, 0, 4)
+ 	ZEND_ARG_INFO(0, session)
+ 	ZEND_ARG_INFO(0, username)
+ 	ZEND_ARG_INFO(0, pubkey)
+ 	ZEND_ARG_INFO(0, privkey)
+ 	ZEND_ARG_INFO(0, passphrase)
+ZEND_END_ARG_INFO()
+
 ZEND_BEGIN_ARG_INFO_EX(arginfo_ssh2_auth_hostbased_file, 0, 0, 5)
  	ZEND_ARG_INFO(0, session)
  	ZEND_ARG_INFO(0, username)
@@ -1580,6 +1616,7 @@ zend_function_entry ssh2_functions[] = {
 	PHP_FE(ssh2_auth_none,						arginfo_ssh2_auth_none)
 	PHP_FE(ssh2_auth_password,					arginfo_ssh2_auth_password)
 	PHP_FE(ssh2_auth_pubkey_file,				arginfo_ssh2_auth_pubkey_file)
+	PHP_FE(ssh2_auth_pubkey,					arginfo_ssh2_auth_pubkey)
 	PHP_FE(ssh2_auth_hostbased_file,			arginfo_ssh2_auth_hostbased_file)
 
 	PHP_FE(ssh2_forward_listen,					arginfo_ssh2_forward_listen)
