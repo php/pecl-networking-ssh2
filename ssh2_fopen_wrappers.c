@@ -720,7 +720,12 @@ static php_stream_wrapper_ops php_ssh2_shell_stream_wops = {
 	NULL, /* stat */
 	NULL, /* stat_url */
 	NULL, /* opendir */
-	"ssh2.shell"
+	"ssh2.shell", /* label */
+	NULL, /* unlink */
+	NULL, /* rename */
+	NULL, /* mkdir */
+	NULL, /* rmdir */
+	NULL  /* stream_metadata */
 };
 
 php_stream_wrapper php_ssh2_stream_wrapper_shell = {
