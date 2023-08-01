@@ -179,6 +179,7 @@ static int php_ssh2_sftp_stream_seek(php_stream *stream, zend_off_t offset, int 
 				return -1;
 			}
 			offset += attrs.filesize;
+			break;
 		}
 		case SEEK_CUR:
 		{
@@ -189,6 +190,7 @@ static int php_ssh2_sftp_stream_seek(php_stream *stream, zend_off_t offset, int 
 			}
 
 			offset += current_offset;
+			break;
 		}
 	}
 

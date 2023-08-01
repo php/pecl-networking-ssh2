@@ -1656,7 +1656,7 @@ zend_function_entry ssh2_functions[] = {
 
 	PHP_FE(ssh2_auth_agent,						arginfo_ssh2_auth_agent)
 
-	{NULL, NULL, NULL}
+	PHP_FE_END
 };
 /* }}} */
 
