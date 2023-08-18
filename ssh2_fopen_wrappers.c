@@ -230,10 +230,10 @@ php_stream_ops php_ssh2_channel_stream_ops = {
    * Magic Path Helper *
    ********************* */
 
-/* {{{ php_ssh2_fopen_wraper_parse_path
+/* {{{ php_ssh2_fopen_wrapper_parse_path
  * Parse an ssh2.*:// path
  */
-php_url *php_ssh2_fopen_wraper_parse_path(const char *path, char *type, php_stream_context *context,
+php_url *php_ssh2_fopen_wrapper_parse_path(const char *path, char *type, php_stream_context *context,
 											LIBSSH2_SESSION **psession, zend_resource **presource,
 											LIBSSH2_SFTP **psftp, zend_resource **psftp_rsrc)
 {
@@ -627,7 +627,7 @@ static php_stream *php_ssh2_fopen_wrapper_shell(php_stream_wrapper *wrapper, con
 	php_url *resource;
 	char *s;
 
-	resource = php_ssh2_fopen_wraper_parse_path(path, "shell", context, &session, &rsrc, NULL, NULL);
+	resource = php_ssh2_fopen_wrapper_parse_path(path, "shell", context, &session, &rsrc, NULL, NULL);
 	if (!resource || !session) {
 		return NULL;
 	}
@@ -897,7 +897,7 @@ static php_stream *php_ssh2_fopen_wrapper_exec(php_stream_wrapper *wrapper, cons
 	long height = PHP_SSH2_DEFAULT_TERM_HEIGHT;
 	long type = PHP_SSH2_DEFAULT_TERM_UNIT;
 
-	resource = php_ssh2_fopen_wraper_parse_path(path, "exec", context, &session, &rsrc, NULL, NULL);
+	resource = php_ssh2_fopen_wrapper_parse_path(path, "exec", context, &session, &rsrc, NULL, NULL);
 	if (!resource || !session) {
 		return NULL;
 	}
@@ -1076,7 +1076,7 @@ static php_stream *php_ssh2_fopen_wrapper_scp(php_stream_wrapper *wrapper, const
 		return NULL;
 	}
 
-	resource = php_ssh2_fopen_wraper_parse_path(path, "scp", context, &session, &rsrc, NULL, NULL);
+	resource = php_ssh2_fopen_wrapper_parse_path(path, "scp", context, &session, &rsrc, NULL, NULL);
 	if (!resource || !session) {
 		return NULL;
 	}
@@ -1333,7 +1333,7 @@ static php_stream *php_ssh2_fopen_wrapper_tunnel(php_stream_wrapper *wrapper, co
 	int port = 0;
 	zend_resource *rsrc;
 
-	resource = php_ssh2_fopen_wraper_parse_path(path, "tunnel", context, &session, &rsrc, NULL, NULL);
+	resource = php_ssh2_fopen_wrapper_parse_path(path, "tunnel", context, &session, &rsrc, NULL, NULL);
 	if (!resource || !session) {
 		return NULL;
 	}
