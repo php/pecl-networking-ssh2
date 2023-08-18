@@ -247,7 +247,7 @@ static php_stream *php_ssh2_sftp_stream_opener(php_stream_wrapper *wrapper, cons
 	unsigned long flags;
 	long perms = 0644;
 
-	resource = php_ssh2_fopen_wraper_parse_path(filename, "sftp", context, &session, &rsrc, &sftp, &sftp_rsrc);
+	resource = php_ssh2_fopen_wrapper_parse_path(filename, "sftp", context, &session, &rsrc, &sftp, &sftp_rsrc);
 	if (!resource || !session || !sftp || !sftp_rsrc) {
 		return NULL;
 	}
@@ -353,7 +353,7 @@ static php_stream *php_ssh2_sftp_dirstream_opener(php_stream_wrapper *wrapper, c
 	zend_resource *rsrc = NULL, *sftp_rsrc = NULL;
 	php_url *resource;
 
-	resource = php_ssh2_fopen_wraper_parse_path(filename, "sftp", context, &session, &rsrc, &sftp, &sftp_rsrc);
+	resource = php_ssh2_fopen_wrapper_parse_path(filename, "sftp", context, &session, &rsrc, &sftp, &sftp_rsrc);
 	if (!resource || !session || !sftp) {
 		return NULL;
 	}
@@ -396,7 +396,7 @@ static int php_ssh2_sftp_urlstat(php_stream_wrapper *wrapper, const char *url, i
 	zend_resource *rsrc = NULL, *sftp_rsrc = NULL;
 	php_url *resource;
 
-	resource = php_ssh2_fopen_wraper_parse_path(url, "sftp", context, &session, &rsrc, &sftp, &sftp_rsrc);
+	resource = php_ssh2_fopen_wrapper_parse_path(url, "sftp", context, &session, &rsrc, &sftp, &sftp_rsrc);
 	if (!resource || !session || !sftp || !resource->path) {
 		return -1;
 	}
@@ -427,7 +427,7 @@ static int php_ssh2_sftp_unlink(php_stream_wrapper *wrapper, const char *url, in
 	php_url *resource;
 	int result;
 
-	resource = php_ssh2_fopen_wraper_parse_path(url, "sftp", context, &session, &rsrc, &sftp, &sftp_rsrc);
+	resource = php_ssh2_fopen_wrapper_parse_path(url, "sftp", context, &session, &rsrc, &sftp, &sftp_rsrc);
 	if (!resource || !session || !sftp || !resource->path) {
 		if (resource) {
 			php_url_free(resource);
@@ -468,7 +468,7 @@ static int php_ssh2_sftp_rename(php_stream_wrapper *wrapper, const char *url_fro
 		return 0;
 	}
 
-	resource = php_ssh2_fopen_wraper_parse_path(url_from, "sftp", context, &session, &rsrc, &sftp, &sftp_rsrc);
+	resource = php_ssh2_fopen_wrapper_parse_path(url_from, "sftp", context, &session, &rsrc, &sftp, &sftp_rsrc);
 	if (!resource || !session || !sftp || !resource->path) {
 		if (resource) {
 			php_url_free(resource);
@@ -498,7 +498,7 @@ static int php_ssh2_sftp_mkdir(php_stream_wrapper *wrapper, const char *url, int
 	php_url *resource;
 	int result;
 
-	resource = php_ssh2_fopen_wraper_parse_path(url, "sftp", context, &session, &rsrc, &sftp, &sftp_rsrc);
+	resource = php_ssh2_fopen_wrapper_parse_path(url, "sftp", context, &session, &rsrc, &sftp, &sftp_rsrc);
 	if (!resource || !session || !sftp || !resource->path) {
 		if (resource) {
 			php_url_free(resource);
@@ -534,7 +534,7 @@ static int php_ssh2_sftp_rmdir(php_stream_wrapper *wrapper, const char *url, int
 	php_url *resource;
 	int result;
 
-	resource = php_ssh2_fopen_wraper_parse_path(url, "sftp", context, &session, &rsrc, &sftp, &sftp_rsrc);
+	resource = php_ssh2_fopen_wrapper_parse_path(url, "sftp", context, &session, &rsrc, &sftp, &sftp_rsrc);
 	if (!resource || !session || !sftp || !resource->path) {
 		if (resource) {
 			php_url_free(resource);
