@@ -1150,7 +1150,7 @@ PHP_FUNCTION(ssh2_scp_recv)
 
 	while (sb.st_size) {
 		char buffer[8192];
-		int bytes_read;
+		ssize_t bytes_read, bytes_written;
 
 		bytes_read = libssh2_channel_read(remote_file, buffer, sb.st_size > 8192 ? 8192 : sb.st_size);
 		if (bytes_read < 0) {
@@ -1159,7 +1159,19 @@ PHP_FUNCTION(ssh2_scp_recv)
 			php_stream_close(local_file);
 			RETURN_FALSE;
 		}
-		php_stream_write(local_file, buffer, bytes_read);
+		bytes_written = php_stream_write(local_file, buffer, bytes_read);
+		if (bytes_written < 0) {
+			php_error_docref(NULL, E_WARNING, "Error writing to local file");
+			libssh2_channel_free(remote_file);
+			php_stream_close(local_file);
+			RETURN_FALSE;
+		}
+		if (bytes_read != bytes_written) {
+			php_error_docref(NULL, E_WARNING, "Mismatch in bytes read from remote file and bytes written to local file");
+			libssh2_channel_free(remote_file);
+			php_stream_close(local_file);
+			RETURN_FALSE;
+		}
 		sb.st_size -= bytes_read;
 	}
 
@@ -1223,9 +1235,9 @@ PHP_FUNCTION(ssh2_scp_send)
 	while (ssb.sb.st_size) {
 		char buffer[8192];
 		size_t toread = MIN(8192, ssb.sb.st_size);
-		size_t bytesread = php_stream_read(local_file, buffer, toread);
+		ssize_t bytesread = php_stream_read(local_file, buffer, toread);
 		size_t sent = 0;
-		size_t justsent = 0;
+		ssize_t justsent = 0;
 
 		if (bytesread <= 0 || bytesread > toread) {
 			php_error_docref(NULL, E_WARNING, "Failed copying file 2");
