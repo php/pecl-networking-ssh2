@@ -36,7 +36,7 @@ jobs:
                     echo $extension_version >> $env:GITHUB_ENV
                 - name: Setup PHP
                   id: setup-php
-                  uses: cmb69/setup-php-sdk@v0.7
+                  uses: php/setup-php-sdk@v0.8
                   with:
                       version: ${{matrix.php}}
                       arch: ${{matrix.arch}}
