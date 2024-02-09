@@ -31,9 +31,9 @@
         <email>pollita@php.net</email>
         <active>no</active>
     </lead>
-    <date>2023-04-15</date>
+    <date>2024-02-09</date>
     <version>
-        <release>1.4</release>
+        <release>1.4.1</release>
         <api>1.0</api>
     </version>
     <stability>
@@ -42,8 +42,9 @@
     </stability>
     <license uri="http://www.php.net/license">PHP License</license>
     <notes>
-        - Add ssh2_shell_resize function [PR #55] (jentian)
-        - Add ssh2_auth_pubkey to allow public and private keys as strings [PR #56] (Andreas Treichel)
+        - End zend_function_entry ssh2_functions list with PHP_FE_END [PR #67] (Gerdriaan Mulder)
+        - Remove implicit switch-case fallthrough [PR #66] (Gerdriaan Mulder)
+        - Windows build setup with GitHub Actions [PR #75] (Derick Rethans)
     </notes>
     <contents>
         <dir name="/">
@@ -91,7 +92,18 @@
     </extsrcrelease>
     <changelog>
         <release>
-            <date>2021-03-02</date>    
+            <date>2023-04-15</date>
+            <version>
+                <release>1.4</release>
+                <api>1.0</api>
+            </version>
+            <notes>
+                - Add ssh2_shell_resize function [PR #55] (jentian)
+                - Add ssh2_auth_pubkey to allow public and private keys as strings [PR #56] (Andreas Treichel)
+            </notes>
+        </release>
+        <release>
+            <date>2021-03-02</date>
             <version>
                 <release>1.3</release>
                 <api>1.0</api>
