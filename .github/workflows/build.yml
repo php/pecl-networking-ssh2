@@ -41,7 +41,7 @@ jobs:
                       version: ${{matrix.php}}
                       arch: ${{matrix.arch}}
                       ts: ${{matrix.ts}}
-                      deps: "libssh2,zlib"
+                      deps: "libssh2,openssl,zlib"
                 - name: Enable Developer Command Prompt
                   uses: ilammy/msvc-dev-cmd@v1
                   with:
