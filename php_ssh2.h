@@ -151,7 +151,7 @@ PHP_FUNCTION(ssh2_sftp_realpath);
 
 LIBSSH2_SESSION *php_ssh2_session_connect(char *host, int port, zval *methods, zval *callbacks);
 void php_ssh2_sftp_dtor(zend_resource *rsrc);
-php_url *php_ssh2_fopen_wraper_parse_path(const char *path, char *type, php_stream_context *context,
+php_url *php_ssh2_fopen_wrapper_parse_path(const char *path, char *type, php_stream_context *context,
 											LIBSSH2_SESSION **psession, zend_resource **presource,
 											LIBSSH2_SFTP **psftp, zend_resource **psftp_rsrc);
 
