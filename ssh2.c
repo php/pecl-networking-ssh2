@@ -452,6 +452,30 @@ PHP_FUNCTION(ssh2_disconnect)
 }
 /* }}} */
 
+/* {{{ proto void ssh2_set_timeout(resource session, long seconds [, long microseconds])
+ * Set the timeout in seconds + microseconds for how long a blocking the libssh2 function calls may wait until they consider the situation an error and return LIBSSH2_ERROR_TIMEOUT.
+ * This method takes microseconds to align with stream_set_timeout, but the underlying library call allows only millisecond precision so this function rounds up to millisecond.
+ *
+ * By default or if you set the timeout to zero, libssh2 has no timeout for blocking functions.
+ */
+PHP_FUNCTION(ssh2_set_timeout)
+{
+	LIBSSH2_SESSION *session;
+	zval *zsession;
+	zend_long seconds, microseconds;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "rl|l", &zsession, &seconds, &microseconds) == FAILURE) {
+		return;
+	}
+
+	if ((session = (LIBSSH2_SESSION *)zend_fetch_resource(Z_RES_P(zsession), PHP_SSH2_SESSION_RES_NAME, le_ssh2_session)) == NULL) {
+		return;
+	}
+
+	libssh2_session_set_timeout(session, seconds * 1000 + (microseconds + 1000-1) / 1000);
+}
+/* }}} */
+
 /* {{{ proto array ssh2_methods_negotiated(resource session)
  * Return list of negotiaed methods
  */
@@ -1401,6 +1425,12 @@ ZEND_BEGIN_ARG_INFO(arginfo_ssh2_disconnect, 1)
  	ZEND_ARG_INFO(0, session)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_ssh2_set_timeout, 0, 0, 2)
+ 	ZEND_ARG_INFO(0, session)
+ 	ZEND_ARG_INFO(0, seconds)
+ 	ZEND_ARG_INFO(0, microseconds)
+ZEND_END_ARG_INFO()
+
 ZEND_BEGIN_ARG_INFO(arginfo_ssh2_methods_negotiated, 1)
  	ZEND_ARG_INFO(0, session)
 ZEND_END_ARG_INFO()
@@ -1610,6 +1640,7 @@ ZEND_END_ARG_INFO()
 zend_function_entry ssh2_functions[] = {
 	PHP_FE(ssh2_connect,						arginfo_ssh2_connect)
 	PHP_FE(ssh2_disconnect,						arginfo_ssh2_disconnect)
+	PHP_FE(ssh2_set_timeout,					arginfo_ssh2_set_timeout)
 	PHP_FE(ssh2_methods_negotiated,				arginfo_ssh2_methods_negotiated)
 	PHP_FE(ssh2_fingerprint,					arginfo_ssh2_fingerprint)
 
