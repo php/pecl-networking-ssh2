@@ -554,15 +554,16 @@ static int php_ssh2_sftp_rmdir(php_stream_wrapper *wrapper, const char *url, int
 
 static php_stream_wrapper_ops php_ssh2_sftp_wrapper_ops = {
 	php_ssh2_sftp_stream_opener,
-	NULL, /* close */
+	NULL, /* stream_close */
 	NULL, /* stat */
-	php_ssh2_sftp_urlstat,
-	php_ssh2_sftp_dirstream_opener,
-	PHP_SSH2_SFTP_WRAPPER_NAME,
-	php_ssh2_sftp_unlink,
-	php_ssh2_sftp_rename,
-	php_ssh2_sftp_mkdir,
-	php_ssh2_sftp_rmdir,
+	php_ssh2_sftp_urlstat, /* stat_url */
+	php_ssh2_sftp_dirstream_opener, /* opendir */
+	PHP_SSH2_SFTP_WRAPPER_NAME, /* label */
+	php_ssh2_sftp_unlink, /* unlink */
+	php_ssh2_sftp_rename, /* rename */
+	php_ssh2_sftp_mkdir, /* mkdir */
+	php_ssh2_sftp_rmdir, /* rmdir */
+	NULL /* stream_metadata */
 };
 
 php_stream_wrapper php_ssh2_sftp_wrapper = {
