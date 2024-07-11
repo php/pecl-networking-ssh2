@@ -6,6 +6,13 @@ Bindings for the libssh2 library.
 Provides bindings to the functions of [libssh2](http:/libssh2.org/) which implements the SSH2 protocol.
 
 Version with tcp keepalive support ( setsockopt SO_KEEPALIVE flag ).
+For enable tcp keepalive set ssh2.keepalive=1 in your php.ini .
+To configure tcp keepalive timeouts must be set by kernel parameters:
+```
+net.ipv4.tcp_keepalive_time
+net.ipv4.tcp_keepalive_intvl
+net.ipv4.tcp_keepalive_probes
+```
 
 [The ssh2 extension at the PECL Repository website](http://pecl.php.net/package/ssh2)
 
