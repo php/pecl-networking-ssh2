@@ -5,6 +5,8 @@ Bindings for the libssh2 library.
 
 Provides bindings to the functions of [libssh2](http:/libssh2.org/) which implements the SSH2 protocol.
 
+Version with tcp keepalive support ( setsockopt SO_KEEPALIVE flag ).
+
 [The ssh2 extension at the PECL Repository website](http://pecl.php.net/package/ssh2)
 
 Documentation

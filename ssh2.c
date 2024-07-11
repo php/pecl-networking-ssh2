@@ -314,6 +314,12 @@ LIBSSH2_SESSION *php_ssh2_session_connect(char *host, int port, zval *methods, z
 		return NULL;
 	}
 
+        // tcp keepalive
+        int flags = 1;
+        if (setsockopt(socket, SOL_SOCKET, SO_KEEPALIVE, (void *)&flags, sizeof(flags)) < 0) {
+                php_error_docref(NULL, E_WARNING, "setsocketopt(), SO_KEEPALIVE error for %s on port %d", host, port);
+                }
+
 	data = ecalloc(1, sizeof(php_ssh2_session_data));
 	data->socket = socket;
 
