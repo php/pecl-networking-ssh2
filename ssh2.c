@@ -653,7 +653,7 @@ PHP_FUNCTION(ssh2_auth_pubkey_file)
 {
 	LIBSSH2_SESSION *session;
 	zval *zsession;
-	zend_string *username, *pubkey, *privkey, *passphrase;
+	zend_string *username, *pubkey, *privkey, *passphrase = NULL;
 #ifndef PHP_WIN32
 	zend_string *newpath;
 	struct passwd *pws;
@@ -689,7 +689,7 @@ PHP_FUNCTION(ssh2_auth_pubkey_file)
 #endif
 
 	/* TODO: Support passphrase callback */
-	if (libssh2_userauth_publickey_fromfile_ex(session, ZSTR_VAL(username), ZSTR_LEN(username), ZSTR_VAL(pubkey), ZSTR_VAL(privkey), ZSTR_VAL(passphrase))) {
+	if (libssh2_userauth_publickey_fromfile_ex(session, ZSTR_VAL(username), ZSTR_LEN(username), ZSTR_VAL(pubkey), ZSTR_VAL(privkey), passphrase ? ZSTR_VAL(passphrase) : NULL)) {
 		char *buf;
 		int len;
 		libssh2_session_last_error(session, &buf, &len, 0);
