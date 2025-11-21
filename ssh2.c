@@ -709,7 +709,7 @@ PHP_FUNCTION(ssh2_auth_pubkey)
 {
 	LIBSSH2_SESSION *session;
 	zval *zsession;
-	zend_string *username, *pubkey, *privkey, *passphrase;
+	zend_string *username, *pubkey, *privkey, *passphrase = NULL;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "rSSS|S", &zsession,	&username, &pubkey, &privkey, &passphrase) == FAILURE) {
 		return;
@@ -717,7 +717,7 @@ PHP_FUNCTION(ssh2_auth_pubkey)
 
 	SSH2_FETCH_NONAUTHENTICATED_SESSION(session, zsession);
 
-	if (libssh2_userauth_publickey_frommemory(session, ZSTR_VAL(username), ZSTR_LEN(username), ZSTR_VAL(pubkey), ZSTR_LEN(pubkey), ZSTR_VAL(privkey), ZSTR_LEN(privkey), ZSTR_VAL(passphrase))) {
+	if (libssh2_userauth_publickey_frommemory(session, ZSTR_VAL(username), ZSTR_LEN(username), ZSTR_VAL(pubkey), ZSTR_LEN(pubkey), ZSTR_VAL(privkey), ZSTR_LEN(privkey), passphrase ? ZSTR_VAL(passphrase) : NULL)) {
 		char *buf;
 		int len;
 		libssh2_session_last_error(session, &buf, &len, 0);
