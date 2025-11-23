@@ -911,8 +911,7 @@ PHP_FUNCTION(ssh2_poll)
 
 		pollfds[i].events = Z_LVAL_P(tmpzval);
 		hash_key_zstring = zend_string_init("resource", sizeof("resource") - 1, 0);
-		if ((tmpzval = zend_hash_find(Z_ARRVAL_P(subarray), hash_key_zstring)) == NULL || Z_TYPE_P(tmpzval) != IS_REFERENCE
-			|| (tmpzval = Z_REFVAL_P(tmpzval)) == NULL || Z_TYPE_P(tmpzval) != IS_RESOURCE) {
+		if ((tmpzval = zend_hash_find(Z_ARRVAL_P(subarray), hash_key_zstring)) == NULL || Z_TYPE_P(tmpzval) != IS_RESOURCE) {
 			php_error_docref(NULL, E_WARNING, "Invalid data in subarray, no resource element, or not of type resource");
 			numfds--;
 			zend_string_release(hash_key_zstring);
