@@ -717,7 +717,12 @@ static php_stream_wrapper_ops php_ssh2_shell_stream_wops = {
 	NULL, /* stat */
 	NULL, /* stat_url */
 	NULL, /* opendir */
-	"ssh2.shell"
+	"ssh2.shell", /* label */
+	NULL, /* unlink */
+	NULL, /* rename */
+	NULL, /* mkdir */
+	NULL, /* rmdir */
+	NULL  /* stream_metadata */
 };
 
 php_stream_wrapper php_ssh2_stream_wrapper_shell = {
@@ -961,7 +966,12 @@ static php_stream_wrapper_ops php_ssh2_exec_stream_wops = {
 	NULL, /* stat */
 	NULL, /* stat_url */
 	NULL, /* opendir */
-	"ssh2.exec"
+	"ssh2.exec",  /* label */
+        NULL, /* unlink */
+        NULL, /* rename */
+        NULL, /* mkdir */
+        NULL, /* rmdir */
+        NULL  /* stream_metadata */
 };
 
 php_stream_wrapper php_ssh2_stream_wrapper_exec = {
@@ -1102,7 +1112,12 @@ static php_stream_wrapper_ops php_ssh2_scp_stream_wops = {
 	NULL, /* stat */
 	NULL, /* stat_url */
 	NULL, /* opendir */
-	"ssh2.scp"
+	"ssh2.scp",  /* label */
+        NULL, /* unlink */
+        NULL, /* rename */
+        NULL, /* mkdir */
+        NULL, /* rmdir */
+        NULL  /* stream_metadata */
 };
 
 php_stream_wrapper php_ssh2_stream_wrapper_scp = {
@@ -1384,7 +1399,12 @@ static php_stream_wrapper_ops php_ssh2_tunnel_stream_wops = {
 	NULL, /* stat */
 	NULL, /* stat_url */
 	NULL, /* opendir */
-	"ssh2.tunnel"
+	"ssh2.tunnel",  /* label */
+        NULL, /* unlink */
+        NULL, /* rename */
+        NULL, /* mkdir */
+        NULL, /* rmdir */
+        NULL  /* stream_metadata */
 };
 
 php_stream_wrapper php_ssh2_stream_wrapper_tunnel = {
