@@ -39,6 +39,10 @@
 #define MD5_DIGEST_LENGTH	16
 #endif
 
+PHP_INI_BEGIN()
+	PHP_INI_ENTRY("ssh2.keepalive", "0", PHP_INI_ALL, NULL)
+PHP_INI_END()
+
 /* True global resources - no need for thread safety here */
 int le_ssh2_session;
 int le_ssh2_listener;
@@ -313,6 +317,14 @@ LIBSSH2_SESSION *php_ssh2_session_connect(char *host, int port, zval *methods, z
 		php_error_docref(NULL, E_WARNING, "Unable to connect to %s on port %d", host, port);
 		return NULL;
 	}
+
+	// tcp keepalive
+	zend_bool flag_keepalive = INI_BOOL("ssh2.keepalive");
+	int flags = 1;
+	if (flag_keepalive) {
+		if (setsockopt(socket, SOL_SOCKET, SO_KEEPALIVE, (void *)&flags, sizeof(flags)) < 0)
+			php_error_docref(NULL, E_WARNING, "setsocketopt(), SO_KEEPALIVE error for %s on port %d", host, port);
+		}
 
 	data = ecalloc(1, sizeof(php_ssh2_session_data));
 	data->socket = socket;
@@ -1355,6 +1367,8 @@ PHP_MINIT_FUNCTION(ssh2)
 	REGISTER_LONG_CONSTANT("SSH2_POLL_CHANNEL_CLOSED",	LIBSSH2_POLLFD_CHANNEL_CLOSED,	CONST_CS | CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("SSH2_POLL_LISTENER_CLOSED",	LIBSSH2_POLLFD_LISTENER_CLOSED,	CONST_CS | CONST_PERSISTENT);
 
+	REGISTER_INI_ENTRIES();
+
 	return (php_register_url_stream_wrapper("ssh2.shell", &php_ssh2_stream_wrapper_shell) == SUCCESS &&
 			php_register_url_stream_wrapper("ssh2.exec", &php_ssh2_stream_wrapper_exec) == SUCCESS &&
 			php_register_url_stream_wrapper("ssh2.tunnel", &php_ssh2_stream_wrapper_tunnel) == SUCCESS &&
@@ -1367,6 +1381,9 @@ PHP_MINIT_FUNCTION(ssh2)
  */
 PHP_MSHUTDOWN_FUNCTION(ssh2)
 {
+
+	UNREGISTER_INI_ENTRIES();
+
 	return (php_unregister_url_stream_wrapper("ssh2.shell") == SUCCESS &&
 			php_unregister_url_stream_wrapper("ssh2.exec") == SUCCESS &&
 			php_unregister_url_stream_wrapper("ssh2.tunnel") == SUCCESS &&
@@ -1385,6 +1402,9 @@ PHP_MINFO_FUNCTION(ssh2)
 	php_info_print_table_row(2, "libssh2 version", LIBSSH2_VERSION);
 	php_info_print_table_row(2, "banner", LIBSSH2_SSH_BANNER);
 	php_info_print_table_end();
+
+	DISPLAY_INI_ENTRIES();
+
 }
 /* }}} */
 
