@@ -1483,6 +1483,42 @@ PHP_FUNCTION(ssh2_fetch_stream)
 }
 /* }}} */
 
+/* {{{ proto bool ssh2_send_signal(stream channel, string signal)
+ * Sends a signal to a stream.
+ */
+PHP_FUNCTION(ssh2_send_signal)
+{
+	php_ssh2_channel_data *data;
+	php_stream *parent;
+	zval *zparent;
+	zend_string *signal;
+	int ssh2_ret;
+	
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "rS", &zparent, &signal) == FAILURE) {
+		return;
+	}
+
+	php_stream_from_zval(parent, zparent);
+	if (parent->ops != &php_ssh2_channel_stream_ops) {
+		php_error_docref(NULL, E_WARNING, "Provided stream is not of type " PHP_SSH2_CHANNEL_STREAM_NAME);
+		RETURN_FALSE;
+	}
+
+	data = (php_ssh2_channel_data*)parent->abstract;
+	if (!data) {
+		php_error_docref(NULL, E_WARNING, "Abstract in stream is null");
+		RETURN_FALSE;
+	}
+
+	ssh2_ret = libssh2_channel_signal_ex(data->channel, signal->val, signal->len);
+	if (ssh2_ret < 0) {
+		php_error_docref(NULL, E_WARNING, "Couldn't send signal %s to channel (Return code %d)", signal->val, ssh2_ret);
+		RETURN_FALSE;
+	}
+
+	RETURN_TRUE;
+}
+
 /* {{{ proto stream ssh2_send_eof(stream channel)
  * Sends EOF to a stream. Primary use is to close stdin of an stdio stream.
  */
