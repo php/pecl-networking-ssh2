@@ -602,7 +602,7 @@ static void kbd_callback(const char *name, int name_len,
 	(void)instruction_len;
 	if (num_prompts == 1) {
 		responses[0].text = strdup(password_for_kbd_callback);
-		responses[0].length = strlen(password_for_kbd_callback);
+		responses[0].length = responses[0].text ? strlen(password_for_kbd_callback) : 0;
 	}
 	(void)prompts;
 	(void)abstract;
