@@ -50,29 +50,28 @@ int le_ssh2_pkey_subsys;
    ************* */
 
 /* {{{ php_ssh2_alloc_cb
- * Wrap emalloc()
+ * Use system malloc to avoid allocator mismatch: libssh2 1.11.1
+ * _libssh2_ecdsa_sign() allocates via LIBSSH2_ALLOC but frees via
+ * OPENSSL_clear_free, crashing when emalloc is the registered allocator.
+ * https://github.com/libssh2/libssh2/issues/1828
  */
 static LIBSSH2_ALLOC_FUNC(php_ssh2_alloc_cb)
 {
-	return emalloc(count);
+	return malloc(count);
 }
 /* }}} */
 
-/* {{{ php_ssh2_free_cb
- * Wrap efree()
- */
+/* {{{ php_ssh2_free_cb */
 static LIBSSH2_FREE_FUNC(php_ssh2_free_cb)
 {
-	efree(ptr);
+	free(ptr);
 }
 /* }}} */
 
-/* {{{ php_ssh2_realloc_cb
- * Wrap erealloc()
- */
+/* {{{ php_ssh2_realloc_cb */
 static LIBSSH2_REALLOC_FUNC(php_ssh2_realloc_cb)
 {
-	return erealloc(ptr, count);
+	return realloc(ptr, count);
 }
 /* }}} */
 
@@ -602,7 +601,7 @@ static void kbd_callback(const char *name, int name_len,
 	(void)instruction;
 	(void)instruction_len;
 	if (num_prompts == 1) {
-		responses[0].text = estrdup(password_for_kbd_callback);
+		responses[0].text = strdup(password_for_kbd_callback);
 		responses[0].length = strlen(password_for_kbd_callback);
 	}
 	(void)prompts;
