@@ -475,6 +475,57 @@ PHP_FUNCTION(ssh2_set_timeout)
 }
 /* }}} */
 
+/* {{{ proto void ssh2_keepalive_config(resource session, bool want_reply, int interval)
+ * Set how often keepalive messages should be sent. interval is the number
+ * of seconds that can pass without any I/O; use 0 (the default) to disable
+ * keepalives. want_reply indicates whether the keepalive messages should
+ * request a response from the server.
+ */
+PHP_FUNCTION(ssh2_keepalive_config)
+{
+	LIBSSH2_SESSION *session;
+	zval *zsession;
+	zend_bool want_reply;
+	zend_long interval;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "rbl", &zsession, &want_reply, &interval) == FAILURE) {
+		return;
+	}
+
+	if ((session = (LIBSSH2_SESSION *)zend_fetch_resource(Z_RES_P(zsession), PHP_SSH2_SESSION_RES_NAME, le_ssh2_session)) == NULL) {
+		return;
+	}
+
+	libssh2_keepalive_config(session, want_reply, interval);
+}
+/* }}} */
+
+/* {{{ proto int|false ssh2_keepalive_send(resource session)
+ * Send a keepalive message if needed. Returns the number of seconds you
+ * can sleep before you need to call this function again, or false on error.
+ */
+PHP_FUNCTION(ssh2_keepalive_send)
+{
+	LIBSSH2_SESSION *session;
+	zval *zsession;
+	int seconds_to_next;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "r", &zsession) == FAILURE) {
+		return;
+	}
+
+	if ((session = (LIBSSH2_SESSION *)zend_fetch_resource(Z_RES_P(zsession), PHP_SSH2_SESSION_RES_NAME, le_ssh2_session)) == NULL) {
+		return;
+	}
+
+	if (libssh2_keepalive_send(session, &seconds_to_next)) {
+		RETURN_FALSE;
+	}
+
+	RETURN_LONG(seconds_to_next);
+}
+/* }}} */
+
 /* {{{ proto array ssh2_methods_negotiated(resource session)
  * Return list of negotiaed methods
  */
@@ -1430,6 +1481,16 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_ssh2_set_timeout, 0, 0, 2)
  	ZEND_ARG_INFO(0, microseconds)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_ssh2_keepalive_config, 0, 0, 3)
+	ZEND_ARG_INFO(0, session)
+	ZEND_ARG_INFO(0, want_reply)
+	ZEND_ARG_INFO(0, interval)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_ssh2_keepalive_send, 0, 0, 1)
+	ZEND_ARG_INFO(0, session)
+ZEND_END_ARG_INFO()
+
 ZEND_BEGIN_ARG_INFO(arginfo_ssh2_methods_negotiated, 1)
  	ZEND_ARG_INFO(0, session)
 ZEND_END_ARG_INFO()
@@ -1640,6 +1701,8 @@ zend_function_entry ssh2_functions[] = {
 	PHP_FE(ssh2_connect,						arginfo_ssh2_connect)
 	PHP_FE(ssh2_disconnect,						arginfo_ssh2_disconnect)
 	PHP_FE(ssh2_set_timeout,					arginfo_ssh2_set_timeout)
+	PHP_FE(ssh2_keepalive_config,				arginfo_ssh2_keepalive_config)
+	PHP_FE(ssh2_keepalive_send,					arginfo_ssh2_keepalive_send)
 	PHP_FE(ssh2_methods_negotiated,				arginfo_ssh2_methods_negotiated)
 	PHP_FE(ssh2_fingerprint,					arginfo_ssh2_fingerprint)
 

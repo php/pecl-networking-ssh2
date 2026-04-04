@@ -53,6 +53,15 @@ if test "$PHP_SSH2" != "no"; then
     -L$SSH2_DIR/lib -lm 
   ])
 
+  PHP_CHECK_LIBRARY(ssh2,libssh2_keepalive_config,
+  [
+    AC_DEFINE(PHP_SSH2_KEEPALIVE, 1, [Have libssh2 with keepalive support])
+  ],[
+    AC_MSG_WARN([libssh2 keepalive support not available])
+  ],[
+    -L$SSH2_DIR/lib -lm
+  ])
+
   PHP_SUBST(SSH2_SHARED_LIBADD)
 
   PHP_NEW_EXTENSION(ssh2, ssh2.c ssh2_fopen_wrappers.c ssh2_sftp.c, $ext_shared)
