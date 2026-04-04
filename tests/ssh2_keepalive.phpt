@@ -1,7 +1,12 @@
 --TEST--
 ssh2_keepalive_config() and ssh2_keepalive_send() basic functionality
 --SKIPIF--
-<?php require('ssh2_skip.inc'); ?>
+<?php
+require('ssh2_skip.inc');
+if (!function_exists('ssh2_keepalive_config') || !function_exists('ssh2_keepalive_send')) {
+    die("skip keepalive support not available");
+}
+?>
 --FILE--
 <?php require('ssh2_test.inc');
 

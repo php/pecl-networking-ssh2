@@ -475,6 +475,7 @@ PHP_FUNCTION(ssh2_set_timeout)
 }
 /* }}} */
 
+#ifdef PHP_SSH2_KEEPALIVE
 /* {{{ proto void ssh2_keepalive_config(resource session, bool want_reply, int interval)
  * Set how often keepalive messages should be sent. interval is the number
  * of seconds that can pass without any I/O; use 0 (the default) to disable
@@ -492,11 +493,16 @@ PHP_FUNCTION(ssh2_keepalive_config)
 		return;
 	}
 
+	if (interval < 0) {
+		php_error_docref(NULL, E_WARNING, "Argument #3 ($interval) must be greater than or equal to 0");
+		return;
+	}
+
 	if ((session = (LIBSSH2_SESSION *)zend_fetch_resource(Z_RES_P(zsession), PHP_SSH2_SESSION_RES_NAME, le_ssh2_session)) == NULL) {
 		return;
 	}
 
-	libssh2_keepalive_config(session, want_reply, interval);
+	libssh2_keepalive_config(session, want_reply, (unsigned int)interval);
 }
 /* }}} */
 
@@ -525,6 +531,7 @@ PHP_FUNCTION(ssh2_keepalive_send)
 	RETURN_LONG(seconds_to_next);
 }
 /* }}} */
+#endif
 
 /* {{{ proto array ssh2_methods_negotiated(resource session)
  * Return list of negotiaed methods
@@ -1701,8 +1708,10 @@ zend_function_entry ssh2_functions[] = {
 	PHP_FE(ssh2_connect,						arginfo_ssh2_connect)
 	PHP_FE(ssh2_disconnect,						arginfo_ssh2_disconnect)
 	PHP_FE(ssh2_set_timeout,					arginfo_ssh2_set_timeout)
+#ifdef PHP_SSH2_KEEPALIVE
 	PHP_FE(ssh2_keepalive_config,				arginfo_ssh2_keepalive_config)
 	PHP_FE(ssh2_keepalive_send,					arginfo_ssh2_keepalive_send)
+#endif
 	PHP_FE(ssh2_methods_negotiated,				arginfo_ssh2_methods_negotiated)
 	PHP_FE(ssh2_fingerprint,					arginfo_ssh2_fingerprint)
 
