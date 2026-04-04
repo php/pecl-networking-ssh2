@@ -152,8 +152,11 @@ static ssize_t php_ssh2_sftp_stream_read(php_stream *stream, char *buf, size_t c
 static int php_ssh2_sftp_stream_close(php_stream *stream, int close_handle)
 {
 	php_ssh2_sftp_handle_data *data = (php_ssh2_sftp_handle_data*)stream->abstract;
+	php_ssh2_sftp_data *sftp_data = (php_ssh2_sftp_data*)data->sftp_rsrc->ptr;
 
-	libssh2_sftp_close(data->handle);
+	if (sftp_data && sftp_data->session_rsrc->ptr != NULL) {
+		libssh2_sftp_close(data->handle);
+	}
 	zend_list_delete(data->sftp_rsrc);
 	efree(data);
 
@@ -319,8 +322,11 @@ static ssize_t php_ssh2_sftp_dirstream_read(php_stream *stream, char *buf, size_
 static int php_ssh2_sftp_dirstream_close(php_stream *stream, int close_handle)
 {
 	php_ssh2_sftp_handle_data *data = (php_ssh2_sftp_handle_data*)stream->abstract;
+	php_ssh2_sftp_data *sftp_data = (php_ssh2_sftp_data*)data->sftp_rsrc->ptr;
 
-	libssh2_sftp_close(data->handle);
+	if (sftp_data && sftp_data->session_rsrc->ptr != NULL) {
+		libssh2_sftp_close(data->handle);
+	}
 	zend_list_delete(data->sftp_rsrc);
 	efree(data);
 
