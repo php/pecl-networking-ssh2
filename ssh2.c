@@ -493,8 +493,8 @@ PHP_FUNCTION(ssh2_keepalive_config)
 		return;
 	}
 
-	if (interval < 0) {
-		php_error_docref(NULL, E_WARNING, "Argument #3 ($interval) must be greater than or equal to 0");
+	if (interval < 0 || interval > UINT_MAX) {
+		php_error_docref(NULL, E_WARNING, "Argument #3 ($interval) must be between 0 and %u", UINT_MAX);
 		return;
 	}
 
