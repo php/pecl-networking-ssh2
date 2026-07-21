@@ -21,6 +21,7 @@
 #endif
 
 #include "php.h"
+#include "Zend/zend_attributes.h"
 #include "ext/standard/info.h"
 #include "ext/standard/file.h"
 #include "php_ssh2.h"
@@ -669,8 +670,6 @@ PHP_FUNCTION(ssh2_auth_none)
 }
 /* }}} */
 
-char *password_for_kbd_callback;
-
 static void kbd_callback(const char *name, int name_len,
 							const char *instruction, int instruction_len,
 							int num_prompts,
@@ -678,16 +677,31 @@ static void kbd_callback(const char *name, int name_len,
 							LIBSSH2_USERAUTH_KBDINT_RESPONSE *responses,
 							void **abstract)
 {
+	php_ssh2_session_data *data;
+	int i;
+
 	(void)name;
 	(void)name_len;
 	(void)instruction;
 	(void)instruction_len;
-	if (num_prompts == 1) {
-		responses[0].text = strdup(password_for_kbd_callback);
-		responses[0].length = responses[0].text ? strlen(password_for_kbd_callback) : 0;
-	}
 	(void)prompts;
-	(void)abstract;
+
+	data = abstract ? (php_ssh2_session_data*)*abstract : NULL;
+
+	for (i = 0; i < num_prompts; i++) {
+		responses[i].text = NULL;
+		responses[i].length = 0;
+	}
+
+	if (num_prompts >= 1 && data && data->kbd_password) {
+		/* libssh2 releases response text through the session's system free() callback. */
+		responses[0].text = malloc(data->kbd_password_len + 1);
+		if (responses[0].text) {
+			memcpy(responses[0].text, data->kbd_password, data->kbd_password_len);
+			responses[0].text[data->kbd_password_len] = '\0';
+			responses[0].length = (unsigned int)data->kbd_password_len;
+		}
+	}
 }
 
 /* {{{ proto bool ssh2_auth_password(resource session, string username, string password)
@@ -699,6 +713,8 @@ PHP_FUNCTION(ssh2_auth_password)
 	zval *zsession;
 	zend_string *username, *password;
 	char *userauthlist;
+	php_ssh2_session_data *data;
+	int authenticated;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "rSS", &zsession, &username, &password) == FAILURE) {
 		return;
@@ -709,9 +725,17 @@ PHP_FUNCTION(ssh2_auth_password)
 	userauthlist = libssh2_userauth_list(session, username->val, username->len);
 
 	if (userauthlist != NULL) {
-		password_for_kbd_callback = password->val;
 		if (strstr(userauthlist, "keyboard-interactive") != NULL) {
-			if (libssh2_userauth_keyboard_interactive(session, username->val, &kbd_callback) == 0) {
+			data = *(php_ssh2_session_data**)libssh2_session_abstract(session);
+			data->kbd_password = password->val;
+			data->kbd_password_len = password->len;
+
+			authenticated = libssh2_userauth_keyboard_interactive(session, username->val, &kbd_callback) == 0;
+
+			data->kbd_password = NULL;
+			data->kbd_password_len = 0;
+
+			if (authenticated) {
 				RETURN_TRUE;
 			}
 		}
@@ -1412,6 +1436,25 @@ PHP_MINIT_FUNCTION(ssh2)
 	le_ssh2_listener	= zend_register_list_destructors_ex(php_ssh2_listener_dtor, NULL, PHP_SSH2_LISTENER_RES_NAME, module_number);
 	le_ssh2_sftp		= zend_register_list_destructors_ex(php_ssh2_sftp_dtor, NULL, PHP_SSH2_SFTP_RES_NAME, module_number);
 	le_ssh2_pkey_subsys	= zend_register_list_destructors_ex(php_ssh2_pkey_subsys_dtor, NULL, PHP_SSH2_PKEY_SUBSYS_RES_NAME, module_number);
+
+#if PHP_VERSION_ID >= 80200
+	/* This extension keeps hand-written arginfo, so sensitive attributes are registered here. */
+	zend_add_parameter_attribute(
+		zend_hash_str_find_ptr(CG(function_table), "ssh2_auth_password", sizeof("ssh2_auth_password") - 1),
+		2, ZSTR_KNOWN(ZEND_STR_SENSITIVEPARAMETER), 0);
+	zend_add_parameter_attribute(
+		zend_hash_str_find_ptr(CG(function_table), "ssh2_auth_pubkey_file", sizeof("ssh2_auth_pubkey_file") - 1),
+		4, ZSTR_KNOWN(ZEND_STR_SENSITIVEPARAMETER), 0);
+	zend_add_parameter_attribute(
+		zend_hash_str_find_ptr(CG(function_table), "ssh2_auth_pubkey", sizeof("ssh2_auth_pubkey") - 1),
+		3, ZSTR_KNOWN(ZEND_STR_SENSITIVEPARAMETER), 0);
+	zend_add_parameter_attribute(
+		zend_hash_str_find_ptr(CG(function_table), "ssh2_auth_pubkey", sizeof("ssh2_auth_pubkey") - 1),
+		4, ZSTR_KNOWN(ZEND_STR_SENSITIVEPARAMETER), 0);
+	zend_add_parameter_attribute(
+		zend_hash_str_find_ptr(CG(function_table), "ssh2_auth_hostbased_file", sizeof("ssh2_auth_hostbased_file") - 1),
+		5, ZSTR_KNOWN(ZEND_STR_SENSITIVEPARAMETER), 0);
+#endif
 
 	REGISTER_LONG_CONSTANT("SSH2_FINGERPRINT_MD5",		PHP_SSH2_FINGERPRINT_MD5,		CONST_CS | CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("SSH2_FINGERPRINT_SHA1",		PHP_SSH2_FINGERPRINT_SHA1,		CONST_CS | CONST_PERSISTENT);

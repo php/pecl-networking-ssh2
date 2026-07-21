@@ -66,6 +66,10 @@ typedef struct _php_ssh2_session_data {
 	zval *disconnect_cb;
 
 	php_socket_t socket;
+
+	/* Session-local state prevents concurrent authentication attempts from sharing a password. */
+	const char *kbd_password;
+	size_t kbd_password_len;
 } php_ssh2_session_data;
 
 typedef struct _php_ssh2_sftp_data {
