@@ -906,6 +906,10 @@ PHP_FUNCTION(ssh2_forward_accept)
 		RETURN_FALSE;
 	}
 
+	if (!php_ssh2_session_is_open(data->session_rsrc)) {
+		RETURN_FALSE;
+	}
+
 	channel = libssh2_channel_forward_accept(data->listener);
 
 	if (!channel) {
@@ -916,6 +920,7 @@ PHP_FUNCTION(ssh2_forward_accept)
 	channel_data->channel = channel;
 	channel_data->streamid = 0;
 	channel_data->is_blocking = 0;
+	channel_data->timeout = 0;
 	channel_data->session_rsrc = data->session_rsrc;
 	channel_data->refcount = NULL;
 
@@ -1010,12 +1015,28 @@ PHP_FUNCTION(ssh2_poll)
 		res_type = Z_RES_P(tmpzval)->type;
 		res = zend_fetch_resource_ex(tmpzval, "Poll Resource", res_type);
 		if (res_type == le_ssh2_listener) {
+			php_ssh2_listener_data *listener_data = (php_ssh2_listener_data*)res;
+
+			if (!php_ssh2_session_is_open(listener_data->session_rsrc)) {
+				php_error_docref(NULL, E_WARNING, "Cannot poll a listener after its session is closed");
+				numfds--;
+				continue;
+			}
+
 			pollfds[i].type = LIBSSH2_POLLFD_LISTENER;
-			pollfds[i].fd.listener = ((php_ssh2_listener_data*)res)->listener;
+			pollfds[i].fd.listener = listener_data->listener;
 		} else if ((res_type == le_stream || res_type == le_pstream) &&
 				   ((php_stream*)res)->ops == &php_ssh2_channel_stream_ops) {
+			php_ssh2_channel_data *channel_data = (php_ssh2_channel_data*)((php_stream*)res)->abstract;
+
+			if (!php_ssh2_session_is_open(channel_data->session_rsrc)) {
+				php_error_docref(NULL, E_WARNING, "Cannot poll a channel after its session is closed");
+				numfds--;
+				continue;
+			}
+
 			pollfds[i].type = LIBSSH2_POLLFD_CHANNEL;
-			pollfds[i].fd.channel = ((php_ssh2_channel_data*)(((php_stream*)res)->abstract))->channel;
+			pollfds[i].fd.channel = channel_data->channel;
 			/* TODO: Add the ability to select against other stream types */
 		} else {
 			php_error_docref(NULL, E_WARNING, "Invalid resource type in subarray: %s", zend_rsrc_list_get_rsrc_type(Z_RES_P(tmpzval)));
@@ -1114,6 +1135,10 @@ PHP_FUNCTION(ssh2_publickey_add)
 		RETURN_FALSE;
 	}
 
+	if (!php_ssh2_session_is_open(data->session_rsrc)) {
+		RETURN_FALSE;
+	}
+
 	if (zattrs) {
 		HashPosition pos;
 		zval *attr_val;
@@ -1209,6 +1234,10 @@ PHP_FUNCTION(ssh2_publickey_remove)
 		RETURN_FALSE;
 	}
 
+	if (!php_ssh2_session_is_open(data->session_rsrc)) {
+		RETURN_FALSE;
+	}
+
 	if (libssh2_publickey_remove_ex(data->pkey, (unsigned char *) algo, algo_len, (unsigned char *) blob, blob_len)) {
 		php_error_docref(NULL, E_WARNING, "Unable to remove %s key", algo);
 		RETURN_FALSE;
@@ -1233,6 +1262,10 @@ PHP_FUNCTION(ssh2_publickey_list)
 	}
 
 	if ((data = (php_ssh2_pkey_subsys_data *)zend_fetch_resource(Z_RES_P(zpkey_data), PHP_SSH2_PKEY_SUBSYS_RES_NAME, le_ssh2_pkey_subsys)) == NULL) {
+		RETURN_FALSE;
+	}
+
+	if (!php_ssh2_session_is_open(data->session_rsrc)) {
 		RETURN_FALSE;
 	}
 
@@ -1389,7 +1422,10 @@ static void php_ssh2_listener_dtor(zend_resource *rsrc)
 	php_ssh2_listener_data *data = (php_ssh2_listener_data*)rsrc->ptr;
 	LIBSSH2_LISTENER *listener = data->listener;
 
-	libssh2_channel_forward_cancel(listener);
+	if (php_ssh2_session_is_open(data->session_rsrc)) {
+		libssh2_channel_forward_cancel(listener);
+	}
+
 	zend_list_delete(data->session_rsrc);
 	efree(data);
 }
@@ -1399,7 +1435,10 @@ static void php_ssh2_pkey_subsys_dtor(zend_resource *rsrc)
 	php_ssh2_pkey_subsys_data *data = (php_ssh2_pkey_subsys_data*)rsrc->ptr;
 	LIBSSH2_PUBLICKEY *pkey = data->pkey;
 
-	libssh2_publickey_shutdown(pkey);
+	if (php_ssh2_session_is_open(data->session_rsrc)) {
+		libssh2_publickey_shutdown(pkey);
+	}
+
 	zend_list_delete(data->session_rsrc);
 	efree(data);
 }

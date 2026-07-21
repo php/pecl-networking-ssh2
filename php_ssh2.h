@@ -170,6 +170,11 @@ extern php_stream_wrapper php_ssh2_sftp_wrapper;
 extern int le_ssh2_session;
 extern int le_ssh2_sftp;
 
+static inline zend_bool php_ssh2_session_is_open(zend_resource *session_rsrc)
+{
+	return session_rsrc && session_rsrc->ptr != NULL;
+}
+
 #if PHP_VERSION_ID < 70300
 #define SSH2_URL_STR(a) (a)
 #define SSH2_URL_LEN(a) strlen(a)
