@@ -1,5 +1,5 @@
 {
-    "name": "php/pecl-networking-ssh2",
+    "name": "pecl/ssh2",
     "type": "php-ext",
     "license": "PHP-3.01",
     "description": "Bindings for the libssh2 library",
