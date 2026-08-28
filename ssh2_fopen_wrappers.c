@@ -324,9 +324,15 @@ php_url *php_ssh2_fopen_wrapper_parse_path(const char *path, char *type, php_str
 		Find resource->path in the original path string, then copy from that
 		position to the end. This preserves ?query and #fragment (e.g. filenames
 		containing '#') which php_url_parse() strips from resource->path.
+		Only search if # or ? is present, since a plain strstr() can otherwise
+		match resource->path against the "://" scheme separator (e.g. a root
+		path of "/" matching inside "ssh2.sftp://<id>/").
 	*/
 	{
-	const char *path_in_original = strstr(path, ZSTR_VAL(resource->path));
+	const char *path_in_original = NULL;
+	if (strpbrk(path, "#?") != NULL) {
+		path_in_original = strstr(path, ZSTR_VAL(resource->path));
+	}
 	if (path_in_original) {
 		zend_string_release(resource->path);
 		resource->path = zend_string_init(path_in_original, strlen(path_in_original), 0);
