@@ -557,7 +557,7 @@ static php_stream *php_ssh2_shell_open(LIBSSH2_SESSION *session, zend_resource *
 					if (libssh2_channel_setenv_ex(channel, key->val, key->len, Z_STRVAL(copyval), Z_STRLEN(copyval))) {
 						php_error_docref(NULL, E_WARNING, "Failed setting %s=%s on remote end", ZSTR_VAL(key), Z_STRVAL(copyval));
 					}
-					zval_dtor(&copyval);
+					zval_ptr_dtor_nogc(&copyval);
 				}
 			} else {
 				php_error_docref(NULL, E_NOTICE, "Skipping numeric index in environment array");
@@ -831,7 +831,7 @@ static php_stream *php_ssh2_exec_command(LIBSSH2_SESSION *session, zend_resource
 					if (libssh2_channel_setenv_ex(channel, key->val, key->len, Z_STRVAL(copyval), Z_STRLEN(copyval))) {
 						php_error_docref(NULL, E_WARNING, "Failed setting %s=%s on remote end", ZSTR_VAL(key), Z_STRVAL(copyval));
 					}
-					zval_dtor(&copyval);
+					zval_ptr_dtor_nogc(&copyval);
 				}
 			} else {
 				php_error_docref(NULL, E_NOTICE, "Skipping numeric index in environment array");
