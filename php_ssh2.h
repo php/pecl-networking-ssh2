@@ -24,6 +24,10 @@
 #include "ext/standard/url.h"
 #include "main/php_network.h"
 
+#if LIBSSH2_VERSION_NUM < 0x010900
+#error "The ssh2 extension requires libssh2 1.9.0 or newer"
+#endif
+
 #define PHP_SSH2_VERSION				"1.5.0"
 #define PHP_SSH2_DEFAULT_PORT			22
 
@@ -32,6 +36,7 @@
 #define PHP_SSH2_FINGERPRINT_SHA1		0x0001
 #define PHP_SSH2_FINGERPRINT_HEX		0x0000
 #define PHP_SSH2_FINGERPRINT_RAW		0x0002
+#define PHP_SSH2_FINGERPRINT_SHA256		0x0004
 
 #define PHP_SSH2_TERM_UNIT_CHARS		0x0000
 #define PHP_SSH2_TERM_UNIT_PIXELS		0x0001
@@ -66,6 +71,10 @@ typedef struct _php_ssh2_session_data {
 	zval *disconnect_cb;
 
 	php_socket_t socket;
+
+	/* Session-local state prevents concurrent authentication attempts from sharing a password. */
+	const char *kbd_password;
+	size_t kbd_password_len;
 } php_ssh2_session_data;
 
 typedef struct _php_ssh2_sftp_data {

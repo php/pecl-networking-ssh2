@@ -21,6 +21,7 @@
 #endif
 
 #include "php.h"
+#include "Zend/zend_attributes.h"
 #include "ext/standard/info.h"
 #include "ext/standard/file.h"
 #include "php_ssh2.h"
@@ -37,6 +38,10 @@
 
 #ifndef MD5_DIGEST_LENGTH
 #define MD5_DIGEST_LENGTH	16
+#endif
+
+#ifndef SHA256_DIGEST_LENGTH
+#define SHA256_DIGEST_LENGTH	32
 #endif
 
 /* True global resources - no need for thread safety here */
@@ -158,7 +163,7 @@ LIBSSH2_MACERROR_FUNC(php_ssh2_macerror_cb)
 	if (FAILURE == call_user_function(NULL, NULL, data->macerror_cb, &zretval, 1, args)) {
 		php_error_docref(NULL, E_WARNING, "Failure calling macerror callback");
 	} else {
-		retval = zval_is_true(&zretval) ? 0 : -1;
+		retval = zend_is_true(&zretval) ? 0 : -1;
 	}
 	if (Z_TYPE_P(&zretval) != IS_UNDEF) {
 		zval_ptr_dtor(&zretval);
@@ -591,18 +596,28 @@ PHP_FUNCTION(ssh2_fingerprint)
 	zval *zsession;
 	const char *fingerprint;
 	zend_long flags = 0;
-	int i, fingerprint_len;
+	size_t i, fingerprint_len;
+	int hash_type;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "r|l", &zsession, &flags) == FAILURE) {
 		return;
 	}
-	fingerprint_len = (flags & PHP_SSH2_FINGERPRINT_SHA1) ? SHA_DIGEST_LENGTH : MD5_DIGEST_LENGTH;
+	if (flags & PHP_SSH2_FINGERPRINT_SHA256) {
+		fingerprint_len = SHA256_DIGEST_LENGTH;
+		hash_type = LIBSSH2_HOSTKEY_HASH_SHA256;
+	} else if (flags & PHP_SSH2_FINGERPRINT_SHA1) {
+		fingerprint_len = SHA_DIGEST_LENGTH;
+		hash_type = LIBSSH2_HOSTKEY_HASH_SHA1;
+	} else {
+		fingerprint_len = MD5_DIGEST_LENGTH;
+		hash_type = LIBSSH2_HOSTKEY_HASH_MD5;
+	}
 
 	if ((session = (LIBSSH2_SESSION *)zend_fetch_resource(Z_RES_P(zsession), PHP_SSH2_SESSION_RES_NAME, le_ssh2_session)) == NULL) {
 		RETURN_FALSE;
 	}
 
-	fingerprint = (char*)libssh2_hostkey_hash(session, (flags & PHP_SSH2_FINGERPRINT_SHA1) ? LIBSSH2_HOSTKEY_HASH_SHA1 : LIBSSH2_HOSTKEY_HASH_MD5);
+	fingerprint = (char*)libssh2_hostkey_hash(session, hash_type);
 	if (!fingerprint) {
 		php_error_docref(NULL, E_WARNING, "Unable to retrieve fingerprint from specified session");
 		RETURN_FALSE;
@@ -628,6 +643,36 @@ PHP_FUNCTION(ssh2_fingerprint)
 		ZVAL_STRINGL(return_value, hexchars, 2 * fingerprint_len);
 		efree(hexchars);
 	}
+}
+/* }}} */
+
+/* {{{ proto array ssh2_hostkey(resource session)
+ * Returns the server's raw host key and type
+ */
+PHP_FUNCTION(ssh2_hostkey)
+{
+	LIBSSH2_SESSION *session;
+	zval *zsession;
+	const char *hostkey;
+	size_t hostkey_len;
+	int type;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "r", &zsession) == FAILURE) {
+		return;
+	}
+
+	if ((session = (LIBSSH2_SESSION *)zend_fetch_resource(Z_RES_P(zsession), PHP_SSH2_SESSION_RES_NAME, le_ssh2_session)) == NULL) {
+		RETURN_FALSE;
+	}
+
+	hostkey = libssh2_session_hostkey(session, &hostkey_len, &type);
+	if (!hostkey) {
+		RETURN_FALSE;
+	}
+
+	array_init(return_value);
+	add_assoc_stringl(return_value, "key", (char *)hostkey, hostkey_len);
+	add_assoc_long(return_value, "type", type);
 }
 /* }}} */
 
@@ -669,8 +714,6 @@ PHP_FUNCTION(ssh2_auth_none)
 }
 /* }}} */
 
-char *password_for_kbd_callback;
-
 static void kbd_callback(const char *name, int name_len,
 							const char *instruction, int instruction_len,
 							int num_prompts,
@@ -678,16 +721,31 @@ static void kbd_callback(const char *name, int name_len,
 							LIBSSH2_USERAUTH_KBDINT_RESPONSE *responses,
 							void **abstract)
 {
+	php_ssh2_session_data *data;
+	int i;
+
 	(void)name;
 	(void)name_len;
 	(void)instruction;
 	(void)instruction_len;
-	if (num_prompts == 1) {
-		responses[0].text = strdup(password_for_kbd_callback);
-		responses[0].length = responses[0].text ? strlen(password_for_kbd_callback) : 0;
-	}
 	(void)prompts;
-	(void)abstract;
+
+	data = abstract ? (php_ssh2_session_data*)*abstract : NULL;
+
+	for (i = 0; i < num_prompts; i++) {
+		responses[i].text = NULL;
+		responses[i].length = 0;
+	}
+
+	if (num_prompts >= 1 && data && data->kbd_password) {
+		/* libssh2 releases response text through the session's system free() callback. */
+		responses[0].text = malloc(data->kbd_password_len + 1);
+		if (responses[0].text) {
+			memcpy(responses[0].text, data->kbd_password, data->kbd_password_len);
+			responses[0].text[data->kbd_password_len] = '\0';
+			responses[0].length = (unsigned int)data->kbd_password_len;
+		}
+	}
 }
 
 /* {{{ proto bool ssh2_auth_password(resource session, string username, string password)
@@ -699,6 +757,8 @@ PHP_FUNCTION(ssh2_auth_password)
 	zval *zsession;
 	zend_string *username, *password;
 	char *userauthlist;
+	php_ssh2_session_data *data;
+	int authenticated;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "rSS", &zsession, &username, &password) == FAILURE) {
 		return;
@@ -709,9 +769,17 @@ PHP_FUNCTION(ssh2_auth_password)
 	userauthlist = libssh2_userauth_list(session, username->val, username->len);
 
 	if (userauthlist != NULL) {
-		password_for_kbd_callback = password->val;
 		if (strstr(userauthlist, "keyboard-interactive") != NULL) {
-			if (libssh2_userauth_keyboard_interactive(session, username->val, &kbd_callback) == 0) {
+			data = *(php_ssh2_session_data**)libssh2_session_abstract(session);
+			data->kbd_password = password->val;
+			data->kbd_password_len = password->len;
+
+			authenticated = libssh2_userauth_keyboard_interactive(session, username->val, &kbd_callback) == 0;
+
+			data->kbd_password = NULL;
+			data->kbd_password_len = 0;
+
+			if (authenticated) {
 				RETURN_TRUE;
 			}
 		}
@@ -1452,10 +1520,38 @@ PHP_MINIT_FUNCTION(ssh2)
 	le_ssh2_sftp		= zend_register_list_destructors_ex(php_ssh2_sftp_dtor, NULL, PHP_SSH2_SFTP_RES_NAME, module_number);
 	le_ssh2_pkey_subsys	= zend_register_list_destructors_ex(php_ssh2_pkey_subsys_dtor, NULL, PHP_SSH2_PKEY_SUBSYS_RES_NAME, module_number);
 
+#if PHP_VERSION_ID >= 80200
+	/* This extension keeps hand-written arginfo, so sensitive attributes are registered here. */
+	zend_add_parameter_attribute(
+		zend_hash_str_find_ptr(CG(function_table), "ssh2_auth_password", sizeof("ssh2_auth_password") - 1),
+		2, ZSTR_KNOWN(ZEND_STR_SENSITIVEPARAMETER), 0);
+	zend_add_parameter_attribute(
+		zend_hash_str_find_ptr(CG(function_table), "ssh2_auth_pubkey_file", sizeof("ssh2_auth_pubkey_file") - 1),
+		4, ZSTR_KNOWN(ZEND_STR_SENSITIVEPARAMETER), 0);
+	zend_add_parameter_attribute(
+		zend_hash_str_find_ptr(CG(function_table), "ssh2_auth_pubkey", sizeof("ssh2_auth_pubkey") - 1),
+		3, ZSTR_KNOWN(ZEND_STR_SENSITIVEPARAMETER), 0);
+	zend_add_parameter_attribute(
+		zend_hash_str_find_ptr(CG(function_table), "ssh2_auth_pubkey", sizeof("ssh2_auth_pubkey") - 1),
+		4, ZSTR_KNOWN(ZEND_STR_SENSITIVEPARAMETER), 0);
+	zend_add_parameter_attribute(
+		zend_hash_str_find_ptr(CG(function_table), "ssh2_auth_hostbased_file", sizeof("ssh2_auth_hostbased_file") - 1),
+		5, ZSTR_KNOWN(ZEND_STR_SENSITIVEPARAMETER), 0);
+#endif
+
 	REGISTER_LONG_CONSTANT("SSH2_FINGERPRINT_MD5",		PHP_SSH2_FINGERPRINT_MD5,		CONST_CS | CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("SSH2_FINGERPRINT_SHA1",		PHP_SSH2_FINGERPRINT_SHA1,		CONST_CS | CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("SSH2_FINGERPRINT_HEX",		PHP_SSH2_FINGERPRINT_HEX,		CONST_CS | CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("SSH2_FINGERPRINT_RAW",		PHP_SSH2_FINGERPRINT_RAW,		CONST_CS | CONST_PERSISTENT);
+	REGISTER_LONG_CONSTANT("SSH2_FINGERPRINT_SHA256",	PHP_SSH2_FINGERPRINT_SHA256,	CONST_CS | CONST_PERSISTENT);
+
+	REGISTER_LONG_CONSTANT("SSH2_HOSTKEY_TYPE_UNKNOWN",	LIBSSH2_HOSTKEY_TYPE_UNKNOWN,	CONST_CS | CONST_PERSISTENT);
+	REGISTER_LONG_CONSTANT("SSH2_HOSTKEY_TYPE_RSA",		LIBSSH2_HOSTKEY_TYPE_RSA,		CONST_CS | CONST_PERSISTENT);
+	REGISTER_LONG_CONSTANT("SSH2_HOSTKEY_TYPE_DSS",		LIBSSH2_HOSTKEY_TYPE_DSS,		CONST_CS | CONST_PERSISTENT);
+	REGISTER_LONG_CONSTANT("SSH2_HOSTKEY_TYPE_ECDSA_256",	LIBSSH2_HOSTKEY_TYPE_ECDSA_256,	CONST_CS | CONST_PERSISTENT);
+	REGISTER_LONG_CONSTANT("SSH2_HOSTKEY_TYPE_ECDSA_384",	LIBSSH2_HOSTKEY_TYPE_ECDSA_384,	CONST_CS | CONST_PERSISTENT);
+	REGISTER_LONG_CONSTANT("SSH2_HOSTKEY_TYPE_ECDSA_521",	LIBSSH2_HOSTKEY_TYPE_ECDSA_521,	CONST_CS | CONST_PERSISTENT);
+	REGISTER_LONG_CONSTANT("SSH2_HOSTKEY_TYPE_ED25519",	LIBSSH2_HOSTKEY_TYPE_ED25519,	CONST_CS | CONST_PERSISTENT);
 
 	REGISTER_LONG_CONSTANT("SSH2_TERM_UNIT_CHARS",		PHP_SSH2_TERM_UNIT_CHARS,		CONST_CS | CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("SSH2_TERM_UNIT_PIXELS",		PHP_SSH2_TERM_UNIT_PIXELS,		CONST_CS | CONST_PERSISTENT);
@@ -1550,6 +1646,10 @@ ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_INFO_EX(arginfo_ssh2_fingerprint, 0, 0, 1)
  	ZEND_ARG_INFO(0, session)
  	ZEND_ARG_INFO(0, flags)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_ssh2_hostkey, 1)
+	ZEND_ARG_INFO(0, session)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO(arginfo_ssh2_auth_none, 2)
@@ -1766,6 +1866,7 @@ zend_function_entry ssh2_functions[] = {
 #endif
 	PHP_FE(ssh2_methods_negotiated,				arginfo_ssh2_methods_negotiated)
 	PHP_FE(ssh2_fingerprint,					arginfo_ssh2_fingerprint)
+	PHP_FE(ssh2_hostkey,						arginfo_ssh2_hostkey)
 
 	PHP_FE(ssh2_auth_none,						arginfo_ssh2_auth_none)
 	PHP_FE(ssh2_auth_password,					arginfo_ssh2_auth_password)
