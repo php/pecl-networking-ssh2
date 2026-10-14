@@ -39,7 +39,9 @@ if (PHP_SSH2 != "no") {
         AC_DEFINE('PHP_SSH2_AGENT_AUTH', 1);
         AC_DEFINE('PHP_SSH2_SESSION_TIMEOUT', 1);
         AC_DEFINE('PHP_SSH2_KEEPALIVE', 1);
-        AC_DEFINE('PHP_SSH2_CHANNEL_SIGNAL', 1);
+        if (CHECK_FUNC_IN_HEADER("libssh2.h", "libssh2_channel_signal_ex", "ssh2")) {
+            AC_DEFINE('PHP_SSH2_CHANNEL_SIGNAL', 1);
+        }
         ADD_EXTENSION_DEP('ssh2', 'zlib')
         ADD_EXTENSION_DEP('ssh2', 'openssl')
     }

@@ -75,6 +75,7 @@
                 <file role="test" name="ssh2_auth_pubkey_file.phpt"/>
                 <file role="test" name="ssh2_connect.phpt"/>
                 <file role="test" name="ssh2_exec.phpt"/>
+                <file role="test" name="ssh2_hostkey.phpt"/>
                 <file role="test" name="ssh2_keepalive.phpt"/>
                 <file role="test" name="ssh2_poll.phpt"/>
                 <file role="test" name="ssh2_send_eof.phpt"/>

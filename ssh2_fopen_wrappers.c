@@ -141,8 +141,31 @@ static int php_ssh2_channel_stream_close(php_stream *stream, int close_handle)
 		if (abstract->refcount) {
 			efree(abstract->refcount);
 		}
+#ifdef PHP_SSH2_SESSION_TIMEOUT
+		/* Apply session timeout during channel close to prevent blocking
+		 * indefinitely when the remote command hasn't finished or the
+		 * connection has been lost. libssh2_channel_free() calls
+		 * libssh2_channel_close() internally which blocks waiting for
+		 * SSH_MSG_CHANNEL_CLOSE from the remote end. */
+		if (abstract->timeout > 0) {
+			LIBSSH2_SESSION *session;
+			session = (LIBSSH2_SESSION *)zend_fetch_resource(abstract->session_rsrc, PHP_SSH2_SESSION_RES_NAME, le_ssh2_session);
+			if (session) {
+				libssh2_session_set_timeout(session, abstract->timeout);
+			}
+		}
+#endif
 		libssh2_channel_eof(abstract->channel);
 		libssh2_channel_free(abstract->channel);
+#ifdef PHP_SSH2_SESSION_TIMEOUT
+		if (abstract->timeout > 0) {
+			LIBSSH2_SESSION *session;
+			session = (LIBSSH2_SESSION *)zend_fetch_resource(abstract->session_rsrc, PHP_SSH2_SESSION_RES_NAME, le_ssh2_session);
+			if (session) {
+				libssh2_session_set_timeout(session, 0);
+			}
+		}
+#endif
 		zend_list_delete(abstract->session_rsrc);
 	}
 	efree(abstract);
@@ -551,7 +574,7 @@ static php_stream *php_ssh2_shell_open(LIBSSH2_SESSION *session, zend_resource *
 				if (libssh2_channel_setenv_ex(channel, key->val, key->len, Z_STRVAL(copyval), Z_STRLEN(copyval))) {
 					php_error_docref(NULL, E_WARNING, "Failed setting environment variable %s on remote end", ZSTR_VAL(key));
 				}
-				zval_dtor(&copyval);
+				zval_ptr_dtor_nogc(&copyval);
 			} else {
 				php_error_docref(NULL, E_NOTICE, "Skipping numeric index in environment array");
 			}
@@ -817,7 +840,7 @@ static php_stream *php_ssh2_exec_command(LIBSSH2_SESSION *session, zend_resource
 				if (libssh2_channel_setenv_ex(channel, key->val, key->len, Z_STRVAL(copyval), Z_STRLEN(copyval))) {
 					php_error_docref(NULL, E_WARNING, "Failed setting environment variable %s on remote end", ZSTR_VAL(key));
 				}
-				zval_dtor(&copyval);
+				zval_ptr_dtor_nogc(&copyval);
 			} else {
 				php_error_docref(NULL, E_NOTICE, "Skipping numeric index in environment array");
 			}
