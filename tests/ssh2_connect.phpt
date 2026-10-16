@@ -13,14 +13,12 @@ var_dump(get_resource_type($ssh));
 echo "**Fingerprint MD5\n";
 $md5 = ssh2_fingerprint($ssh);
 var_dump(is_string($md5));
-var_dump(strlen($md5));
-var_dump(ctype_xdigit($md5));
+var_dump(preg_match('(^[\dA-F]{32}$)', $md5) === 1);
 
 echo "**Fingerprint SHA1\n";
 $sha1 = ssh2_fingerprint($ssh, SSH2_FINGERPRINT_SHA1 | SSH2_FINGERPRINT_HEX);
 var_dump(is_string($sha1));
-var_dump(strlen($sha1));
-var_dump(ctype_xdigit($sha1));
+var_dump(preg_match('(^[\dA-F]{40}$)', $sha1) === 1);
 
 function ssh2t_strset($v) {
   return is_string($v) && (strlen($v) > 0);
@@ -42,11 +40,9 @@ bool(true)
 string(12) "SSH2 Session"
 **Fingerprint MD5
 bool(true)
-int(32)
 bool(true)
 **Fingerprint SHA1
 bool(true)
-int(40)
 bool(true)
 **Negotiation
 bool(true)

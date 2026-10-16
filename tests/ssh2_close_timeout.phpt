@@ -11,7 +11,7 @@ if (!function_exists('ssh2_set_timeout')) {
 <?php require('ssh2_test.inc');
 
 $ssh = ssh2_connect(TEST_SSH2_HOSTNAME, TEST_SSH2_PORT);
-ssh2_auth_pubkey_file($ssh, TEST_SSH2_USER, TEST_SSH2_PUB_KEY, TEST_SSH2_PRIV_KEY);
+ssh2t_auth($ssh);
 
 $start = microtime(true);
 
