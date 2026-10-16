@@ -10,18 +10,15 @@ ssh2t_writes_remote();
 <?php
 require 'ssh2_test.inc';
 
+$ssh = ssh2_connect(TEST_SSH2_HOSTNAME, TEST_SSH2_PORT);
+ssh2t_auth($ssh);
+
 $sessionBaseline = count(get_resources('SSH2 Session'));
 $sftpBaseline = count(get_resources('SSH2 SFTP'));
 $path = ssh2t_tempnam();
-$url = sprintf('ssh2.sftp://%s:%d%s', TEST_SSH2_HOSTNAME, TEST_SSH2_PORT, $path);
-$context = stream_context_create([
-    'ssh2' => [
-        'username' => TEST_SSH2_USER,
-        'password' => TEST_SSH2_PASS,
-    ],
-]);
+$url = sprintf('ssh2.sftp://%s%s', $ssh, $path);
 
-$stream = fopen($url, 'wb', false, $context);
+$stream = fopen($url, 'wb', false);
 
 var_dump(is_resource($stream));
 var_dump(fwrite($stream, 'test') === 4);
