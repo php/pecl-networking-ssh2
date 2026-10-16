@@ -18,19 +18,21 @@ $write = null;
 $except = null;
 $timeout = 5;
 $start = time();
+$found = false;
 if (stream_select($read, $write, $except, $timeout) !== false && count($read) > 0) {
 	while($line = fgets($shell)) {
-	    echo $line;
+	    if (str_contains($line, 'howdy') && !str_contains($line, 'echo')) {
+        	$found = true;
+    	}
 	}
 }
+var_dump($found);
+
 $elapsed = time() - $start;
 var_dump(($elapsed < $timeout));
 
 --EXPECTF--
 bool(true)
 resource(%d) of type (stream)
-%a
-%a
-%a
-howdy
-%sbool(true)
+bool(true)
+bool(true)

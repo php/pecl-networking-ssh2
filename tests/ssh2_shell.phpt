@@ -12,13 +12,15 @@ var_dump($shell);
 
 fwrite( $shell, 'echo "foo bar"'.PHP_EOL);
 sleep(1);
+$found = false;
 while($line = fgets($shell)) {
-    echo $line;
+    if (str_contains($line, 'foo bar') && !str_contains($line, 'echo')) {
+        $found = true;
+    }
 }
 
+var_dump($found);
 --EXPECTF--
 bool(true)
 resource(%d) of type (stream)
-%a
-foo bar
-%a
+bool(true)
