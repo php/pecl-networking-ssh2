@@ -1,7 +1,18 @@
 --TEST--
 ssh2_auth_pubkey_file() - Tests authentication with a key
 --SKIPIF--
-<?php require('ssh2_skip.inc'); ?>
+<?php
+  require('ssh2_skip.inc');
+
+  if (TEST_SSH2_PUB_KEY === false || TEST_SSH2_PRIV_KEY === false) {
+    echo "skip ";
+
+    if (TEST_SSH2_PUB_KEY === false) echo "TEST_SSH2_PUB_KEY ";
+    if (TEST_SSH2_PRIV_KEY === false) echo "TEST_SSH2_PRIV_KEY ";
+
+    echo "not set";
+  }
+ ?>
 --FILE--
 <?php require('ssh2_test.inc');
 
