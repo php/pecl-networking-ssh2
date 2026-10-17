@@ -28,7 +28,7 @@
 #error "The ssh2 extension requires libssh2 1.9.0 or newer"
 #endif
 
-#define PHP_SSH2_VERSION				"1.5.0"
+#define PHP_SSH2_VERSION				"1.6.0"
 #define PHP_SSH2_DEFAULT_PORT			22
 
 /* Exported Constants */
