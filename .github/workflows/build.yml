@@ -9,6 +9,9 @@ on:
         types: [created]
     create:
 
+permissions:
+    contents: write
+
 jobs:
     windows:
         runs-on: windows-latest
