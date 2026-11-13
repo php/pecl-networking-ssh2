@@ -81,7 +81,7 @@ if test "$PHP_SSH2" != "no"; then
   [
     AC_DEFINE(PHP_SSH2_CHANNEL_SIGNAL, 1, [Have libssh2 with channel signal support])
   ],[
-    AC_MSG_ERROR([libssh2_channel_signal_ex not found; ensure the linked libssh2 matches the 1.9.0 or newer headers])
+    AC_MSG_WARN([libssh2_channel_signal_ex not found; ensure the linked libssh2 matches the 1.11.0 or newer headers. ssh2_send_signal() method will not be avaiable])
   ],[
     -L$SSH2_DIR/lib -lm
   ])

@@ -1,7 +1,12 @@
 --TEST--
 ssh2_send_signal() - Tests sending signal to process
 --SKIPIF--
-<?php require('ssh2_skip.inc'); ssh2t_needs_auth(); ?>
+<?php require('ssh2_skip.inc'); ssh2t_needs_auth(); 
+
+if (!method_exists('ssh2_send_signal')) {
+    print "skip no ssh2_send_signal()  (requires libssh2 1.11.0)";
+}
+?>
 --FILE--
 <?php require('ssh2_test.inc');
 
