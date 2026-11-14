@@ -33,7 +33,7 @@
     </lead>
     <date>2026-10-17</date>
     <version>
-        <release>1.6.0</release>
+        <release>1.6.1</release>
         <api>1.0</api>
     </version>
     <stability>
@@ -42,15 +42,7 @@
     </stability>
     <license uri="http://www.php.net/license">PHP License</license>
     <notes>
-        - Fix: SFTP path corruption for root-path URLs [PR #107] (transcendtient)
-        - Add SHA-256 and raw host key inspection [PR #104] (Raj Siva-Rajah)
-        - Fix: Fix concurrent SSH authentication state and redact secrets [PR #102] (Raj Siva-Rajah)
-        - PHP 8.6 compatibility: use zval_ptr_dtor_nogc instead of zval_dtor alias [PR #108] (Remi Collet)
-        - PHP 8.6 compatibility: Replace zval_is_true [PR #101] (Rainer Jung)
-        - Fix PHP 8.1 Windows CI - missed check in PR #89 [PR #97] (Rasmus Lerdorf)
-        - Add timeout to close path [PR #97] (Rasmus Lerdorf)
-        - Fix: correct SSH2 shell and exec environments [PR #105] (Raj Siva-Rajah)
-        - Fix: preserve SSH2 resource and stream lifecycles [PR #103] (Raj Siva-Rajah)
+        - Allow building with libssh2 above 1.9.0. But with libssh2 below 1.11.0 ssh2_send_signal() method will not be avaiable.
     </notes>
     <contents>
         <dir name="/">
@@ -111,6 +103,24 @@
         <configureoption name="with-ssh2" default="autodetect" prompt="libssh2 prefix?"/>
     </extsrcrelease>
     <changelog>
+        <release>
+            <date>2026-10-17</date>
+            <version>
+                <release>1.6.0</release>
+                <api>1.0</api>
+            </version>
+            <notes>
+                - Fix: SFTP path corruption for root-path URLs [PR #107] (transcendtient)
+                - Add SHA-256 and raw host key inspection [PR #104] (Raj Siva-Rajah)
+                - Fix: Fix concurrent SSH authentication state and redact secrets [PR #102] (Raj Siva-Rajah)
+                - PHP 8.6 compatibility: use zval_ptr_dtor_nogc instead of zval_dtor alias [PR #108] (Remi Collet)
+                - PHP 8.6 compatibility: Replace zval_is_true [PR #101] (Rainer Jung)
+                - Fix PHP 8.1 Windows CI - missed check in PR #89 [PR #97] (Rasmus Lerdorf)
+                - Add timeout to close path [PR #97] (Rasmus Lerdorf)
+                - Fix: correct SSH2 shell and exec environments [PR #105] (Raj Siva-Rajah)
+                - Fix: preserve SSH2 resource and stream lifecycles [PR #103] (Raj Siva-Rajah)
+            </notes>
+        </release>
         <release>
             <date>2026-04-04</date>
             <version>
