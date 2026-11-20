@@ -173,13 +173,25 @@ static ssize_t php_ssh2_sftp_stream_read(php_stream *stream, char *buf, size_t c
 static int php_ssh2_sftp_stream_close(php_stream *stream, int close_handle)
 {
 	php_ssh2_sftp_handle_data *data = (php_ssh2_sftp_handle_data*)stream->abstract;
+	int rc = 0;
+	unsigned long sftp_status = 0;
+
 	if (php_ssh2_sftp_handle_session_is_open(data)) {
-		libssh2_sftp_close(data->handle);
+		php_ssh2_sftp_data *sftp_data = (php_ssh2_sftp_data *)data->sftp_rsrc->ptr;
+		rc = libssh2_sftp_close(data->handle);
+		if (rc == LIBSSH2_ERROR_SFTP_PROTOCOL) {
+			sftp_status = libssh2_sftp_last_error(sftp_data->sftp);
+		}
 	}
 	zend_list_delete(data->sftp_rsrc);
 	efree(data);
 
-	return 0;
+	if (rc == LIBSSH2_ERROR_SFTP_PROTOCOL) {
+		php_error_docref(NULL, E_WARNING, "SFTP CLOSE rejected (status %lu)", sftp_status);
+	} else if (rc != 0) {
+		php_error_docref(NULL, E_WARNING, "SFTP CLOSE not confirmed (libssh2 error %d)", rc);
+	}
+	return rc == 0 ? 0 : -1;
 }
 /* }}} */
 
